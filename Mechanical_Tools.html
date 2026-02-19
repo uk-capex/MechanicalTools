@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- build: 1.03 | 20260219 | Mechanical Tools | uk |-->
+    <!-- Black Deep Tone -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>機械保全 便利ツール集</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c1117;
+  --surface: #161b22;
+  --surface2: #1c2230;
+  --border: #2a3444;
+  --ink: #cdd9e5;
+  --muted: #768390;
+  --accent: #388bfd;
+  --accent-dim: #1c3a6b;
+  --good: #3fb950;
+  --good-dim: #0f2d17;
+  --warn: #d29922;
+  --warn-dim: #2e2009;
+  --bad: #f85149;
+  --bad-dim: #3b1016;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-text-size-adjust: 100%; /* iOS 横向き時の文字自動拡大防止 */
+  text-size-adjust: 100%;
+}
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+header h1 { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+.badge-green { border-color: var(--good); color: var(--good); }
+.badge-blue  { border-color: var(--accent); color: var(--accent); }
+
+.tabbar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.tabbar::-webkit-scrollbar { height: 3px; }
+.tabbar::-webkit-scrollbar-thumb { background: var(--border); }
+.tab-btn {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent; /* iOS タップ時のハイライト除去 */
+  touch-action: manipulation;               /* ダブルタップズーム無効化 */
+  min-height: 44px;                         /* iOS 推奨タッチターゲット最小サイズ */
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.tab-content { display: none; flex: 1; overflow: hidden; }
+.tab-content.active { display: flex; }
+
+.two-panel {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+.panel-left {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.panel-right {
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.field { margin-bottom: 9px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+input[type="number"], input[type="text"], select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink);
+  padding: 7px 10px;
+  font-size: 16px; /* iOS Safari: 16px未満だと自動ズームが走り入力不可になる */
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none; /* iOS デフォルトスタイル解除 */
+  appearance: none;
+}
+input:focus, select:focus { border-color: var(--accent); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.divider { border: none; border-top: 1px solid var(--border); }
+
+.result-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.result-cards-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.card .card-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.card .card-value { font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; line-height: 1; }
+.card .card-unit  { font-size: 12px; color: var(--muted); margin-left: 2px; }
+.card .card-sub   { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.card.accent { border-color: var(--accent); background: var(--accent-dim); }
+.card.good   { border-color: var(--good);   background: var(--good-dim);   }
+.card.warn   { border-color: var(--warn);   background: var(--warn-dim);   }
+.card.bad    { border-color: var(--bad);    background: var(--bad-dim);    }
+
+.data-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--surface2);
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 8px 10px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
+tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--muted); }
+.hl { color: var(--accent); font-weight: 600; }
+.good-text { color: var(--good); font-weight: 600; }
+.warn-text { color: var(--warn); font-weight: 600; }
+.bad-text  { color: var(--bad);  font-weight: 600; }
+
+.memo {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px; color: var(--muted); line-height: 1.8;
+}
+.memo b { color: var(--ink); }
+
+/* ベアリング検索 */
+.search-wrap { position: relative; }
+.search-wrap input { padding-left: 32px; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+.bearing-result-info { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* 単位変換 */
+.conv-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.conv-card .conv-title { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+.conv-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+.conv-arrow { color: var(--muted); font-size: 16px; text-align: center; }
+.conv-result {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 7px 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  color: var(--accent); font-weight: 600;
+}
+
+/* はめあい公差 専用 */
+.fit-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fit-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.fit-block-title { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 10px; letter-spacing: .06em; }
+.fit-dim-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.fit-dim-row:last-child { border-bottom: none; }
+.fit-dim-label { font-size: 12px; color: var(--muted); }
+.fit-dim-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+.fit-summary {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.fit-sum-item .fit-sum-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.fit-sum-item .fit-sum-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px; font-weight: 700;
+}
+.fit-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* バージョンバッジ */
+#verBadge {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+@media (max-width: 700px) {
+  .two-panel { grid-template-columns: 1fr; }
+  .panel-left { border-right: none; border-bottom: 1px solid var(--border); max-height: 45vh; }
+  .result-cards, .result-cards-4 { grid-template-columns: 1fr 1fr; }
+  .fit-result-grid, .fit-summary { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔧 機械保全 便利ツール集</h1>
+  <span class="badge badge-green">オフライン</span>
+  <span class="badge badge-blue">自動計算</span>
+  <span id="verBadge">ver.--</span>
+</header>
+
+<div class="tabbar">
+  <button class="tab-btn active" onclick="showTab('shrink',event.currentTarget)">🔥 焼き嵌め</button>
+  <button class="tab-btn" onclick="showTab('screw',event.currentTarget)">⚙️ ネジ</button>
+  <button class="tab-btn" onclick="showTab('pipe',event.currentTarget)">🚿 管用ネジ</button>
+  <button class="tab-btn" onclick="showTab('cbore',event.currentTarget)">🔩 座グリ</button>
+  <button class="tab-btn" onclick="showTab('gear',event.currentTarget)">⚙️ 歯車</button>
+  <button class="tab-btn" onclick="showTab('chain',event.currentTarget)">⛓️ チェーン</button>
+  <button class="tab-btn" onclick="showTab('bearing',event.currentTarget)">🎡 ベアリング</button>
+  <button class="tab-btn" onclick="showTab('snap',event.currentTarget)">🔗 スナップリング</button>
+  <button class="tab-btn" onclick="showTab('fit',event.currentTarget)">📏 はめあい公差</button>
+  <button class="tab-btn" onclick="showTab('unit',event.currentTarget)">📐 単位変換</button>
+</div>
+
+<!-- ══════ TAB: 焼き嵌め ══════ -->
+<div id="tab-shrink" class="tab-content active">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">基本寸法</div>
+        <div class="field"><label>呼び径 D (mm)</label>
+          <input type="number" id="sh-D" step="0.001" value="50" oninput="calcShrink()">
+        </div>
+        <div class="two-col">
+          <div class="field"><label>狙い締め代 δ (mm)</label>
+            <input type="number" id="sh-delta" step="0.001" value="0.025" oninput="calcShrink()">
+          </div>
+          <div class="field"><label>組立マージン (mm)</label>
+            <input type="number" id="sh-margin" step="0.001" value="0.02" oninput="calcShrink()">
+          </div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="section-title">材料 — 穴側</div>
+        <div class="field"><label>材料プリセット</label>
+          <select id="sh-alphaH-sel" onchange="shrinkSyncAlpha('H')">
+            <option value="12e-6">鋼・S45C（12×10⁻⁶ /℃）</option>
+            <option value="10.5e-6">ねずみ鋳鉄（10.5×10⁻⁶ /℃）</option>
+            <option value="17e-6">SUS系（17×10⁻⁶ /℃）</option>
+            <option value="23e-6">アルミ（23×10⁻⁶ /℃）</option>
+            <option value="20.5e-6">真鍮（20.5×10⁻⁶ /℃）</option>
+            <option value="custom">カスタム入力</option>
+          </select>
+        </div>
+        <div class="field" id="sh-alphaH-custom-wrap" style="display:none">
+          <label>α穴 カスタム値 (/℃)</label>
+          <input type="number" id="sh-alphaH-custom" step="1e-7" value="12e-6" oninput="calcShrink()">
+        </div>
+        <div class="two-col">
+          <div class="field"><label>初期温度 (℃)</label><input type="number" id="sh-TH0" step="1" value="20" min="-273" oninput="calcShrink()"></div>
+          <div class="field"><label>組立温度 (℃)</label><input type="number" id="sh-THt" step="1" value="200" min="-273" oninput="calcShrink()"></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="section-title">材料 — 軸側</div>
+        <div class="field"><label>材料プリセット</label>
+          <select id="sh-alphaS-sel" onchange="shrinkSyncAlpha('S')">
+            <option value="12e-6">鋼・S45C（12×10⁻⁶ /℃）</option>
+            <option value="10.5e-6">ねずみ鋳鉄（10.5×10⁻⁶ /℃）</option>
+            <option value="17e-6">SUS系（17×10⁻⁶ /℃）</option>
+            <option value="23e-6">アルミ（23×10⁻⁶ /℃）</option>
+            <option value="20.5e-6">真鍮（20.5×10⁻⁶ /℃）</option>
+            <option value="custom">カスタム入力</option>
+          </select>
+        </div>
+        <div class="field" id="sh-alphaS-custom-wrap" style="display:none">
+          <label>α軸 カスタム値 (/℃)</label>
+          <input type="number" id="sh-alphaS-custom" step="1e-7" value="12e-6" oninput="calcShrink()">
+        </div>
+        <div class="two-col">
+          <div class="field"><label>初期温度 (℃)</label><input type="number" id="sh-TS0" step="1" value="20" min="-273" oninput="calcShrink()"></div>
+          <div class="field"><label>組立温度 (℃)</label><input type="number" id="sh-TSt" step="1" value="20" min="-273" oninput="calcShrink()"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-right">
+      <!-- 判定バー -->
+      <div id="sh-verdict" class="card" style="display:flex;align-items:center;gap:12px;padding:14px 18px">
+        <div id="sh-verdict-icon" style="font-size:24px;line-height:1">—</div>
+        <div>
+          <div id="sh-verdict-main" style="font-weight:700;font-size:15px">計算中...</div>
+          <div id="sh-verdict-sub" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+        </div>
+      </div>
+      <!-- サマリーカード -->
+      <div class="result-cards">
+        <div class="card">
+          <div class="card-label">組立時クリアランス</div>
+          <div class="card-value" id="sh-clear">—<span class="card-unit">mm</span></div>
+          <div class="card-sub" id="sh-clear-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">穴の拡大量 ΔD穴</div>
+          <div class="card-value" id="sh-dhole">—<span class="card-unit">mm</span></div>
+          <div class="card-sub" id="sh-dhole-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">軸の縮小量 ΔD軸</div>
+          <div class="card-value" id="sh-dshaft">—<span class="card-unit">mm</span></div>
+          <div class="card-sub" id="sh-dshaft-sub"></div>
+        </div>
+      </div>
+      <!-- 詳細テーブル -->
+      <div class="data-table-wrap">
+        <table><thead><tr><th>項目</th><th>値</th></tr></thead>
+        <tbody id="sh-tbody"></tbody></table>
+      </div>
+      <!-- 逆算 -->
+      <div>
+        <div class="section-title">片側のみで達成する場合の必要温度差</div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-label">穴のみ加熱（軸は常温）</div>
+            <div class="card-value" id="sh-rev-hole" style="font-size:16px">—</div>
+            <div class="card-sub" id="sh-rev-hole-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">軸のみ冷却（穴は常温）</div>
+            <div class="card-value" id="sh-rev-shaft" style="font-size:16px">—</div>
+            <div class="card-sub" id="sh-rev-shaft-sub"></div>
+          </div>
+        </div>
+      </div>
+      <div class="memo" id="sh-memo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: ネジ ══════ -->
+<div id="tab-screw" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">ネジ種別</div>
+        <div class="field"><label>規格</label>
+          <select id="screw-type" onchange="buildScrewSelect()">
+            <option value="metric">メートルネジ（M）</option>
+            <option value="inch-unc">インチネジ UNC</option>
+            <option value="inch-unf">インチネジ UNF</option>
+          </select>
+        </div>
+        <div class="field"><label>呼び径を選択</label>
+          <select id="screw-size" onchange="calcScrew()"></select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>タップ下穴</b>：ドリルで開けてからタップを切る際の穴径<br>
+        <b>ダイス軸径</b>：丸棒にダイスでネジを切る際の棒径<br>
+        有効断面積は締付け軸力計算に使用
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards">
+        <div class="card accent"><div class="card-label">呼び径</div><div class="card-value" id="sc-d">—<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">ピッチ</div><div class="card-value" id="sc-pitch">—<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">有効断面積</div><div class="card-value" id="sc-area">—<span class="card-unit">mm²</span></div></div>
+      </div>
+      <div class="data-table-wrap">
+        <table><thead><tr><th>項目</th><th>推奨値</th><th>備考</th></tr></thead>
+        <tbody id="screw-tbody"></tbody></table>
+      </div>
+
+      <!-- 細目ピッチ表 -->
+      <div id="fine-pitch-section">
+        <div class="section-title" style="margin-top:4px">細目ピッチ一覧（メートル細目ネジ）</div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>呼び径</th>
+                <th>並目ピッチ</th>
+                <th>細目 1</th>
+                <th>細目 2</th>
+                <th>細目 3</th>
+              </tr>
+            </thead>
+            <tbody id="fine-pitch-tbody"></tbody>
+          </table>
+        </div>
+        <div class="memo" style="margin-top:8px">
+          <b>細目ネジとは</b>：同じ呼び径で並目より小さいピッチ。振動環境での緩み止め・薄肉部品・精密調整機構に使用。<br>
+          <b>タップ下穴径（目安）</b> ≈ 呼び径 − ピッチ（鉄鋼）
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: 管用ネジ ══════ -->
+<div id="tab-pipe" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">配管種別・呼び径</div>
+        <div class="field"><label>配管種別</label>
+          <select id="pipe-type" onchange="calcPipe()">
+            <option value="sgp" selected>SGP（配管用炭素鋼鋼管・白ガス管）</option>
+            <option value="sus">SUS（ステンレス鋼管 SUS304/316）</option>
+            <option value="copper">銅管（K・L・M タイプ）</option>
+          </select>
+        </div>
+        <div class="field"><label>呼び径（A 呼称）</label>
+          <select id="pipe-size" onchange="calcPipe()">
+            <option value="6">6A（1/8"）</option>
+            <option value="8">8A（1/4"）</option>
+            <option value="10">10A（3/8"）</option>
+            <option value="15" selected>15A（1/2"）</option>
+            <option value="20">20A（3/4"）</option>
+            <option value="25">25A（1"）</option>
+            <option value="32">32A（1-1/4"）</option>
+            <option value="40">40A（1-1/2"）</option>
+            <option value="50">50A（2"）</option>
+            <option value="65">65A（2-1/2"）</option>
+            <option value="80">80A（3"）</option>
+            <option value="100">100A（4"）</option>
+            <option value="125">125A（5"）</option>
+            <option value="150">150A（6"）</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>Rc（旧 PT）</b>：管用テーパねじ（雌ねじ）/ 1/16 テーパ<br>
+        <b>R（旧 PT）</b>：管用テーパねじ（雄ねじ）<br>
+        <b>Rp（旧 PS）</b>：管用平行ねじ（雌ねじ）<br><br>
+        <b>シール方法</b>：テーパねじ→シールテープ / 平行ねじ→Oリング・ガスケット<br>
+        <b>SGP外径</b>は JIS G 3452 準拠。呼び径≠実寸に注意。
+      </div>
+    </div>
+    <div class="panel-right">
+      <!-- メインカード：呼び径・インチ呼び・外径 -->
+      <div class="result-cards" id="pipe-cards">
+        <div class="card accent">
+          <div class="card-label">呼び径（A）</div>
+          <div class="card-value" id="pipe-a">—<span class="card-unit">A</span></div>
+        </div>
+        <div class="card accent">
+          <div class="card-label">インチ呼び</div>
+          <div class="card-value" id="pipe-inch" style="font-size:16px">—</div>
+        </div>
+        <div class="card good">
+          <div class="card-label">配管外径 OD</div>
+          <div class="card-value" id="pipe-od">—<span class="card-unit">mm</span></div>
+        </div>
+      </div>
+      <!-- 管詳細 -->
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>項目</th><th>寸法 / 値</th><th>備考</th></tr></thead>
+          <tbody id="pipe-tbody"></tbody>
+        </table>
+      </div>
+      <!-- 管用ネジ詳細 -->
+      <div>
+        <div class="section-title">管用テーパネジ Rc / R（JIS B 0203）</div>
+        <div class="data-table-wrap">
+          <table>
+            <thead><tr><th>項目</th><th>寸法 / 値</th><th>備考</th></tr></thead>
+            <tbody id="pipe-thread-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: 座グリ ══════ -->
+<div id="tab-cbore" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">座グリ種別</div>
+        <div class="field"><label>加工種別</label>
+          <select id="cbore-type" onchange="calcCbore()">
+            <option value="cap">キャップスクリュー（六角穴付きボルト）座グリ</option>
+            <option value="csk">皿ネジ（フラットヘッド）座グリ</option>
+          </select>
+        </div>
+        <div class="field"><label>ネジ呼び径</label>
+          <select id="cbore-size" onchange="calcCbore()"></select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo" id="cbore-memo">
+        <b>キャップスクリュー座グリ</b>：ボルト頭が埋まる深い穴（円筒穴）<br>
+        座グリ径 ＝ ヘッド径 ＋ 余裕（JIS B 1176 準拠）<br>
+        座グリ深さ ＝ ヘッド高さ ＋ 0.3mm 程度
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards" id="cbore-cards">
+        <div class="card accent"><div class="card-label">ネジ呼び径</div><div class="card-value" id="cb-d">—<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label" id="cb-label1">座グリ径</div><div class="card-value" id="cb-v1">—<span class="card-unit">mm</span></div></div>
+        <div class="card good"><div class="card-label" id="cb-label2">座グリ深さ</div><div class="card-value" id="cb-v2">—<span class="card-unit">mm</span></div></div>
+      </div>
+      <div class="data-table-wrap">
+        <table><thead><tr><th>項目</th><th>寸法（mm）</th><th>備考</th></tr></thead>
+        <tbody id="cbore-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: 歯車 ══════ -->
+<div id="tab-gear" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">歯車諸元</div>
+        <div class="field"><label>モジュール m</label>
+          <select id="gear-module" onchange="gearModuleChange()">
+            <option value="0.5">0.5</option><option value="0.8">0.8</option>
+            <option value="1">1</option><option value="1.25">1.25</option>
+            <option value="1.5">1.5</option><option value="2" selected>2</option>
+            <option value="2.5">2.5</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option>
+            <option value="6">6</option><option value="8">8</option>
+            <option value="10">10</option><option value="custom">カスタム</option>
+          </select>
+        </div>
+        <div class="field" id="gear-module-custom-wrap" style="display:none">
+          <label>カスタムモジュール</label>
+          <input type="number" id="gear-module-custom" step="0.1" value="2" oninput="calcGear()">
+        </div>
+        <div class="two-col">
+          <div class="field"><label>歯数 Z₁（駆動側）</label><input type="number" id="gear-z1" value="20" min="5" oninput="calcGear()"></div>
+          <div class="field"><label>歯数 Z₂（従動側）</label><input type="number" id="gear-z2" value="40" min="5" oninput="calcGear()"></div>
+        </div>
+        <div class="field"><label>圧力角 α（°）</label>
+          <select id="gear-alpha" onchange="calcGear()">
+            <option value="20" selected>20°（標準）</option>
+            <option value="14.5">14.5°（旧規格）</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>ピッチ円径</b> = m × Z<br>
+        <b>外径（歯先円）</b> = m × (Z + 2)<br>
+        <b>歯底円径</b> = m × (Z − 2.5)<br>
+        <b>中心距離</b> = m × (Z₁ + Z₂) / 2
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards">
+        <div class="card accent"><div class="card-label">中心距離</div><div class="card-value" id="gr-center">—<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">速度比</div><div class="card-value" id="gr-ratio">—</div><div class="card-sub" id="gr-ratio-sub"></div></div>
+        <div class="card"><div class="card-label">モジュール</div><div class="card-value" id="gr-mod">—</div></div>
+      </div>
+      <div class="data-table-wrap">
+        <table><thead><tr><th>項目</th><th>歯車 1（Z₁）</th><th>歯車 2（Z₂）</th></tr></thead>
+        <tbody id="gear-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: チェーン ══════ -->
+<div id="tab-chain" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">チェーン規格</div>
+        <div class="field"><label>規格選択</label>
+          <select id="chain-type" onchange="calcChain()">
+            <optgroup label="JIS（ローラーチェーン）">
+              <option value="25A">25A — ピッチ 6.35mm</option>
+              <option value="35A">35A — ピッチ 9.525mm</option>
+              <option value="40A" selected>40A — ピッチ 12.70mm</option>
+              <option value="50A">50A — ピッチ 15.875mm</option>
+              <option value="60A">60A — ピッチ 19.05mm</option>
+              <option value="80A">80A — ピッチ 25.40mm</option>
+              <option value="100A">100A — ピッチ 31.75mm</option>
+            </optgroup>
+            <optgroup label="ANSI（インチ系）">
+              <option value="25">25 — ピッチ 6.35mm</option>
+              <option value="35">35 — ピッチ 9.525mm</option>
+              <option value="40">40 — ピッチ 12.70mm</option>
+              <option value="50">50 — ピッチ 15.875mm</option>
+              <option value="60">60 — ピッチ 19.05mm</option>
+              <option value="80">80 — ピッチ 25.40mm</option>
+              <option value="100">100 — ピッチ 31.75mm</option>
+            </optgroup>
+          </select>
+        </div>
+        <hr class="divider">
+        <div class="section-title">スプロケット</div>
+        <div class="two-col">
+          <div class="field"><label>歯数 N₁（駆動側）</label><input type="number" id="sp-n1" value="15" min="6" oninput="calcChain()"></div>
+          <div class="field"><label>歯数 N₂（従動側）</label><input type="number" id="sp-n2" value="30" min="6" oninput="calcChain()"></div>
+        </div>
+        <div class="field"><label>軸間距離 C（mm）</label><input type="number" id="sp-span" value="300" min="1" oninput="calcChain()"></div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>ピッチ円径</b> = P / sin(π/N)<br>
+        <b>リンク数</b>：偶数に合わせるのが基本。奇数の場合はオフセットリンクが必要。
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards">
+        <div class="card accent"><div class="card-label">ピッチ</div><div class="card-value" id="ch-pitch">—<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">必要リンク数</div><div class="card-value" id="ch-links">—<span class="card-unit">L</span></div><div class="card-sub" id="ch-links-sub"></div></div>
+        <div class="card"><div class="card-label">速度比</div><div class="card-value" id="ch-ratio">—</div></div>
+      </div>
+      <div class="data-table-wrap">
+        <table><thead><tr><th>項目</th><th>スプロケット 1（N₁）</th><th>スプロケット 2（N₂）</th></tr></thead>
+        <tbody id="chain-tbody"></tbody></table>
+      </div>
+      <div class="data-table-wrap">
+        <table><thead><tr><th colspan="2">チェーン規格諸元</th></tr></thead>
+        <tbody id="chain-spec-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: ベアリング ══════ -->
+<div id="tab-bearing" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">型式検索</div>
+        <div class="field"><label>型式を入力（例: 6205, 7308, NU210）</label>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="bearing-query" placeholder="型式を入力..." oninput="searchBearing()">
+          </div>
+          <div class="bearing-result-info" id="bearing-hit-info"></div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>内径で絞り込み（mm）</label>
+            <input type="number" id="bearing-bore" placeholder="例: 25" oninput="filterBearing()">
+          </div>
+          <div class="field"><label>外径で絞り込み（mm）</label>
+            <input type="number" id="bearing-od" placeholder="例: 52" oninput="filterBearing()">
+          </div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>型式の読み方（深溝玉軸受 6xxx）</b><br>
+        6 <b>2</b> <b>05</b> → 系列2、内径コード05（25mm）<br>
+        内径コード：00=10mm, 01=12mm, 02=15mm, 03=17mm, 04以降=コード×5mm<br><br>
+        <b>7xxx</b>：アンギュラ玉軸受 / <b>NU,N</b>：円筒ころ軸受
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>型式</th><th>内径 d</th><th>外径 D</th><th>幅 B</th><th>Cr (kN)</th><th>C0r (kN)</th></tr></thead>
+          <tbody id="bearing-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: スナップリング ══════ -->
+<div id="tab-snap" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">スナップリング種別</div>
+        <div class="field"><label>種別</label>
+          <select id="snap-type" onchange="calcSnap()">
+            <option value="shaft">軸用スナップリング（C形・外溝）</option>
+            <option value="bore">穴用スナップリング（C形・内溝）</option>
+          </select>
+        </div>
+        <div class="field"><label>軸径 / 穴径（mm）</label>
+          <select id="snap-size" onchange="calcSnap()"></select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>軸用</b>：軸外径に溝を切り、外側からリングをはめる<br>
+        <b>穴用</b>：穴内径に溝を切り、内側からリングをはめる<br><br>
+        <b>溝径</b>：リングが収まる溝の底径<br>
+        <b>溝幅</b>：リングの板厚に対応した溝の幅<br>
+        <b>溝深さ</b>：軸または穴面からの溝の深さ<br>
+        JIS B 2804 準拠
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards">
+        <div class="card accent"><div class="card-label" id="snap-size-label">軸径</div><div class="card-value" id="snap-d">—<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">溝径</div><div class="card-value" id="snap-groove-d">—<span class="card-unit">mm</span></div><div class="card-sub" id="snap-groove-d-tol"></div></div>
+        <div class="card good"><div class="card-label">溝幅</div><div class="card-value" id="snap-groove-w">—<span class="card-unit">mm</span></div><div class="card-sub" id="snap-groove-w-tol"></div></div>
+      </div>
+      <div class="data-table-wrap">
+        <table><thead><tr><th>項目</th><th>寸法（mm）</th><th>公差 / 備考</th></tr></thead>
+        <tbody id="snap-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: はめあい公差 ══════ -->
+<div id="tab-fit" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">はめあい条件</div>
+        <div class="field"><label>呼び径（mm）</label>
+          <select id="fit-size">
+            <option value="3">3</option><option value="6">6</option>
+            <option value="10">10</option><option value="14">14</option>
+            <option value="18">18</option><option value="24">24</option>
+            <option value="30">30</option><option value="40">40</option>
+            <option value="50" selected>50</option><option value="65">65</option>
+            <option value="80">80</option><option value="100">100</option>
+            <option value="120">120</option><option value="140">140</option>
+            <option value="160">160</option><option value="180">180</option>
+            <option value="200">200</option><option value="225">225</option>
+            <option value="250">250</option><option value="280">280</option>
+            <option value="315">315</option><option value="355">355</option>
+            <option value="400">400</option><option value="450">450</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>穴公差域（例: H7）</label>
+            <select id="fit-hole">
+              <option value="H5">H5</option><option value="H6">H6</option>
+              <option value="H7" selected>H7</option><option value="H8">H8</option>
+              <option value="H9">H9</option><option value="H10">H10</option>
+              <option value="H11">H11</option><option value="JS7">JS7</option>
+              <option value="K7">K7</option><option value="M7">M7</option>
+              <option value="N7">N7</option><option value="P7">P7</option>
+            </select>
+          </div>
+          <div class="field"><label>軸公差域（例: p6）</label>
+            <select id="fit-shaft">
+              <option value="d9">d9</option><option value="e7">e7</option>
+              <option value="f6">f6</option><option value="f7">f7</option>
+              <option value="g5">g5</option><option value="g6">g6</option>
+              <option value="h5">h5</option><option value="h6">h6</option>
+              <option value="h7">h7</option><option value="h8">h8</option>
+              <option value="h9">h9</option><option value="js5">js5</option>
+              <option value="js6">js6</option><option value="k5">k5</option>
+              <option value="k6">k6</option><option value="m5">m5</option>
+              <option value="m6">m6</option><option value="n5">n5</option>
+              <option value="n6">n6</option><option value="p6" selected>p6</option>
+              <option value="r6">r6</option><option value="s6">s6</option>
+              <option value="s7">s7</option><option value="t6">t6</option>
+              <option value="u6">u6</option><option value="u7">u7</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <button onclick="calcFit()" style="width:100%;background:var(--accent);color:#0c1117;border:none;border-radius:6px;padding:9px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:14px">計算する</button>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>すきまばめ</b>：常にすきまが生じる（軸＜穴）<br>
+        <b>中間ばめ</b>：すきまにも、しめしろにもなりえる<br>
+        <b>しまりばめ</b>：常にしめしろが生じる（軸＞穴）<br><br>
+        <b>H7/p6</b>：軽圧入（焼き嵌め対象）<br>
+        <b>H7/h6</b>：すべりばめ（精密なすきまばめ）<br>
+        <b>H7/f7</b>：すきまばめ（回転部品）
+      </div>
+    </div>
+    <div class="panel-right" id="fit-right">
+      <div style="color:var(--muted);text-align:center;padding:40px 0">穴・軸の公差域を選んで「計算する」を押してください</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: 単位変換 ══════ -->
+<div id="tab-unit" class="tab-content">
+  <div class="two-panel" style="grid-template-columns:1fr">
+    <div class="panel-right" style="max-width:900px;margin:0 auto;width:100%">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+        <!-- ① 荷重 -->
+        <div class="conv-card">
+          <div class="conv-title">⬇️ 荷重（N / kgf / kN / lbf）</div>
+          <div class="field"><label>N（ニュートン）</label><input type="number" id="u-load-n" step="0.01" placeholder="N" oninput="convLoad('n')"></div>
+          <div class="two-col">
+            <div class="field"><label>kgf（重量キログラム）</label><input type="number" id="u-load-kgf" step="0.001" placeholder="kgf" oninput="convLoad('kgf')"></div>
+            <div class="field"><label>kN（キロニュートン）</label><input type="number" id="u-load-kn" step="0.0001" placeholder="kN" oninput="convLoad('kn')"></div>
+          </div>
+          <div class="field"><label>lbf（重量ポンド）</label><input type="number" id="u-load-lbf" step="0.01" placeholder="lbf" oninput="convLoad('lbf')"></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">1 kgf = 9.80665 N &nbsp;｜&nbsp; 1 lbf = 4.44822 N</div>
+        </div>
+
+        <!-- ② 圧力（拡張版） -->
+        <div class="conv-card">
+          <div class="conv-title">💨 圧力</div>
+          <div class="two-col" style="align-items:start">
+            <!-- 左列：SI 系 大→小 -->
+            <div>
+              <div class="section-title" style="margin-bottom:6px">SI / 気象系</div>
+              <div class="field"><label>MPa</label><input type="number" id="u-mpa" step="0.0001" placeholder="MPa" oninput="convPress('mpa')"></div>
+              <div class="field"><label>kPa</label><input type="number" id="u-kpa" step="0.01" placeholder="kPa" oninput="convPress('kpa')"></div>
+              <div class="field"><label>hPa</label><input type="number" id="u-hpa" step="0.01" placeholder="hPa" oninput="convPress('hpa')"></div>
+              <div class="field"><label>Pa</label><input type="number" id="u-pa" step="1" placeholder="Pa" oninput="convPress('pa')"></div>
+              <div class="field"><label>psi</label><input type="number" id="u-psi" step="0.01" placeholder="psi" oninput="convPress('psi')"></div>
+            </div>
+            <!-- 右列：重力系 + bar -->
+            <div>
+              <div class="section-title" style="margin-bottom:6px">重力系 / 工学系</div>
+              <div class="field"><label>kgf/cm²</label><input type="number" id="u-kgfcm2" step="0.001" placeholder="kgf/cm²" oninput="convPress('kgfcm2')"></div>
+              <div class="field"><label>kgf/mm²</label><input type="number" id="u-kgfmm2" step="0.000001" placeholder="kgf/mm²" oninput="convPress('kgfmm2')"></div>
+              <div class="field"><label>N/mm²（= MPa）</label><input type="number" id="u-nmm2" step="0.0001" placeholder="N/mm²" oninput="convPress('nmm2')"></div>
+              <div class="field"><label>kN/mm²（= GPa）</label><input type="number" id="u-knmm2" step="0.0000001" placeholder="kN/mm²" oninput="convPress('knmm2')"></div>
+              <div class="field"><label>bar</label><input type="number" id="u-bar" step="0.0001" placeholder="bar" oninput="convPress('bar')"></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">
+            1 MPa = 1 N/mm² = 10 bar = 1,000 kPa = 10.197 kgf/cm² = 145.04 psi<br>
+            1 kgf/mm² = 9.80665 MPa &nbsp;｜&nbsp; 1 kN/mm² = 1 GPa
+          </div>
+        </div>
+
+        <!-- ③ トルク -->
+        <div class="conv-card">
+          <div class="conv-title">🔄 トルク（N·m / kgf·cm / lbf·ft）</div>
+          <div class="conv-row">
+            <input type="number" id="u-nm" step="0.01" placeholder="N·m" oninput="convTorque('nm')">
+            <div class="conv-arrow">⇄</div>
+            <input type="number" id="u-kgfcm" step="0.01" placeholder="kgf·cm" oninput="convTorque('kgfcm')">
+          </div>
+          <div style="font-size:11px;color:var(--muted)">1 N·m = 10.197 kgf·cm</div>
+          <div style="margin-top:10px">
+            <div class="conv-row">
+              <input type="number" id="u-nm2" step="0.01" placeholder="N·m" oninput="convTorque2('nm')">
+              <div class="conv-arrow">⇄</div>
+              <input type="number" id="u-lbfft" step="0.01" placeholder="lbf·ft" oninput="convTorque2('lbfft')">
+            </div>
+            <div style="font-size:11px;color:var(--muted)">1 N·m = 0.7376 lbf·ft</div>
+          </div>
+        </div>
+
+        <!-- ④ 動力・回転 -->
+        <div class="conv-card">
+          <div class="conv-title">⚡ 動力・回転</div>
+          <div class="section-title" style="margin-bottom:6px">kW ↔ PS（馬力）</div>
+          <div class="conv-row">
+            <input type="number" id="u-kw" step="0.01" placeholder="kW" oninput="convPow('kw')">
+            <div class="conv-arrow">⇄</div>
+            <input type="number" id="u-ps" step="0.01" placeholder="PS" oninput="convPow('ps')">
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">1 kW = 1.3596 PS</div>
+          <div class="section-title" style="margin-bottom:6px">周速計算（rpm → m/min）</div>
+          <div class="two-col">
+            <div class="field"><label>回転数（rpm）</label><input type="number" id="u-rpm" step="1" placeholder="rpm" oninput="calcPeriph()"></div>
+            <div class="field"><label>径（mm）</label><input type="number" id="u-dia" step="0.1" placeholder="直径 mm" oninput="calcPeriph()"></div>
+          </div>
+          <div class="conv-result" id="u-periph">—</div>
+        </div>
+
+        <!-- ⑤ 温度 -->
+        <div class="conv-card">
+          <div class="conv-title">🌡️ 温度（℃ / ℉ / K）</div>
+          <div class="field"><label>℃（摂氏）</label><input type="number" id="u-temp-c" step="0.1" placeholder="℃" oninput="convTemp('c')"></div>
+          <div class="two-col">
+            <div class="field"><label>℉（華氏）</label><input type="number" id="u-temp-f" step="0.1" placeholder="℉" oninput="convTemp('f')"></div>
+            <div class="field"><label>K（ケルビン）</label><input type="number" id="u-temp-k" step="0.1" placeholder="K" oninput="convTemp('k')"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            ℉ = ℃ × 9/5 + 32 &nbsp;｜&nbsp; K = ℃ + 273.15<br>
+            絶対零度：−273.15 ℃ / 0 K / −459.67 ℉
+          </div>
+        </div>
+
+        <!-- ⑥ 長さ -->
+        <div class="conv-card">
+          <div class="conv-title">📏 長さ（インチ ↔ mm）</div>
+          <div class="conv-row">
+            <input type="number" id="u-inch" step="0.001" placeholder="インチ" oninput="convLen('inch')">
+            <div class="conv-arrow">⇄</div>
+            <input type="number" id="u-mm" step="0.001" placeholder="mm" oninput="convLen('mm')">
+          </div>
+          <div style="font-size:11px;color:var(--muted)">1 inch = 25.4 mm</div>
+          <div style="margin-top:8px">
+            <div class="section-title" style="margin-bottom:6px">分数インチ変換</div>
+            <select id="u-frac" onchange="convFrac()">
+              <option value="">選択...</option>
+              <option value="0.0625">1/16"</option><option value="0.125">1/8"</option>
+              <option value="0.1875">3/16"</option><option value="0.25">1/4"</option>
+              <option value="0.3125">5/16"</option><option value="0.375">3/8"</option>
+              <option value="0.4375">7/16"</option><option value="0.5">1/2"</option>
+              <option value="0.5625">9/16"</option><option value="0.625">5/8"</option>
+              <option value="0.6875">11/16"</option><option value="0.75">3/4"</option>
+              <option value="0.875">7/8"</option><option value="1.0">1"</option>
+            </select>
+            <div class="conv-result" id="u-frac-result" style="margin-top:6px">—</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ════ タブ切り替え ════
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+  const tabEl = $('tab-' + name);
+  if (tabEl) tabEl.classList.add('active');
+  // iOS Safari: currentTargetが取れないケースへの保険
+  const target = btn || event?.currentTarget || event?.target;
+  if (target && target.classList) target.classList.add('active');
+}
+
+// ════════════════════════════════════════
+// TAB: ネジ
+// ════════════════════════════════════════
+const SCREW_DATA = {
+  metric: [
+    {name:'M2',   d:2,    p:0.400, drill_tap:1.60, drill_die:1.95, area:2.07},
+    {name:'M2.5', d:2.5,  p:0.450, drill_tap:2.05, drill_die:2.45, area:3.39},
+    {name:'M3',   d:3,    p:0.500, drill_tap:2.50, drill_die:2.95, area:5.03},
+    {name:'M4',   d:4,    p:0.700, drill_tap:3.30, drill_die:3.95, area:8.78},
+    {name:'M5',   d:5,    p:0.800, drill_tap:4.20, drill_die:4.95, area:14.2},
+    {name:'M6',   d:6,    p:1.000, drill_tap:5.00, drill_die:5.95, area:20.1},
+    {name:'M8',   d:8,    p:1.250, drill_tap:6.80, drill_die:7.95, area:36.6},
+    {name:'M10',  d:10,   p:1.500, drill_tap:8.50, drill_die:9.95, area:58.0},
+    {name:'M12',  d:12,   p:1.750, drill_tap:10.2, drill_die:11.95,area:84.3},
+    {name:'M14',  d:14,   p:2.000, drill_tap:12.0, drill_die:13.95,area:115},
+    {name:'M16',  d:16,   p:2.000, drill_tap:14.0, drill_die:15.95,area:157},
+    {name:'M18',  d:18,   p:2.500, drill_tap:15.5, drill_die:17.95,area:192},
+    {name:'M20',  d:20,   p:2.500, drill_tap:17.5, drill_die:19.95,area:245},
+    {name:'M22',  d:22,   p:2.500, drill_tap:19.5, drill_die:21.95,area:303},
+    {name:'M24',  d:24,   p:3.000, drill_tap:21.0, drill_die:23.95,area:353},
+    {name:'M27',  d:27,   p:3.000, drill_tap:24.0, drill_die:26.95,area:459},
+    {name:'M30',  d:30,   p:3.500, drill_tap:26.5, drill_die:29.95,area:561},
+    {name:'M36',  d:36,   p:4.000, drill_tap:32.0, drill_die:35.95,area:817},
+    {name:'M42',  d:42,   p:4.500, drill_tap:37.5, drill_die:41.95,area:1120},
+    {name:'M48',  d:48,   p:5.000, drill_tap:43.0, drill_die:47.95,area:1470},
+  ],
+  'inch-unc': [
+    {name:'#4-40',  d:2.845,p:0.635,drill_tap:2.26,drill_die:2.79,area:4.1, inch:'#4'},
+    {name:'#6-32',  d:3.505,p:0.794,drill_tap:2.77,drill_die:3.45,area:6.4, inch:'#6'},
+    {name:'#8-32',  d:4.166,p:0.794,drill_tap:3.45,drill_die:4.11,area:9.4, inch:'#8'},
+    {name:'#10-24', d:4.826,p:1.058,drill_tap:3.76,drill_die:4.75,area:12.3,inch:'#10'},
+    {name:'1/4-20', d:6.350,p:1.270,drill_tap:5.10,drill_die:6.27,area:20.5,inch:'1/4"'},
+    {name:'5/16-18',d:7.938,p:1.411,drill_tap:6.60,drill_die:7.85,area:32.3,inch:'5/16"'},
+    {name:'3/8-16', d:9.525,p:1.588,drill_tap:8.00,drill_die:9.45,area:47.7,inch:'3/8"'},
+    {name:'7/16-14',d:11.11,p:1.814,drill_tap:9.40,drill_die:11.0,area:64.5,inch:'7/16"'},
+    {name:'1/2-13', d:12.70,p:1.954,drill_tap:10.7,drill_die:12.6,area:84.0,inch:'1/2"'},
+    {name:'5/8-11', d:15.88,p:2.309,drill_tap:13.5,drill_die:15.7,area:130, inch:'5/8"'},
+    {name:'3/4-10', d:19.05,p:2.540,drill_tap:16.3,drill_die:18.9,area:189, inch:'3/4"'},
+    {name:'7/8-9',  d:22.23,p:2.822,drill_tap:19.1,drill_die:22.0,area:258, inch:'7/8"'},
+    {name:'1"-8',   d:25.40,p:3.175,drill_tap:21.8,drill_die:25.2,area:335, inch:'1"'},
+  ],
+  'inch-unf': [
+    {name:'#6-40',  d:3.505,p:0.635,drill_tap:2.90,drill_die:3.45,area:7.0, inch:'#6'},
+    {name:'#8-36',  d:4.166,p:0.706,drill_tap:3.55,drill_die:4.11,area:10.1,inch:'#8'},
+    {name:'#10-32', d:4.826,p:0.794,drill_tap:4.00,drill_die:4.75,area:13.4,inch:'#10'},
+    {name:'1/4-28', d:6.350,p:0.907,drill_tap:5.55,drill_die:6.27,area:22.9,inch:'1/4"'},
+    {name:'5/16-24',d:7.938,p:1.058,drill_tap:7.00,drill_die:7.85,area:35.7,inch:'5/16"'},
+    {name:'3/8-24', d:9.525,p:1.058,drill_tap:8.60,drill_die:9.45,area:54.7,inch:'3/8"'},
+    {name:'1/2-20', d:12.70,p:1.270,drill_tap:11.6,drill_die:12.6,area:97.3,inch:'1/2"'},
+    {name:'5/8-18', d:15.88,p:1.411,drill_tap:14.6,drill_die:15.7,area:152, inch:'5/8"'},
+    {name:'3/4-16', d:19.05,p:1.588,drill_tap:17.6,drill_die:18.9,area:222, inch:'3/4"'},
+    {name:'1"-12',  d:25.40,p:2.117,drill_tap:23.3,drill_die:25.2,area:390, inch:'1"'},
+  ]
+};
+// 細目ピッチデータ（JIS B 0207）
+// [呼び径, 並目p, 細目p1, 細目p2, 細目p3]  null=なし
+const FINE_PITCH = [
+  [ 8,  1.25, 1.0,  null, null],
+  [10,  1.5,  1.25, 1.0,  null],
+  [12,  1.75, 1.5,  1.25, null],
+  [14,  2.0,  1.5,  null, null],
+  [16,  2.0,  1.5,  null, null],
+  [18,  2.5,  2.0,  1.5,  null],
+  [20,  2.5,  2.0,  1.5,  null],
+  [22,  2.5,  2.0,  1.5,  null],
+  [24,  3.0,  2.0,  null, null],
+  [27,  3.0,  2.0,  null, null],
+  [30,  3.5,  2.0,  null, null],
+  [33,  3.5,  2.0,  null, null],
+  [36,  4.0,  3.0,  2.0,  null],
+  [39,  4.0,  3.0,  2.0,  null],
+  [42,  4.5,  3.0,  2.0,  null],
+  [45,  4.5,  3.0,  2.0,  null],
+  [48,  5.0,  3.0,  2.0,  null],
+  [52,  5.0,  4.0,  3.0,  2.0],
+  [56,  5.5,  4.0,  3.0,  2.0],
+  [60,  5.5,  4.0,  3.0,  2.0],
+  [64,  6.0,  4.0,  3.0,  2.0],
+  [68,  6.0,  4.0,  3.0,  2.0],
+  [72,  6.0,  4.0,  3.0,  2.0],
+  [76,  6.0,  4.0,  3.0,  2.0],
+  [80,  6.0,  4.0,  3.0,  2.0],
+  [90,  6.0,  4.0,  3.0,  2.0],
+  [100, 6.0,  4.0,  3.0,  2.0],
+];
+
+function buildScrewSelect() {
+  const type = $('screw-type').value;
+  const sel  = $('screw-size');
+  sel.innerHTML = SCREW_DATA[type].map((s,i) => `<option value="${i}">${s.name}</option>`).join('');
+  calcScrew();
+}
+
+function calcScrew() {
+  const type = $('screw-type').value;
+  const s = SCREW_DATA[type][+$('screw-size').value];
+  if (!s) return;
+  $('sc-d').innerHTML     = `${s.d.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('sc-pitch').innerHTML = `${s.p.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('sc-area').innerHTML  = `${s.area.toFixed(1)}<span class="card-unit"> mm²</span>`;
+  const rows = [
+    ['タップ下穴径（鉄・鋼 推奨）', `${s.drill_tap.toFixed(2)} mm`, '標準的な切削タップ'],
+    ['タップ下穴径（アルミ・軟材）', `${(s.drill_tap+0.1).toFixed(2)} mm`, '軟材は少し大きめ'],
+    ['ダイス加工用軸径', `${s.drill_die.toFixed(2)} mm`, '公差 −0/+0.01 程度'],
+    ['有効断面積 As', `${s.area.toFixed(1)} mm²`, '軸力計算に使用'],
+    ['谷径（概算）', `${(s.d - 1.2269*s.p).toFixed(3)} mm`, 'h=0.6134p'],
+    ...(s.inch ? [['インチ呼び', s.inch, '参考']] : []),
+  ];
+  $('screw-tbody').innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${r[2]}</td></tr>`
+  ).join('');
+
+  // 細目テーブル：メートルネジのみ表示
+  const fineSection = $('fine-pitch-section');
+  if (type !== 'metric') { fineSection.style.display = 'none'; return; }
+  fineSection.style.display = '';
+
+  $('fine-pitch-tbody').innerHTML = FINE_PITCH.map(r => {
+    const [d, coarse, f1, f2, f3] = r;
+    const cell = v => v !== null
+      ? `<td class="hl">${v.toFixed(2)}<span style="color:var(--muted);font-size:11px"> mm (下穴 Ø${(d-v).toFixed(2)})</span></td>`
+      : `<td style="color:var(--border)">—</td>`;
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--ink)">M${d}</td>
+      <td style="color:var(--muted)">${coarse.toFixed(2)} mm</td>
+      ${cell(f1)}${cell(f2)}${cell(f3)}
+    </tr>`;
+  }).join('');
+}
+$('screw-type').addEventListener('change', buildScrewSelect);
+buildScrewSelect();
+
+// ════════════════════════════════════════
+// TAB: 座グリ
+// JIS B 1176 / B 4633 準拠
+// cap: [呼び, d_pass, cbore_d, cbore_depth, head_h, head_d, hex_w, note]
+// csk: [呼び, d_pass, csk_d, csk_depth, angle]
+// ════════════════════════════════════════
+const CBORE_DATA = {
+  // [呼び径, 通し穴径, 座グリ径, 座グリ深さ(min), ヘッド径, ヘッド高, 六角穴対辺]
+  cap: [
+    ['M3',  3.4,  6.5,  3.4,  5.5,  3.0,  2.5],
+    ['M4',  4.5,  8.0,  4.4,  7.0,  4.0,  3.0],
+    ['M5',  5.5,  9.5,  5.4,  8.5,  5.0,  4.0],
+    ['M6',  6.6, 11.0,  6.5, 10.0,  6.0,  5.0],
+    ['M8',  9.0, 14.5,  8.6, 13.0,  8.0,  6.0],
+    ['M10', 11.0, 17.5, 10.8, 16.0, 10.0,  8.0],
+    ['M12', 13.5, 20.5, 13.0, 18.0, 12.0, 10.0],
+    ['M14', 15.5, 23.5, 14.5, 21.0, 14.0, 12.0],
+    ['M16', 17.5, 26.5, 16.5, 24.0, 16.0, 14.0],
+    ['M18', 20.0, 30.0, 18.5, 27.0, 18.0, 14.0],
+    ['M20', 22.0, 33.5, 20.5, 30.0, 20.0, 17.0],
+    ['M24', 26.0, 40.0, 24.5, 36.0, 24.0, 19.0],
+  ],
+  // [呼び径, 通し穴径, 皿座グリ径, 深さ, ヘッド対角径, ヘッド高]
+  csk: [
+    ['M2',   2.4,  4.4,  1.2,  3.8, 1.2],
+    ['M2.5', 2.9,  5.5,  1.5,  4.7, 1.5],
+    ['M3',   3.4,  6.3,  1.7,  5.6, 1.7],
+    ['M4',   4.5,  8.4,  2.3,  7.5, 2.3],
+    ['M5',   5.5, 10.4,  2.8,  9.2, 2.8],
+    ['M6',   6.6, 12.6,  3.3, 11.0, 3.3],
+    ['M8',   9.0, 17.3,  4.4, 15.0, 4.4],
+    ['M10', 11.0, 20.0,  5.5, 18.0, 5.5],
+    ['M12', 13.5, 24.0,  6.5, 21.5, 6.5],
+    ['M14', 15.5, 28.0,  7.5, 25.0, 7.5],
+    ['M16', 17.5, 32.0,  8.5, 29.0, 8.5],
+    ['M20', 22.0, 40.0, 10.5, 36.0,10.5],
+  ]
+};
+function buildCboreSelect() {
+  const type = $('cbore-type').value;
+  const sel  = $('cbore-size');
+  const data = CBORE_DATA[type === 'cap' ? 'cap' : 'csk'];
+  sel.innerHTML = data.map((r,i) => `<option value="${i}">${r[0]}</option>`).join('');
+  calcCbore();
+}
+function calcCbore() {
+  const type = $('cbore-type').value;
+  const data = CBORE_DATA[type === 'cap' ? 'cap' : 'csk'];
+  const idx  = +$('cbore-size').value;
+  const r    = data[idx];
+  if (!r) return;
+
+  $('cb-d').innerHTML = `${r[0]}<span class="card-unit"></span>`;
+
+  if (type === 'cap') {
+    $('cb-label1').textContent = '座グリ径';
+    $('cb-label2').textContent = '座グリ深さ（最小）';
+    $('cb-v1').innerHTML = `${r[2].toFixed(1)}<span class="card-unit"> mm</span>`;
+    $('cb-v2').innerHTML = `${r[3].toFixed(1)}<span class="card-unit"> mm</span>`;
+    const rows = [
+      ['通し穴径（並）',       `${r[1].toFixed(1)} mm`, 'JIS B 1001 中'],
+      ['座グリ径',             `${r[2].toFixed(1)} mm`, 'ヘッド径＋余裕'],
+      ['座グリ深さ（最小）',   `${r[3].toFixed(1)} mm`, 'ヘッド高＋0.3mm'],
+      ['ヘッド径',             `${r[4].toFixed(1)} mm`, '参考寸法'],
+      ['ヘッド高さ',           `${r[5].toFixed(1)} mm`, 'JIS B 1176'],
+      ['六角穴対辺',           `${r[6].toFixed(1)} mm`, 'レンチサイズ'],
+    ];
+    $('cbore-tbody').innerHTML = rows.map(x =>
+      `<tr><td>${x[0]}</td><td class="hl">${x[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${x[2]}</td></tr>`
+    ).join('');
+    $('cbore-memo').innerHTML = '<b>キャップスクリュー座グリ</b>：ボルト頭が完全に埋まる円筒穴<br>座グリ深さは最小値。実際は +0.5〜1mm 増しで加工することが多い。<br>通し穴は「並」の他に「精」（−0.1mm）「荒」（+0.5mm）がある。';
+  } else {
+    $('cb-label1').textContent = '皿座グリ径';
+    $('cb-label2').textContent = '皿座グリ深さ';
+    $('cb-v1').innerHTML = `${r[2].toFixed(1)}<span class="card-unit"> mm</span>`;
+    $('cb-v2').innerHTML = `${r[3].toFixed(1)}<span class="card-unit"> mm</span>`;
+    const rows = [
+      ['通し穴径（並）',     `${r[1].toFixed(1)} mm`, 'JIS B 1001 中'],
+      ['皿座グリ径',         `${r[2].toFixed(1)} mm`, '頭部対角径＋余裕'],
+      ['皿座グリ深さ',       `${r[3].toFixed(1)} mm`, 'ヘッド高さ相当'],
+      ['頭部対角径（参考）', `${r[4].toFixed(1)} mm`, 'JIS B 1111'],
+      ['ヘッド高さ',         `${r[5].toFixed(1)} mm`, '参考'],
+      ['皿角度',             '90°', 'JIS 標準'],
+    ];
+    $('cbore-tbody').innerHTML = rows.map(x =>
+      `<tr><td>${x[0]}</td><td class="hl">${x[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${x[2]}</td></tr>`
+    ).join('');
+    $('cbore-memo').innerHTML = '<b>皿ネジ座グリ</b>：頭部が面と同一になる 90° 皿穴加工<br>皿ザグリ深さは頭が僅かに出るくらいが仕上がりきれい。<br>皿ドリルのセンタリングに注意（通し穴は先に開ける）。';
+  }
+}
+$('cbore-type').addEventListener('change', buildCboreSelect);
+buildCboreSelect();
+
+// ════════════════════════════════════════
+// TAB: 歯車
+// ════════════════════════════════════════
+function gearModuleChange() {
+  $('gear-module-custom-wrap').style.display = $('gear-module').value === 'custom' ? '' : 'none';
+  calcGear();
+}
+function calcGear() {
+  const mSel = $('gear-module').value;
+  const m  = mSel === 'custom' ? +$('gear-module-custom').value : +mSel;
+  const z1 = +$('gear-z1').value, z2 = +$('gear-z2').value;
+  if (!m || !z1 || !z2) return;
+  const pcd1 = m*z1, pcd2 = m*z2;
+  const da1  = m*(z1+2), da2 = m*(z2+2);
+  const df1  = m*(z1-2.5), df2 = m*(z2-2.5);
+  const center = m*(z1+z2)/2;
+  $('gr-center').innerHTML = `${center.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('gr-ratio').innerHTML  = (z2/z1).toFixed(3);
+  $('gr-ratio-sub').textContent = `Z₂/Z₁ = ${z2}/${z1}`;
+  $('gr-mod').innerHTML = m;
+  const rows = [
+    ['歯数 Z', z1, z2],
+    ['ピッチ円径 d (mm)', pcd1.toFixed(3), pcd2.toFixed(3)],
+    ['歯先円径 da (mm)', da1.toFixed(3), da2.toFixed(3)],
+    ['歯底円径 df (mm)', df1.toFixed(3), df2.toFixed(3)],
+    ['円ピッチ p (mm)', (Math.PI*m).toFixed(4), (Math.PI*m).toFixed(4)],
+  ];
+  $('gear-tbody').innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td class="hl">${r[2]}</td></tr>`
+  ).join('');
+}
+calcGear();
+
+// ════════════════════════════════════════
+// TAB: チェーン
+// ════════════════════════════════════════
+const CHAIN_SPECS = {
+  '25A':{pitch:6.35, roller:3.18,width:3.18, cr_kn:4.4},
+  '35A':{pitch:9.525,roller:5.08,width:5.08, cr_kn:9.3},
+  '40A':{pitch:12.70,roller:7.92,width:7.85, cr_kn:14.4},
+  '50A':{pitch:15.875,roller:10.16,width:9.40,cr_kn:22.2},
+  '60A':{pitch:19.05,roller:11.91,width:12.57,cr_kn:31.8},
+  '80A':{pitch:25.40,roller:15.88,width:15.75,cr_kn:57.8},
+  '100A':{pitch:31.75,roller:19.05,width:18.90,cr_kn:88.5},
+  '25':{pitch:6.35, roller:3.18,width:3.18, cr_kn:4.4},
+  '35':{pitch:9.525,roller:5.08,width:5.08, cr_kn:9.3},
+  '40':{pitch:12.70,roller:7.92,width:7.85, cr_kn:14.4},
+  '50':{pitch:15.875,roller:10.16,width:9.40,cr_kn:22.2},
+  '60':{pitch:19.05,roller:11.91,width:12.57,cr_kn:31.8},
+  '80':{pitch:25.40,roller:15.88,width:15.75,cr_kn:57.8},
+  '100':{pitch:31.75,roller:19.05,width:18.90,cr_kn:88.5},
+};
+function calcChain() {
+  const sp = CHAIN_SPECS[$('chain-type').value];
+  const n1 = +$('sp-n1').value, n2 = +$('sp-n2').value, C = +$('sp-span').value;
+  if (!sp || !n1 || !n2 || !C) return;
+  const P = sp.pitch;
+  const pcd1 = P/Math.sin(Math.PI/n1), pcd2 = P/Math.sin(Math.PI/n2);
+  const Lp_raw = (2*C/P)+(n1+n2)/2+Math.pow(n2-n1,2)/(4*Math.PI*Math.PI*C/P);
+  const Lp_even = Math.ceil(Lp_raw/2)*2;
+  $('ch-pitch').innerHTML = `${P.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('ch-links').innerHTML = `${Lp_even}<span class="card-unit"> L</span>`;
+  $('ch-links-sub').textContent = (Math.ceil(Lp_raw)%2!==0) ? '⚠ オフセットリンク必要' : '偶数リンク（ストレート）';
+  $('ch-ratio').innerHTML = (n2/n1).toFixed(3);
+  $('chain-tbody').innerHTML = [['歯数 N',n1,n2],['PCD (mm)',pcd1.toFixed(3),pcd2.toFixed(3)],['外径(概算)mm',(pcd1+sp.roller).toFixed(3),(pcd2+sp.roller).toFixed(3)]].map(r=>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td class="hl">${r[2]}</td></tr>`).join('');
+  $('chain-spec-tbody').innerHTML = [['規格',$('chain-type').value],['ピッチ mm',P.toFixed(3)],['ローラー径 mm',sp.roller.toFixed(2)],['内リンク幅 mm',sp.width.toFixed(2)],['基本動定格荷重 kN',sp.cr_kn.toFixed(1)]].map(r=>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td></tr>`).join('');
+}
+$('chain-type').addEventListener('change', calcChain);
+calcChain();
+
+// ════════════════════════════════════════
+// TAB: ベアリング
+// ════════════════════════════════════════
+const BEARING_DB = [
+  ['606',6,17,6,1.72,0.71],['607',7,19,6,2.06,0.87],['608',8,22,7,3.25,1.37],['609',9,24,7,3.58,1.53],
+  ['6000',10,26,8,4.58,1.98],['6001',12,28,8,5.09,2.36],['6002',15,32,9,5.59,2.65],['6003',17,35,10,6.00,2.85],
+  ['6004',20,42,12,9.40,4.50],['6005',25,47,12,10.1,4.75],['6006',30,55,13,13.2,6.55],['6007',35,62,14,16.0,8.30],
+  ['6008',40,68,15,17.8,9.30],['6009',45,75,16,21.2,11.2],['6010',50,80,16,22.4,12.2],['6011',55,90,18,28.1,15.3],
+  ['6012',60,95,18,30.7,17.0],['6013',65,100,18,32.5,18.0],['6014',70,110,20,40.0,22.0],['6015',75,115,20,42.5,24.0],
+  ['6016',80,125,22,52.7,29.5],['6017',85,130,22,55.9,31.5],['6018',90,140,24,63.7,37.0],['6020',100,150,24,70.2,41.5],
+  ['6200',10,30,9,5.09,2.36],['6201',12,32,10,6.82,3.05],['6202',15,35,11,7.65,3.45],['6203',17,40,12,9.56,4.50],
+  ['6204',20,47,14,12.8,6.20],['6205',25,52,15,14.8,7.35],['6206',30,62,16,20.3,11.2],['6207',35,72,17,26.5,15.3],
+  ['6208',40,80,18,32.5,18.0],['6209',45,85,19,35.1,19.8],['6210',50,90,20,38.5,22.4],['6211',55,100,21,47.5,28.0],
+  ['6212',60,110,22,57.2,34.0],['6213',65,120,23,70.2,41.5],['6214',70,125,24,76.5,45.5],['6215',75,130,25,83.2,50.0],
+  ['6216',80,140,26,96.5,60.0],['6217',85,150,28,113,69.5],['6218',90,160,30,128,80.0],['6220',100,180,34,162,104],
+  ['6300',10,35,11,7.65,3.40],['6301',12,37,12,9.76,4.50],['6302',15,42,13,11.4,5.40],['6303',17,47,14,13.8,6.65],
+  ['6304',20,52,15,15.9,7.80],['6305',25,62,17,22.5,11.4],['6306',30,72,19,29.1,15.6],['6307',35,80,21,35.1,19.0],
+  ['6308',40,90,23,42.3,24.0],['6309',45,100,25,55.3,31.5],['6310',50,110,27,64.4,38.0],['6311',55,120,29,76.5,46.0],
+  ['6312',60,130,31,88.5,54.0],['6313',65,140,33,104,64.0],['6314',70,150,35,119,74.0],['6315',75,160,37,135,85.5],
+  ['6316',80,170,39,153,98.0],['6317',85,180,41,170,110],['6318',90,190,43,193,125],['6320',100,215,47,255,170],
+  ['6404',20,72,19,31.9,15.3],['6405',25,80,21,38.3,19.3],['6406',30,90,23,47.5,25.0],['6407',35,100,25,60.5,33.5],
+  ['6408',40,110,27,72.8,42.5],['6409',45,120,29,88.5,52.0],['6410',50,130,31,100,61.5],['6412',60,150,35,134,86.5],
+  ['7200',10,30,9,6.24,3.10],['7201',12,32,10,7.02,3.60],['7202',15,35,11,8.32,4.35],['7203',17,40,12,10.1,5.45],
+  ['7204',20,47,14,14.3,7.60],['7205',25,52,15,17.8,9.70],['7206',30,62,16,24.5,13.7],['7207',35,72,17,32.0,18.6],
+  ['7208',40,80,18,38.5,23.0],['7209',45,85,19,42.3,25.5],['7210',50,90,20,47.5,29.0],['7211',55,100,21,56.1,35.5],
+  ['7212',60,110,22,66.3,42.5],['7213',65,120,23,82.4,53.0],['7214',70,125,24,86.5,57.0],['7215',75,130,25,94.4,63.5],
+  ['7216',80,140,26,112,76.5],['7217',85,150,28,128,89.5],['7218',90,160,30,143,103],['7220',100,180,34,181,134],
+  ['7300',10,35,11,10.1,5.20],['7301',12,37,12,12.1,6.40],['7302',15,42,13,14.3,7.80],['7303',17,47,14,17.4,9.85],
+  ['7304',20,52,15,19.5,11.3],['7305',25,62,17,28.0,16.3],['7306',30,72,19,36.4,22.5],['7307',35,80,21,44.5,28.5],
+  ['7308',40,90,23,56.1,37.0],['7309',45,100,25,68.9,46.5],['7310',50,110,27,82.4,57.0],['7311',55,120,29,97.5,69.5],
+  ['7312',60,130,31,113,82.0],['7313',65,140,33,132,97.5],['7314',70,150,35,155,116],['7316',80,170,39,196,153],
+  ['NU204',20,47,14,22.5,15.3],['NU205',25,52,15,27.5,19.5],['NU206',30,62,16,38.5,28.0],['NU207',35,72,17,51.0,37.5],
+  ['NU208',40,80,18,60.5,46.5],['NU209',45,85,19,68.9,52.0],['NU210',50,90,20,75.2,58.5],['NU211',55,100,21,91.3,72.5],
+  ['NU212',60,110,22,108,88.0],['NU213',65,120,23,127,106],['NU214',70,125,24,134,114],['NU215',75,130,25,143,124],
+  ['NU216',80,140,26,168,150],['NU217',85,150,28,196,178],['NU218',90,160,30,224,208],['NU220',100,180,34,285,270],
+  ['N204',20,47,14,22.5,15.3],['N205',25,52,15,27.5,19.5],['N206',30,62,16,38.5,28.0],['N207',35,72,17,51.0,37.5],
+  ['N208',40,80,18,60.5,46.5],['N209',45,85,19,68.9,52.0],['N210',50,90,20,75.2,58.5],['N212',60,110,22,108,88.0],
+];
+let filteredBearings = [];
+function searchBearing() { filterBearing(); }
+function filterBearingByBore() { filterBearing(); }
+
+function filterBearing() {
+  const q    = $('bearing-query').value.toUpperCase().trim();
+  const bore = $('bearing-bore').value !== '' ? +$('bearing-bore').value : null;
+  const od   = $('bearing-od').value   !== '' ? +$('bearing-od').value   : null;
+
+  // 何も入力なし
+  if (!q && bore === null && od === null) {
+    $('bearing-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式・内径・外径を入力してください</td></tr>';
+    $('bearing-hit-info').textContent = '';
+    return;
+  }
+  // 型式が1文字だけ（短すぎ）かつ寸法も未入力
+  if (q.length === 1 && bore === null && od === null) {
+    $('bearing-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式は2文字以上入力してください</td></tr>';
+    $('bearing-hit-info').textContent = '';
+    return;
+  }
+
+  filteredBearings = BEARING_DB.filter(b => {
+    const matchQ    = q.length < 2 || b[0].toUpperCase().includes(q);
+    const matchBore = bore === null  || b[1] === bore;
+    const matchOD   = od   === null  || b[2] === od;
+    return matchQ && matchBore && matchOD;
+  });
+  renderBearingTable();
+}
+function renderBearingTable() {
+  $('bearing-hit-info').textContent = filteredBearings.length ? `${filteredBearings.length} 件ヒット` : '該当なし';
+  $('bearing-tbody').innerHTML = filteredBearings.length
+    ? filteredBearings.map(b=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td><td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td><td>${b[4]}</td><td>${b[5]}</td></tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">該当なし</td></tr>';
+}
+
+// ════════════════════════════════════════
+// TAB: スナップリング（JIS B 2804）
+// 軸用: [軸径, 溝径d1, 溝幅b(+0/-0.05), 溝深さt, リング厚s, リング外径D]
+// 穴用: [穴径, 溝径D1, 溝幅b, 溝深さt, リング厚s, リング内径d]
+// ════════════════════════════════════════
+const SNAP_DATA = {
+  shaft: [
+    // [軸径, 溝径(−公差), 溝幅, 溝深さ, リング厚, リング外径]
+    [8,   7.6,  0.9, 0.7, 0.8,  8.7],
+    [9,   8.6,  0.9, 0.7, 0.8,  9.7],
+    [10,  9.6,  1.0, 0.7, 0.9, 10.7],
+    [11, 10.5,  1.0, 0.8, 0.9, 11.8],
+    [12, 11.5,  1.0, 0.8, 0.9, 12.8],
+    [13, 12.4,  1.0, 0.8, 0.9, 13.8],
+    [14, 13.4,  1.0, 0.8, 0.9, 14.8],
+    [15, 14.3,  1.1, 0.9, 1.0, 15.9],
+    [16, 15.2,  1.1, 1.0, 1.0, 17.0],
+    [17, 16.2,  1.1, 1.0, 1.0, 18.0],
+    [18, 17.0,  1.2, 1.0, 1.1, 19.0],
+    [19, 17.9,  1.2, 1.1, 1.1, 20.1],
+    [20, 18.9,  1.2, 1.1, 1.1, 21.1],
+    [21, 19.9,  1.2, 1.1, 1.1, 22.1],
+    [22, 20.9,  1.2, 1.1, 1.1, 23.1],
+    [24, 22.9,  1.2, 1.1, 1.1, 25.1],
+    [25, 23.9,  1.2, 1.1, 1.1, 26.1],
+    [26, 24.9,  1.2, 1.1, 1.1, 27.1],
+    [28, 26.6,  1.5, 1.4, 1.4, 29.4],
+    [30, 28.6,  1.5, 1.4, 1.4, 31.4],
+    [32, 30.3,  1.7, 1.6, 1.5, 33.7],
+    [35, 33.2,  1.7, 1.6, 1.5, 36.7],
+    [38, 35.8,  1.8, 1.7, 1.6, 40.0],
+    [40, 37.8,  1.8, 1.7, 1.6, 42.0],
+    [42, 39.8,  1.8, 1.7, 1.6, 44.0],
+    [45, 42.5,  1.8, 1.8, 1.6, 47.1],
+    [48, 45.5,  1.8, 1.8, 1.6, 50.1],
+    [50, 47.0,  2.0, 2.0, 1.8, 52.4],
+    [52, 49.0,  2.0, 2.0, 1.8, 54.4],
+    [55, 52.0,  2.0, 2.0, 1.8, 57.4],
+    [58, 54.2,  2.0, 2.1, 1.8, 60.4],
+    [60, 56.2,  2.0, 2.1, 1.8, 62.4],
+    [63, 59.2,  2.0, 2.1, 1.8, 65.4],
+    [65, 61.2,  2.0, 2.1, 1.8, 67.4],
+    [68, 64.2,  2.0, 2.1, 1.8, 70.4],
+    [70, 66.0,  2.5, 2.4, 2.0, 73.0],
+    [75, 70.5,  2.5, 2.6, 2.0, 78.0],
+    [80, 75.5,  2.5, 2.6, 2.0, 83.0],
+    [85, 80.5,  2.5, 2.6, 2.0, 88.0],
+    [90, 85.5,  2.5, 2.6, 2.0, 93.0],
+    [95, 89.5,  3.0, 3.0, 2.5, 99.0],
+    [100,94.0,  3.0, 3.2, 2.5,104.0],
+  ],
+  bore: [
+    // [穴径, 溝径(+公差), 溝幅, 溝深さ, リング厚, リング内径]
+    [8,   8.4,  0.9, 0.5, 0.8,  7.4],
+    [9,   9.4,  0.9, 0.5, 0.8,  8.4],
+    [10, 10.4,  1.0, 0.6, 0.9,  9.3],
+    [11, 11.4,  1.0, 0.6, 0.9, 10.3],
+    [12, 12.4,  1.0, 0.6, 0.9, 11.3],
+    [13, 13.4,  1.0, 0.6, 0.9, 12.3],
+    [14, 14.4,  1.0, 0.6, 0.9, 13.3],
+    [15, 15.7,  1.1, 0.8, 1.0, 14.3],
+    [16, 16.8,  1.1, 0.9, 1.0, 15.2],
+    [17, 17.8,  1.1, 0.9, 1.0, 16.2],
+    [18, 18.9,  1.2, 0.9, 1.1, 17.2],
+    [19, 19.9,  1.2, 0.9, 1.1, 18.2],
+    [20, 21.0,  1.2, 1.0, 1.1, 19.2],
+    [21, 22.0,  1.2, 1.0, 1.1, 20.2],
+    [22, 23.1,  1.2, 1.0, 1.1, 21.2],
+    [24, 25.2,  1.2, 1.0, 1.1, 23.2],
+    [25, 26.2,  1.2, 1.0, 1.1, 24.2],
+    [26, 27.2,  1.2, 1.0, 1.1, 25.2],
+    [28, 29.4,  1.5, 1.2, 1.4, 26.9],
+    [30, 31.4,  1.5, 1.2, 1.4, 28.9],
+    [32, 33.7,  1.7, 1.4, 1.5, 30.8],
+    [35, 36.7,  1.7, 1.4, 1.5, 33.8],
+    [38, 39.8,  1.8, 1.5, 1.6, 36.8],
+    [40, 41.8,  1.8, 1.5, 1.6, 38.8],
+    [42, 43.8,  1.8, 1.5, 1.6, 40.8],
+    [45, 47.0,  1.8, 1.6, 1.6, 43.5],
+    [48, 50.0,  1.8, 1.6, 1.6, 46.5],
+    [50, 52.0,  2.0, 1.7, 1.8, 48.2],
+    [52, 54.0,  2.0, 1.7, 1.8, 50.2],
+    [55, 57.0,  2.0, 1.7, 1.8, 53.2],
+    [58, 60.0,  2.0, 1.7, 1.8, 56.2],
+    [60, 62.0,  2.0, 1.8, 1.8, 58.0],
+    [63, 65.0,  2.0, 1.8, 1.8, 61.0],
+    [65, 67.0,  2.0, 1.8, 1.8, 63.0],
+    [68, 70.0,  2.0, 1.8, 1.8, 66.0],
+    [70, 73.0,  2.5, 2.0, 2.0, 67.5],
+    [75, 78.0,  2.5, 2.0, 2.0, 72.5],
+    [80, 83.0,  2.5, 2.2, 2.0, 77.5],
+    [85, 88.0,  2.5, 2.2, 2.0, 82.5],
+    [90, 93.0,  2.5, 2.2, 2.0, 87.5],
+    [95, 98.0,  3.0, 2.5, 2.5, 91.5],
+    [100,104.0, 3.0, 2.5, 2.5, 96.5],
+  ]
+};
+function buildSnapSelect() {
+  const type = $('snap-type').value;
+  const data = SNAP_DATA[type];
+  $('snap-size').innerHTML = data.map((r,i)=>`<option value="${i}">${r[0]} mm</option>`).join('');
+  calcSnap();
+}
+function calcSnap() {
+  const type = $('snap-type').value;
+  const data = SNAP_DATA[type];
+  const r = data[+$('snap-size').value];
+  if (!r) return;
+  const isShaft = type === 'shaft';
+  $('snap-size-label').textContent = isShaft ? '軸径' : '穴径';
+  $('snap-d').innerHTML = `${r[0]}<span class="card-unit"> mm</span>`;
+  const gd_tol = isShaft ? '−0.1/0' : '+0.1/0';
+  $('snap-groove-d').innerHTML = `${r[1].toFixed(1)}<span class="card-unit"> mm</span>`;
+  $('snap-groove-d-tol').textContent = `公差 ${gd_tol}`;
+  $('snap-groove-w').innerHTML = `${r[2].toFixed(1)}<span class="card-unit"> mm</span>`;
+  $('snap-groove-w-tol').textContent = '+0.05/0';
+  const rows = [
+    [isShaft ? '軸径' : '穴径', `${r[0]} mm`, ''],
+    [isShaft ? '溝径 d₁（軸外面から）' : '溝径 D₁（穴内面から）', `${r[1].toFixed(2)} mm`, isShaft ? '公差 −0.1/0' : '公差 +0.1/0'],
+    ['溝幅 b', `${r[2].toFixed(2)} mm`, '公差 +0.05/0'],
+    ['溝深さ t', `${r[3].toFixed(2)} mm`, '軸面からの深さ'],
+    ['リング板厚 s', `${r[4].toFixed(2)} mm`, '参考'],
+    [isShaft ? 'リング外径（自由状態）' : 'リング内径（自由状態）', `${r[5].toFixed(2)} mm`, '参考'],
+    ['溝面取り（推奨）', '0.2〜0.3 mm', 'リング装着口側'],
+  ];
+  $('snap-tbody').innerHTML = rows.map(x =>
+    `<tr><td>${x[0]}</td><td class="hl">${x[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${x[2]}</td></tr>`
+  ).join('');
+}
+$('snap-type').addEventListener('change', buildSnapSelect);
+buildSnapSelect();
+
+// ════════════════════════════════════════
+// TAB: はめあい公差（JIS B 0401）
+// IT公差等級の基本偏差＋公差テーブル
+// ════════════════════════════════════════
+// 呼び寸法区分（上限値）
+const FIT_RANGES = [3,6,10,14,18,24,30,40,50,65,80,100,120,140,160,180,200,225,250,280,315,355,400,450,500];
+
+// IT基本公差 (μm) IT1〜IT16 × 寸法区分
+const IT_TABLE = {
+//        IT5  IT6  IT7  IT8  IT9  IT10 IT11
+  '0-3':  [4,   6,   10,  14,  25,  40,  60],
+  '3-6':  [5,   8,   12,  18,  30,  48,  75],
+  '6-10': [6,   9,   15,  22,  36,  58,  90],
+  '10-18':[8,   11,  18,  27,  43,  70,  110],
+  '18-30':[9,   13,  21,  33,  52,  84,  130],
+  '30-50':[11,  16,  25,  39,  62,  100, 160],
+  '50-80':[13,  19,  30,  46,  74,  120, 190],
+  '80-120':[15, 22,  35,  54,  87,  140, 220],
+  '120-180':[18,25,  40,  63,  100, 160, 250],
+  '180-250':[20,29,  46,  72,  115, 185, 290],
+  '250-315':[23,32,  52,  81,  130, 210, 320],
+  '315-400':[25,36,  57,  89,  140, 230, 360],
+  '400-500':[27,40,  63,  97,  155, 250, 400],
+};
+function getRange(d) {
+  if (d<=3) return '0-3';
+  if (d<=6) return '3-6';
+  if (d<=10) return '6-10';
+  if (d<=18) return '10-18';
+  if (d<=30) return '18-30';
+  if (d<=50) return '30-50';
+  if (d<=80) return '50-80';
+  if (d<=120) return '80-120';
+  if (d<=180) return '120-180';
+  if (d<=250) return '180-250';
+  if (d<=315) return '250-315';
+  if (d<=400) return '315-400';
+  return '400-500';
+}
+function getIT(d, grade) {
+  const row = IT_TABLE[getRange(d)];
+  const idx = {'IT5':0,'IT6':1,'IT7':2,'IT8':3,'IT9':4,'IT10':5,'IT11':6}[grade];
+  return row[idx]; // μm
+}
+
+// 基本偏差（μm）計算
+// 穴：H=0下偏差, JS=±IT/2, K,M,N,P
+// 軸：h=0上偏差, js=±IT/2, k,m,n,p,r,s,t,u, f,g,d,e
+function getHoleLimits(d, symbol, itGrade) {
+  const it = getIT(d, 'IT'+itGrade); // μm
+  let ei, es; // ei=下の偏差(最小材料側), es=上の偏差(最大材料側)  μm
+  switch(symbol) {
+    case 'H':  ei = 0;      es = it;   break;
+    case 'JS': ei = -Math.floor(it/2); es = Math.ceil(it/2); break;
+    case 'K':  { const delta = getIT(d,'IT'+itGrade); ei = -getKDelta(d, itGrade); es = it - getKDelta(d, itGrade); break; }
+    case 'M':  { const v = getMOffset(d, itGrade); ei = -v; es = it - v; break; }
+    case 'N':  { const v = getNOffset(d, itGrade); ei = -v; es = it - v; break; }
+    case 'P':  { const v = getPOffset(d, itGrade); ei = -(it + v); es = -v; break; }
+    default:   ei = 0; es = it;
+  }
+  return { upper: es/1000, lower: ei/1000 }; // mm
+}
+
+function getKDelta(d, g) {
+  // K7の場合の補正量（簡易）
+  const r = getRange(d);
+  const deltas = {'0-3':0,'3-6':1,'6-10':1,'10-18':1,'18-30':2,'30-50':2,'50-80':2,'80-120':3,'120-180':3,'180-250':4,'250-315':4,'315-400':4,'400-500':5};
+  return deltas[r] || 0;
+}
+function getMOffset(d, g) {
+  const r = getRange(d);
+  const m = {'0-3':2,'3-6':4,'6-10':6,'10-18':7,'18-30':8,'30-50':9,'50-80':11,'80-120':13,'120-180':15,'180-250':17,'250-315':20,'315-400':21,'400-500':23};
+  return m[r] || 0;
+}
+function getNOffset(d, g) {
+  const r = getRange(d);
+  const n = {'0-3':4,'3-6':8,'6-10':10,'10-18':12,'18-30':15,'30-50':17,'50-80':20,'80-120':23,'120-180':27,'180-250':31,'250-315':34,'315-400':37,'400-500':40};
+  return n[r] || 0;
+}
+function getPOffset(d, g) {
+  const r = getRange(d);
+  const p = {'0-3':6,'3-6':12,'6-10':15,'10-18':18,'18-30':22,'30-50':26,'50-80':32,'80-120':37,'120-180':43,'180-250':50,'250-315':56,'315-400':62,'400-500':68};
+  return p[r] || 0;
+}
+
+function getShaftLimits(d, symbol, itGrade) {
+  const it = getIT(d, 'IT'+itGrade); // μm
+  let es, ei; // es=上偏差, ei=下偏差 μm
+  switch(symbol) {
+    case 'h':  es = 0;      ei = -it;  break;
+    case 'js': es = Math.ceil(it/2); ei = -Math.floor(it/2); break;
+    case 'k':  { const kv = getKShaftOffset(d, itGrade); es = kv; ei = kv - it; break; }
+    case 'm':  { const mv = getMShaftOffset(d, itGrade); es = mv; ei = mv - it; break; }
+    case 'n':  { const nv = getNShaftOffset(d, itGrade); es = nv; ei = nv - it; break; }
+    case 'p':  { const pv = getPShaftOffset(d, itGrade); es = pv; ei = pv - it; break; }
+    case 'r':  { const rv = getRShaftOffset(d, itGrade); es = rv; ei = rv - it; break; }
+    case 's':  { const sv = getSShaftOffset(d, itGrade); es = sv; ei = sv - it; break; }
+    case 't':  { const tv = getTShaftOffset(d, itGrade); es = tv; ei = tv - it; break; }
+    case 'u':  { const uv = getUShaftOffset(d, itGrade); es = uv; ei = uv - it; break; }
+    case 'f':  { const fv = getFShaftOffset(d, itGrade); es = -fv; ei = -fv - it; break; }
+    case 'g':  { const gv = getGShaftOffset(d, itGrade); es = -gv; ei = -gv - it; break; }
+    case 'd':  { const dv = getDShaftOffset(d, itGrade); es = -dv; ei = -dv - it; break; }
+    case 'e':  { const ev = getEShaftOffset(d, itGrade); es = -ev; ei = -ev - it; break; }
+    default:   es = 0; ei = -it;
+  }
+  return { upper: es/1000, lower: ei/1000 }; // mm
+}
+
+function getGShaftOffset(d) {
+  const r=getRange(d); const t={'0-3':2,'3-6':4,'6-10':5,'10-18':6,'18-30':7,'30-50':9,'50-80':10,'80-120':12,'120-180':14,'180-250':15,'250-315':17,'315-400':18,'400-500':20}; return t[r]||5;
+}
+function getFShaftOffset(d) {
+  const r=getRange(d); const t={'0-3':6,'3-6':10,'6-10':13,'10-18':16,'18-30':20,'30-50':25,'50-80':30,'80-120':36,'120-180':43,'180-250':50,'250-315':56,'315-400':62,'400-500':68}; return t[r]||20;
+}
+function getDShaftOffset(d) {
+  const r=getRange(d); const t={'0-3':20,'3-6':30,'6-10':40,'10-18':50,'18-30':65,'30-50':80,'50-80':100,'80-120':120,'120-180':145,'180-250':170,'250-315':190,'315-400':210,'400-500':230}; return t[r]||80;
+}
+function getEShaftOffset(d) {
+  const r=getRange(d); const t={'0-3':14,'3-6':20,'6-10':25,'10-18':32,'18-30':40,'30-50':50,'50-80':60,'80-120':72,'120-180':85,'180-250':100,'250-315':110,'315-400':125,'400-500':135}; return t[r]||50;
+}
+function getKShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':0,'3-6':2,'6-10':2,'10-18':2,'18-30':2,'30-50':3,'50-80':4,'80-120':4,'120-180':4,'180-250':5,'250-315':5,'315-400':5,'400-500':6}; return t[r]||2;
+}
+function getMShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':2,'3-6':6,'6-10':9,'10-18':11,'18-30':12,'30-50':13,'50-80':15,'80-120':18,'120-180':21,'180-250':24,'250-315':27,'315-400':29,'400-500':32}; return t[r]||12;
+}
+function getNShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':4,'3-6':9,'6-10':13,'10-18':16,'18-30':20,'30-50':24,'50-80':28,'80-120':33,'120-180':39,'180-250':45,'250-315':50,'315-400':55,'400-500':60}; return t[r]||20;
+}
+function getPShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':6,'3-6':12,'6-10':15,'10-18':18,'18-30':22,'30-50':26,'50-80':32,'80-120':37,'120-180':43,'180-250':50,'250-315':56,'315-400':62,'400-500':68}; return t[r]||26;
+}
+function getRShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':10,'3-6':15,'6-10':19,'10-18':23,'18-30':28,'30-50':34,'50-80':41,'80-120':48,'120-180':58,'180-250':68,'250-315':75,'315-400':83,'400-500':90}; return t[r]||34;
+}
+function getSShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':14,'3-6':19,'6-10':23,'10-18':28,'18-30':35,'30-50':43,'50-80':53,'80-120':64,'120-180':79,'180-250':93,'250-315':101,'315-400':111,'400-500':123}; return t[r]||43;
+}
+function getTShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':18,'3-6':23,'6-10':28,'10-18':33,'18-30':41,'30-50':48,'50-80':59,'80-120':72,'120-180':92,'180-250':108,'250-315':119,'315-400':131,'400-500':146}; return t[r]||48;
+}
+function getUShaftOffset(d, g) {
+  const r=getRange(d); const t={'0-3':18,'3-6':23,'6-10':28,'10-18':33,'18-30':41,'30-50':60,'50-80':76,'80-120':91,'120-180':124,'180-250':146,'250-315':166,'315-400':189,'400-500':214}; return t[r]||60;
+}
+
+function parseSymbol(str) {
+  // 'H7' -> {symbol:'H', grade:7}  'p6' -> {symbol:'p', grade:6}
+  const m = str.match(/^([A-Za-z]+)(\d+)$/);
+  if (!m) return null;
+  return { symbol: m[1], grade: parseInt(m[2]) };
+}
+
+function calcFit() {
+  const d    = +$('fit-size').value;
+  const hStr = $('fit-hole').value;
+  const sStr = $('fit-shaft').value;
+  const h    = parseSymbol(hStr);
+  const s    = parseSymbol(sStr);
+  if (!h || !s) return;
+
+  const hole  = getHoleLimits(d, h.symbol, h.grade);
+  const shaft = getShaftLimits(d, s.symbol, s.grade);
+
+  const hMax = d + hole.upper;
+  const hMin = d + hole.lower;
+  const sMax = d + shaft.upper;
+  const sMin = d + shaft.lower;
+
+  // すきま（正）/ しめしろ（負のすきま）
+  const maxClear   = hMax - sMin;  // 最大すきま（正ならすきま）
+  const minClear   = hMin - sMax;  // 最小すきま（負ならしめしろ）
+
+  let fitType, fitClass, fitIcon;
+  if (minClear >= 0) {
+    fitType = 'すきまばめ'; fitClass = 'good'; fitIcon = '🔵';
+  } else if (maxClear <= 0) {
+    fitType = 'しまりばめ'; fitClass = 'bad'; fitIcon = '🔴';
+  } else {
+    fitType = '中間ばめ'; fitClass = 'warn'; fitIcon = '🟡';
+  }
+
+  const right = $('fit-right');
+  right.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px">
+      <div style="font-size:24px">${fitIcon}</div>
+      <div>
+        <div style="font-weight:700;font-size:16px">${hStr} / ${sStr} &nbsp;
+          <span class="fit-type-badge ${fitClass === 'good' ? 'good-text' : fitClass === 'bad' ? 'bad-text' : 'warn-text'}" style="border-color:currentColor">${fitType}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">呼び径 ${d} mm</div>
+      </div>
+    </div>
+
+    <div class="fit-summary">
+      <div class="fit-sum-item">
+        <div class="fit-sum-label">最大すきま / しめしろ</div>
+        <div class="fit-sum-val ${maxClear>=0 ? 'good-text':'bad-text'}">${maxClear>=0?'+':''}${(maxClear*1000).toFixed(1)} μm</div>
+      </div>
+      <div class="fit-sum-item">
+        <div class="fit-sum-label">最小すきま / しめしろ</div>
+        <div class="fit-sum-val ${minClear>=0 ? 'good-text':'bad-text'}">${minClear>=0?'+':''}${(minClear*1000).toFixed(1)} μm</div>
+      </div>
+      <div class="fit-sum-item">
+        <div class="fit-sum-label">穴 IT公差</div>
+        <div class="fit-sum-val" style="color:var(--accent)">${((hole.upper-hole.lower)*1000).toFixed(0)} μm</div>
+      </div>
+      <div class="fit-sum-item">
+        <div class="fit-sum-label">軸 IT公差</div>
+        <div class="fit-sum-val" style="color:var(--accent)">${((shaft.upper-shaft.lower)*1000).toFixed(0)} μm</div>
+      </div>
+    </div>
+
+    <div class="fit-result-grid">
+      <div class="fit-block">
+        <div class="fit-block-title">🕳 穴 — ${hStr}</div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最大穴径（上の寸法）</span><span class="fit-dim-val hl">Ø ${hMax.toFixed(3)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最小穴径（下の寸法）</span><span class="fit-dim-val">${hMin.toFixed(3)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">上偏差 ES</span><span class="fit-dim-val">${hole.upper>=0?'+':''}${(hole.upper*1000).toFixed(0)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">下偏差 EI</span><span class="fit-dim-val">${hole.lower>=0?'+':''}${(hole.lower*1000).toFixed(0)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${((hole.upper-hole.lower)*1000).toFixed(0)} μm</span></div>
+        <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace">
+          Ø${d} <sup>+${(hole.upper*1000).toFixed(0)}</sup><sub>${hole.lower>=0?'+':''}${(hole.lower*1000).toFixed(0)}</sub> μm
+        </div>
+      </div>
+      <div class="fit-block">
+        <div class="fit-block-title">⚙️ 軸 — ${sStr}</div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最大軸径（上の寸法）</span><span class="fit-dim-val hl">Ø ${sMax.toFixed(3)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最小軸径（下の寸法）</span><span class="fit-dim-val">${sMin.toFixed(3)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">上偏差 es</span><span class="fit-dim-val">${shaft.upper>=0?'+':''}${(shaft.upper*1000).toFixed(0)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">下偏差 ei</span><span class="fit-dim-val">${shaft.lower>=0?'+':''}${(shaft.lower*1000).toFixed(0)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${((shaft.upper-shaft.lower)*1000).toFixed(0)} μm</span></div>
+        <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace">
+          Ø${d} <sup>${shaft.upper>=0?'+':''}${(shaft.upper*1000).toFixed(0)}</sup><sub>${shaft.lower>=0?'+':''}${(shaft.lower*1000).toFixed(0)}</sub> μm
+        </div>
+      </div>
+    </div>
+  `;
+}
+// 初期計算
+calcFit();
+
+// ════════════════════════════════════════
+// TAB: 管用ネジ
+// ════════════════════════════════════════
+// SGP外径: JIS G 3452, 肉厚: スケジュール標準
+// SUS: JIS G 3459, 銅管: JIS H 3300 Kタイプ
+// 管用テーパネジ: JIS B 0203
+// [呼びA, インチ呼び, SGP外径, SGP肉厚, SUS外径, SUS肉厚, 銅外径, 銅肉厚,
+//  Rcネジ呼び, ピッチ, ヤマ数/25.4, 有効径, タップ下穴径, テーパ基準径]
+const PIPE_DB = {
+  6:   { inch:'1/8"',   sgp_od:10.5,  sgp_t:2.0, sus_od:10.5,  sus_t:1.0, cu_od:9.52,  cu_t:0.89, rc:'Rc 1/8',  pitch:0.907, tpi:28, eff_d:9.147,  tap_d:8.80,  ref_d:9.728  },
+  8:   { inch:'1/4"',   sgp_od:13.8,  sgp_t:2.3, sus_od:13.8,  sus_t:1.2, cu_od:12.70, cu_t:0.89, rc:'Rc 1/4',  pitch:1.337, tpi:19, eff_d:12.301, tap_d:11.80, ref_d:13.157 },
+  10:  { inch:'3/8"',   sgp_od:17.3,  sgp_t:2.3, sus_od:17.3,  sus_t:1.2, cu_od:15.88, cu_t:1.02, rc:'Rc 3/8',  pitch:1.337, tpi:19, eff_d:15.806, tap_d:15.30, ref_d:16.662 },
+  15:  { inch:'1/2"',   sgp_od:21.7,  sgp_t:2.8, sus_od:21.7,  sus_t:1.6, cu_od:19.05, cu_t:1.07, rc:'Rc 1/2',  pitch:1.814, tpi:14, eff_d:19.793, tap_d:19.10, ref_d:20.955 },
+  20:  { inch:'3/4"',   sgp_od:27.2,  sgp_t:2.8, sus_od:27.2,  sus_t:1.6, cu_od:22.22, cu_t:1.14, rc:'Rc 3/4',  pitch:1.814, tpi:14, eff_d:25.279, tap_d:24.60, ref_d:26.441 },
+  25:  { inch:'1"',     sgp_od:34.0,  sgp_t:3.2, sus_od:34.0,  sus_t:1.6, cu_od:28.58, cu_t:1.27, rc:'Rc 1',    pitch:2.309, tpi:11, eff_d:31.770, tap_d:30.90, ref_d:33.249 },
+  32:  { inch:'1-1/4"', sgp_od:42.7,  sgp_t:3.5, sus_od:42.7,  sus_t:1.6, cu_od:34.93, cu_t:1.40, rc:'Rc 1-1/4',pitch:2.309,tpi:11, eff_d:41.910, tap_d:41.10, ref_d:41.910 },
+  40:  { inch:'1-1/2"', sgp_od:48.6,  sgp_t:3.5, sus_od:48.6,  sus_t:1.6, cu_od:41.28, cu_t:1.52, rc:'Rc 1-1/2',pitch:2.309,tpi:11, eff_d:47.803, tap_d:46.90, ref_d:47.803 },
+  50:  { inch:'2"',     sgp_od:60.5,  sgp_t:3.8, sus_od:60.5,  sus_t:2.0, cu_od:53.98, cu_t:1.78, rc:'Rc 2',    pitch:2.309, tpi:11, eff_d:59.614, tap_d:58.70, ref_d:59.614 },
+  65:  { inch:'2-1/2"', sgp_od:76.3,  sgp_t:4.2, sus_od:76.3,  sus_t:2.0, cu_od:66.68, cu_t:2.03, rc:'Rc 2-1/2',pitch:2.309,tpi:11, eff_d:75.184, tap_d:74.20, ref_d:75.184 },
+  80:  { inch:'3"',     sgp_od:89.1,  sgp_t:4.2, sus_od:89.1,  sus_t:2.0, cu_od:79.38, cu_t:2.29, rc:'Rc 3',    pitch:2.309, tpi:11, eff_d:87.884, tap_d:86.90, ref_d:87.884 },
+  100: { inch:'4"',     sgp_od:114.3, sgp_t:4.5, sus_od:114.3, sus_t:2.0, cu_od:104.78,cu_t:2.79, rc:'Rc 4',    pitch:2.309, tpi:11, eff_d:113.030,tap_d:112.0, ref_d:113.030},
+  125: { inch:'5"',     sgp_od:139.8, sgp_t:4.5, sus_od:139.8, sus_t:2.0, cu_od:130.18,cu_t:3.05, rc:'Rc 5',    pitch:2.309, tpi:11, eff_d:138.435,tap_d:137.4, ref_d:138.435},
+  150: { inch:'6"',     sgp_od:165.2, sgp_t:5.0, sus_od:165.2, sus_t:2.0, cu_od:155.58,cu_t:3.40, rc:'Rc 6',    pitch:2.309, tpi:11, eff_d:163.830,tap_d:162.8, ref_d:163.830},
+};
+
+function calcPipe() {
+  const ptype = $('pipe-type').value;
+  const size  = +$('pipe-size').value;
+  const d     = PIPE_DB[size];
+  if (!d) return;
+
+  // 種別ごとのOD/肉厚
+  let od, t, typeLabel;
+  if (ptype === 'sgp')    { od = d.sgp_od; t = d.sgp_t;  typeLabel = 'SGP（JIS G 3452）'; }
+  else if (ptype === 'sus')  { od = d.sus_od; t = d.sus_t;  typeLabel = 'SUS（JIS G 3459）'; }
+  else                       { od = d.cu_od;  t = d.cu_t;   typeLabel = '銅管（JIS H 3300 K）'; }
+
+  const id = od - 2 * t;
+
+  // メインカード
+  $('pipe-a').innerHTML    = `${size}<span class="card-unit"> A</span>`;
+  $('pipe-inch').innerHTML = d.inch;
+  $('pipe-od').innerHTML   = `${od.toFixed(1)}<span class="card-unit"> mm</span>`;
+
+  // 配管詳細テーブル
+  const rows = [
+    ['配管種別',          typeLabel,               'JIS 規格'],
+    ['呼び径（A）',        `${size} A`,             ''],
+    ['インチ呼び',         d.inch,                  '参考'],
+    ['外径 OD',           `${od.toFixed(1)} mm`,    'JIS 規格値'],
+    ['肉厚 t',            `${t.toFixed(1)} mm`,     ptype==='sgp'?'標準肉厚':ptype==='sus'?'Sch5S相当':'K タイプ'],
+    ['内径 ID（参考）',    `${id.toFixed(1)} mm`,   '= OD − 2t'],
+    ['断面積（流路）',     `${(Math.PI/4*id*id).toFixed(0)} mm²`, '内径から計算'],
+  ];
+  $('pipe-tbody').innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${r[2]}</td></tr>`
+  ).join('');
+
+  // 管用テーパネジ詳細
+  const thread_rows = [
+    ['ネジ呼び',               d.rc,                         'JIS B 0203'],
+    ['ピッチ',                 `${d.pitch.toFixed(3)} mm`,   ''],
+    ['山数 / 25.4mm（TPI）',   `${d.tpi} 山`,               ''],
+    ['有効径（基準径）',        `${d.eff_d.toFixed(3)} mm`,  '管端基準面'],
+    ['テーパ',                  '1/16（1:16）',              '= 3.576°'],
+    ['Rc タップ下穴径（目安）', `${d.tap_d.toFixed(1)} mm`,  '鋳鉄・鋼'],
+    ['R 雄ねじ 基準径',        `${d.ref_d.toFixed(3)} mm`,  '参考'],
+    ['シール方法',              'シールテープ / ペースト',    'Rc/R の場合'],
+  ];
+  $('pipe-thread-tbody').innerHTML = thread_rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${r[2]}</td></tr>`
+  ).join('');
+}
+$('pipe-type').addEventListener('change', calcPipe);
+$('pipe-size').addEventListener('change', calcPipe);
+calcPipe();
+
+// ════════════════════════════════════════
+// TAB: 焼き嵌め / 冷やし嵌め
+// ════════════════════════════════════════
+function shrinkSyncAlpha(side) {
+  const sel  = $(`sh-alpha${side}-sel`);
+  const wrap = $(`sh-alpha${side}-custom-wrap`);
+  if (sel.value === 'custom') { wrap.style.display = ''; }
+  else { wrap.style.display = 'none'; }
+  calcShrink();
+}
+
+function calcShrink() {
+  const D      = +$('sh-D').value;
+  const delta  = +$('sh-delta').value;
+  const margin = +$('sh-margin').value;
+  const TH0    = +$('sh-TH0').value;
+  const THt    = +$('sh-THt').value;
+  const TS0    = +$('sh-TS0').value;
+  const TSt    = +$('sh-TSt').value;
+  const selH   = $('sh-alphaH-sel').value;
+  const selS   = $('sh-alphaS-sel').value;
+  const alphaH = selH === 'custom' ? +$('sh-alphaH-custom').value : +selH;
+  const alphaS = selS === 'custom' ? +$('sh-alphaS-custom').value : +selS;
+  if ([D,delta,margin,TH0,THt,TS0,TSt,alphaH,alphaS].some(v => isNaN(v))) return;
+
+  const dHole    = alphaH * D * (THt - TH0);
+  const dShaft   = alphaS * D * (TS0 - TSt);
+  const effClear = dHole + dShaft;
+  const reqClear = delta + margin;
+  const surplus  = effClear - reqClear;
+  const needDT_hole  = reqClear / (alphaH * D);
+  const needDT_shaft = reqClear / (alphaS * D);
+
+  let vcls, vicon, vmain, vsub;
+  if (surplus >= 0.02)   { vcls='good'; vicon='✓'; vmain='クリアランス十分 — 組立可能';        vsub=`余剰 ${surplus.toFixed(3)} mm の余裕あり`; }
+  else if (surplus >= 0) { vcls='warn'; vicon='△'; vmain='ギリギリ OK — 余裕は少ない';         vsub=`余剰 ${surplus.toFixed(3)} mm。作業速度・部品質量に注意`; }
+  else                   { vcls='bad';  vicon='✕'; vmain='クリアランス不足 — 温度を見直して';  vsub=`不足 ${Math.abs(surplus).toFixed(3)} mm`; }
+
+  $('sh-verdict').className = `card ${vcls}`;
+  $('sh-verdict-icon').textContent = vicon;
+  $('sh-verdict-main').textContent = vmain;
+  $('sh-verdict-sub').textContent  = vsub;
+
+  $('sh-clear').innerHTML        = `${effClear.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('sh-clear-sub').textContent  = `必要 ${reqClear.toFixed(3)} mm`;
+  $('sh-dhole').innerHTML        = `${dHole.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('sh-dhole-sub').textContent  = `ΔT = ${(THt-TH0).toFixed(0)} ℃`;
+  $('sh-dshaft').innerHTML       = `${dShaft.toFixed(3)}<span class="card-unit"> mm</span>`;
+  $('sh-dshaft-sub').textContent = `ΔT = ${(TS0-TSt).toFixed(0)} ℃`;
+
+  $('sh-tbody').innerHTML = [
+    ['呼び径 D', `${D.toFixed(3)} mm`],
+    ['α穴', alphaH.toExponential(2) + ' /℃'],
+    ['α軸', alphaS.toExponential(2) + ' /℃'],
+    ['穴拡大量 ΔD穴', `${dHole.toFixed(4)} mm`],
+    ['軸縮小量 ΔD軸', `${dShaft.toFixed(4)} mm`],
+    ['組立時クリアランス', `${effClear.toFixed(4)} mm`],
+    ['必要クリアランス (δ+M)', `${reqClear.toFixed(4)} mm`],
+    ['余剰クリアランス', `${surplus.toFixed(4)} mm`],
+  ].map((r,i) => `<tr${i===7?' class="highlight-row"':''}><td>${r[0]}</td><td class="hl">${r[1]}</td></tr>`).join('');
+
+  $('sh-rev-hole').textContent      = `+ ${needDT_hole.toFixed(0)} ℃`;
+  $('sh-rev-hole-sub').textContent  = `20℃ → ${(20+needDT_hole).toFixed(0)} ℃`;
+  $('sh-rev-shaft').textContent     = `− ${needDT_shaft.toFixed(0)} ℃`;
+  $('sh-rev-shaft-sub').textContent = `20℃ → ${(20-needDT_shaft).toFixed(0)} ℃`;
+
+  const rec = D<30?'δ 0.01〜0.02 mm（軽め）':D<60?'δ 0.02〜0.03 mm（標準）':D<100?'δ 0.025〜0.04 mm（やや強め）':'δ 0.03〜0.05 mm（用途次第）';
+  const LN2 = alphaS * D * 216;
+  $('sh-memo').innerHTML = `<b>実務メモ</b><br>この径の推奨締め代目安：<b>${rec}</b><br>液体窒素（20℃→−196℃）で軸を冷やした場合の収縮量：<b>${LN2.toFixed(3)} mm</b><br>両側温調（穴加熱＋軸冷却）は必要温度差が小さく済み、歪み・焼戻しリスクを低減できる。`;
+}
+['sh-alphaH-sel','sh-alphaS-sel'].forEach(id => $(id).addEventListener('change', () => shrinkSyncAlpha(id.includes('H')?'H':'S')));
+shrinkSyncAlpha('H');
+shrinkSyncAlpha('S');
+
+function convLen(from) {
+  if (from==='inch') $('u-mm').value=(+$('u-inch').value*25.4).toFixed(4);
+  else $('u-inch').value=(+$('u-mm').value/25.4).toFixed(5);
+}
+function convFrac() {
+  const v=+$('u-frac').value; if(!v)return;
+  $('u-frac-result').textContent=`${v}" = ${(v*25.4).toFixed(4)} mm`;
+}
+function convTorque(from) {
+  if(from==='nm') $('u-kgfcm').value=(+$('u-nm').value*10.197).toFixed(4);
+  else $('u-nm').value=(+$('u-kgfcm').value/10.197).toFixed(5);
+}
+function convTorque2(from) {
+  if(from==='nm') $('u-lbfft').value=(+$('u-nm2').value*0.7376).toFixed(4);
+  else $('u-nm2').value=(+$('u-lbfft').value/0.7376).toFixed(4);
+}
+function convLoad(from) {
+  const vals = { n: 1, kgf: 9.80665, kn: 1000, lbf: 4.44822 };
+  const ids  = { n: 'u-load-n', kgf: 'u-load-kgf', kn: 'u-load-kn', lbf: 'u-load-lbf' };
+  const n_val = +$(ids[from]).value * vals[from];
+  for (const [k, f] of Object.entries(vals)) if (k !== from) $(ids[k]).value = (n_val / f).toFixed(k === 'kn' ? 6 : 4);
+}
+function convTemp(from) {
+  let c;
+  if (from === 'c') c = +$('u-temp-c').value;
+  else if (from === 'f') c = (+$('u-temp-f').value - 32) * 5 / 9;
+  else c = +$('u-temp-k').value - 273.15;
+  if (c < -273.15) { c = -273.15; } // 絶対零度クランプ
+  if (from !== 'c') $('u-temp-c').value = c.toFixed(2);
+  if (from !== 'f') $('u-temp-f').value = (c * 9 / 5 + 32).toFixed(2);
+  if (from !== 'k') $('u-temp-k').value = (c + 273.15).toFixed(2);
+}
+function convPress(from) {
+  // 全て Pa 基準で統一
+  const vals = {
+    mpa:    1e6,
+    kpa:    1e3,
+    hpa:    1e2,
+    pa:     1,
+    psi:    6894.757,
+    kgfcm2: 98066.5,
+    kgfmm2: 9806650,
+    nmm2:   1e6,       // 1 N/mm² = 1 MPa
+    knmm2:  1e9,       // 1 kN/mm² = 1 GPa
+    bar:    1e5,
+  };
+  const ids = {
+    mpa:    'u-mpa',
+    kpa:    'u-kpa',
+    hpa:    'u-hpa',
+    pa:     'u-pa',
+    psi:    'u-psi',
+    kgfcm2: 'u-kgfcm2',
+    kgfmm2: 'u-kgfmm2',
+    nmm2:   'u-nmm2',
+    knmm2:  'u-knmm2',
+    bar:    'u-bar',
+  };
+  const pa_val = +$(ids[from]).value * vals[from];
+  for (const [k, f] of Object.entries(vals)) {
+    if (k === from) continue;
+    const v = pa_val / f;
+    let dec = 4;
+    if (k === 'pa')    dec = 1;
+    if (k === 'hpa')   dec = 2;
+    if (k === 'kpa')   dec = 3;
+    if (k === 'knmm2') dec = 7;
+    $(ids[k]).value = v.toFixed(dec);
+  }
+}
+function convPow(from) {
+  if(from==='kw') $('u-ps').value=(+$('u-kw').value*1.3596).toFixed(4);
+  else $('u-kw').value=(+$('u-ps').value/1.3596).toFixed(5);
+}
+function calcPeriph() {
+  const rpm=+$('u-rpm').value, d=+$('u-dia').value;
+  if(!rpm||!d)return;
+  $('u-periph').textContent=`${(Math.PI*d*rpm/1000).toFixed(2)} m/min = ${(Math.PI*d*rpm/60000).toFixed(3)} m/s`;
+}
+
+// ════════════════════════════════════════
+// バージョン情報をコメントから読み込んで右上に表示
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  for (const n of document.head.childNodes) {
+    if (n.nodeType === Node.COMMENT_NODE && n.nodeValue.includes('build:')) {
+      // "冒頭のコメント欄からパース
+      const parts = n.nodeValue.trim().replace(/^build:\s*/, '').split('|').map(s => s.trim()).filter(Boolean);
+      const ver  = parts[0] || '--';
+      const date = parts[1] ? parts[1].replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3') : '';
+      const el = document.getElementById('verBadge');
+      if (el) el.textContent = `Mechanical Tools ver.${ver}${date ? '  ' + date : ''}`;
+      break;
+    }
+  }
+});
+</script>
+</body>
+</html>

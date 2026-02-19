@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- build: 1.01 | 20260219 | Lathe & Milling Tools | uk |-->
+  <!-- Black Deep Tone -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>旋盤 &amp; フライス 簡易計算ツール </title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c1117;
+  --surface: #161b22;
+  --surface2: #1c2230;
+  --border: #2a3444;
+  --ink: #cdd9e5;
+  --muted: #768390;
+  --accent: #388bfd;
+  --accent-dim: #1c3a6b;
+  --good: #3fb950;
+  --good-dim: #0f2d17;
+  --warn: #d29922;
+  --warn-dim: #2e2009;
+  --bad: #f85149;
+  --bad-dim: #3b1016;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+header h1 { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+.badge-green { border-color: var(--good); color: var(--good); }
+.badge-blue  { border-color: var(--accent); color: var(--accent); }
+#verBadge {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: var(--muted); background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 2px 8px; white-space: nowrap; margin-left: auto;
+}
+
+/* タブバー */
+.tabbar {
+  display: flex; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; flex-shrink: 0;
+}
+.tabbar::-webkit-scrollbar { height: 3px; }
+.tabbar::-webkit-scrollbar-thumb { background: var(--border); }
+.tab-btn {
+  padding: 10px 18px; font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--muted); background: none; border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer; white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 44px;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; flex: 1; overflow: hidden; }
+.tab-content.active { display: flex; }
+
+/* 2カラム */
+.two-panel {
+  display: grid; grid-template-columns: 310px 1fr;
+  flex: 1; min-height: 0;
+}
+.panel-left {
+  background: var(--surface); border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 18px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.panel-right {
+  padding: 18px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* 入力部品 */
+.section-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.field { margin-bottom: 9px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+input[type="number"], input[type="text"], select {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px;
+  color: var(--ink); padding: 7px 10px;
+  font-size: 16px; font-family: 'JetBrains Mono', monospace;
+  outline: none; transition: border-color .15s;
+  -webkit-appearance: none; appearance: none;
+}
+input:focus, select:focus { border-color: var(--accent); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.divider { border: none; border-top: 1px solid var(--border); }
+
+/* カード */
+.result-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.result-cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.result-cards-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.card .card-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.card .card-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; line-height: 1; }
+.card .card-unit  { font-size: 12px; color: var(--muted); margin-left: 2px; }
+.card .card-sub   { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.card.accent { border-color: var(--accent); background: var(--accent-dim); }
+.card.good   { border-color: var(--good);   background: var(--good-dim);   }
+.card.warn   { border-color: var(--warn);   background: var(--warn-dim);   }
+
+/* テーブル */
+.data-table-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--surface2); padding: 8px 10px;
+  text-align: left; font-size: 11px; font-weight: 700;
+  letter-spacing: .08em; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 8px 10px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
+tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--muted); }
+.hl { color: var(--accent); font-weight: 600; }
+.good-text { color: var(--good); font-weight: 600; }
+.warn-text { color: var(--warn); font-weight: 600; }
+
+/* 入力警告 */
+.input-warn input, input.warn {
+  border-color: var(--bad) !important;
+  background: var(--bad-dim) !important;
+}
+.input-warn label, label.warn-label {
+  color: var(--bad) !important;
+}
+.warn-hint {
+  font-size: 11px;
+  color: var(--bad);
+  margin-top: 3px;
+  display: none;
+}
+.warn-hint.show { display: block; }
+
+/* メモ */
+.memo {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 12px; color: var(--muted); line-height: 1.8;
+}
+.memo b { color: var(--ink); }
+
+/* 材料タブ専用 */
+.mat-full { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media (max-width: 700px) {
+  .two-panel { grid-template-columns: 1fr; }
+  .panel-left { border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+  .result-cards, .result-cards-4 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔧 旋盤 &amp; フライス 簡易計算ツ―ル</h1>
+  <span class="badge badge-green">オフライン</span>
+  <span class="badge badge-blue">自動計算</span>
+  <span id="verBadge">ver.--</span>
+</header>
+
+<div class="tabbar">
+  <button class="tab-btn active" data-tab="lathe">🔵 旋盤</button>
+  <button class="tab-btn" data-tab="mill">🟢 フライス</button>
+  <button class="tab-btn" data-tab="material">📋 材料別早見</button>
+  <button class="tab-btn" data-tab="taper">📐 テーパ・角度</button>
+</div>
+
+<!-- ══════ TAB: 旋盤 ══════ -->
+<div id="tab-lathe" class="tab-content active">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">加工種別</div>
+        <div class="field">
+          <label>工具種別</label>
+          <select id="lt-tool">
+            <option value="outer">外径バイト（荒・仕上げ）</option>
+            <option value="inner">内径バイト（中ぐり）</option>
+            <option value="drill">ドリル</option>
+            <option value="cutoff">突っ切りバイト</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="section-title">切削条件</div>
+        <div class="field">
+          <label>被削材</label>
+          <select id="lt-mat">
+            <option value="steel_soft">軟鋼・SS400（Vc目安 100〜150）</option>
+            <option value="steel_mid">中硬鋼・S45C（Vc目安 80〜120）</option>
+            <option value="steel_hard">硬鋼・SCM（Vc目安 60〜100）</option>
+            <option value="cast_iron">ねずみ鋳鉄（Vc目安 80〜120）</option>
+            <option value="sus">ステンレス SUS304（Vc目安 60〜100）</option>
+            <option value="alum">アルミ合金（Vc目安 200〜400）</option>
+            <option value="brass">真鍮（Vc目安 100〜200）</option>
+            <option value="custom">カスタム入力</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>切削速度 Vc（m/min）</label>
+          <input type="number" id="lt-vc" value="100" min="1" oninput="calcLathe()">
+        </div>
+        <div class="field">
+          <label id="lt-d-label">工作物径 D（mm）</label>
+          <input type="number" id="lt-d" value="50" min="0.1" step="0.1" oninput="calcLathe()">
+        </div>
+        <div class="two-col">
+          <div class="field" id="lt-ap-field">
+            <label id="lt-ap-label">切込み量 ap（mm）</label>
+            <input type="number" id="lt-ap" value="1.0" min="0.01" step="0.1" oninput="calcLathe()">
+            <div class="warn-hint" id="lt-ap-hint">⚠ 推奨上限を超えています</div>
+          </div>
+          <div class="field" id="lt-f-field">
+            <label id="lt-f-label">送り量 f（mm/rev）</label>
+            <input type="number" id="lt-f" value="0.15" min="0.01" step="0.01" oninput="calcLathe()">
+            <div class="warn-hint" id="lt-f-hint">⚠ 推奨上限を超えています</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>加工長さ L（mm）</label>
+          <input type="number" id="lt-L" value="100" min="1" oninput="calcLathe()">
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo" id="lt-memo">
+        <b>外径バイト目安</b><br>
+        荒加工：ap 1〜3mm、f 0.2〜0.4mm/rev<br>
+        仕上げ：ap 0.1〜0.5mm、f 0.05〜0.15mm/rev
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards">
+        <div class="card accent">
+          <div class="card-label">回転数 n</div>
+          <div class="card-value" id="lt-rpm">—<span class="card-unit">rpm</span></div>
+          <div class="card-sub" id="lt-rpm-sub"></div>
+        </div>
+        <div class="card good">
+          <div class="card-label">テーブル送り速度 vf</div>
+          <div class="card-value" id="lt-vf">—<span class="card-unit">mm/min</span></div>
+          <div class="card-sub" id="lt-vf-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">切削時間 tc</div>
+          <div class="card-value" id="lt-tc">—<span class="card-unit">min</span></div>
+          <div class="card-sub" id="lt-tc-sub"></div>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>項目</th><th>値</th><th>備考</th></tr></thead>
+          <tbody id="lt-tbody"></tbody>
+        </table>
+      </div>
+      <div class="memo" id="lt-result-memo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: フライス ══════ -->
+<div id="tab-mill" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">工具種別</div>
+        <div class="field">
+          <label>工具</label>
+          <select id="ml-tool">
+            <option value="endmill">エンドミル（スクエア）</option>
+            <option value="ballmill">ボールエンドミル</option>
+            <option value="facemill">正面フライス（フェイスミル）</option>
+            <option value="drill">ドリル（MC用）</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div>
+        <div class="section-title">切削条件</div>
+        <div class="field">
+          <label>被削材</label>
+          <select id="ml-mat">
+            <option value="steel_soft">軟鋼・SS400</option>
+            <option value="steel_mid">中硬鋼・S45C</option>
+            <option value="steel_hard">硬鋼・SCM</option>
+            <option value="cast_iron">ねずみ鋳鉄</option>
+            <option value="sus">ステンレス SUS304</option>
+            <option value="alum">アルミ合金</option>
+            <option value="brass">真鍮</option>
+            <option value="custom">カスタム入力</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>切削速度 Vc（m/min）</label>
+          <input type="number" id="ml-vc" value="80" min="1" oninput="calcMill()">
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label>工具径 D（mm）</label>
+            <input type="number" id="ml-d" value="10" min="0.1" step="0.1" oninput="calcMill()">
+          </div>
+          <div class="field">
+            <label>刃数 z</label>
+            <input type="number" id="ml-z" value="2" min="1" max="20" oninput="calcMill()">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field" id="ml-fz-field">
+            <label id="ml-fz-label">1刃送り fz（mm/刃）</label>
+            <input type="number" id="ml-fz" value="0.02" min="0.001" step="0.005" oninput="calcMill()">
+            <div class="warn-hint" id="ml-fz-hint">⚠ 推奨上限を超えています</div>
+          </div>
+          <div class="field" id="ml-ap-field">
+            <label id="ml-ap-label">軸方向切込み ap（mm）</label>
+            <input type="number" id="ml-ap" value="5" min="0.1" step="0.5" oninput="calcMill()">
+            <div class="warn-hint" id="ml-ap-hint">⚠ ap が工具径の1.5倍を超えています</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field" id="ml-ae-field">
+            <label id="ml-ae-label">径方向切込み ae（mm）</label>
+            <input type="number" id="ml-ae" value="5" min="0.1" step="0.5" oninput="calcMill()">
+            <div class="warn-hint" id="ml-ae-hint">⚠ ae が工具径の50%を超えています</div>
+          </div>
+          <div class="field">
+            <label>加工長さ L（mm）</label>
+            <input type="number" id="ml-L" value="100" min="1" oninput="calcMill()">
+          </div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>エンドミル目安（超硬・鋼材）</b><br>
+        Vc：60〜100 m/min<br>
+        fz：0.01〜0.05 mm/刃<br>
+        ap：工具径の 1〜1.5倍まで<br>
+        ae：工具径の 50% 以下推奨
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="result-cards">
+        <div class="card accent">
+          <div class="card-label">回転数 n</div>
+          <div class="card-value" id="ml-rpm">—<span class="card-unit">rpm</span></div>
+        </div>
+        <div class="card good">
+          <div class="card-label">テーブル送り速度 vf</div>
+          <div class="card-value" id="ml-vf">—<span class="card-unit">mm/min</span></div>
+          <div class="card-sub" id="ml-vf-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">切削時間 tc</div>
+          <div class="card-value" id="ml-tc">—<span class="card-unit">min</span></div>
+        </div>
+      </div>
+      <div class="result-cards-4" style="margin-top:0">
+        <div class="card">
+          <div class="card-label">切削断面積</div>
+          <div class="card-value" id="ml-area" style="font-size:16px">—<span class="card-unit">mm²</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">MRR（除去体積）</div>
+          <div class="card-value" id="ml-mrr" style="font-size:16px">—<span class="card-unit">cm³/min</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">1回転送り量</div>
+          <div class="card-value" id="ml-frev" style="font-size:16px">—<span class="card-unit">mm/rev</span></div>
+        </div>
+        <div class="card">
+          <div class="card-label">工具径</div>
+          <div class="card-value" id="ml-d-out" style="font-size:16px">—<span class="card-unit">mm</span></div>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>項目</th><th>値</th><th>備考</th></tr></thead>
+          <tbody id="ml-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: 材料別早見 ══════ -->
+<div id="tab-material" class="tab-content">
+  <div class="mat-full">
+    <div class="section-title">材料別 推奨切削条件（超硬工具 目安）</div>
+
+    <!-- 旋盤 -->
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px">🔵 旋盤（バイト）</div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>材料</th>
+              <th>Vc 荒（m/min）</th>
+              <th>Vc 仕上（m/min）</th>
+              <th>f 荒（mm/rev）</th>
+              <th>f 仕上（mm/rev）</th>
+              <th>ap 荒（mm）</th>
+              <th>ap 仕上（mm）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>軟鋼・SS400</td><td class="hl">120〜150</td><td class="hl">150〜200</td><td>0.2〜0.4</td><td>0.05〜0.15</td><td>1.5〜3</td><td>0.1〜0.5</td></tr>
+            <tr><td>中硬鋼・S45C</td><td class="hl">80〜120</td><td class="hl">120〜150</td><td>0.15〜0.3</td><td>0.05〜0.1</td><td>1〜2.5</td><td>0.1〜0.3</td></tr>
+            <tr><td>硬鋼・SCM440</td><td class="hl">60〜100</td><td class="hl">100〜130</td><td>0.1〜0.25</td><td>0.05〜0.1</td><td>0.5〜2</td><td>0.05〜0.2</td></tr>
+            <tr><td>ねずみ鋳鉄</td><td class="hl">80〜120</td><td class="hl">100〜150</td><td>0.2〜0.4</td><td>0.05〜0.15</td><td>1〜3</td><td>0.1〜0.5</td></tr>
+            <tr><td>SUS304</td><td class="hl">60〜100</td><td class="hl">80〜120</td><td>0.1〜0.2</td><td>0.05〜0.1</td><td>0.5〜1.5</td><td>0.05〜0.2</td></tr>
+            <tr><td>アルミ合金</td><td class="hl">200〜400</td><td class="hl">300〜500</td><td>0.2〜0.5</td><td>0.05〜0.2</td><td>1〜3</td><td>0.1〜0.5</td></tr>
+            <tr><td>真鍮</td><td class="hl">150〜250</td><td class="hl">200〜300</td><td>0.15〜0.35</td><td>0.05〜0.15</td><td>1〜2</td><td>0.1〜0.3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- フライス -->
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--good);margin-bottom:6px">🟢 フライス・エンドミル（超硬）</div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>材料</th>
+              <th>Vc（m/min）</th>
+              <th>fz（mm/刃）</th>
+              <th>ap（mm）</th>
+              <th>ae（mm）</th>
+              <th>備考</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>軟鋼・SS400</td><td class="hl">80〜120</td><td>0.02〜0.06</td><td>D×1〜1.5</td><td>D×0.3〜0.5</td><td>切削油推奨</td></tr>
+            <tr><td>中硬鋼・S45C</td><td class="hl">60〜100</td><td>0.02〜0.05</td><td>D×0.8〜1.2</td><td>D×0.3〜0.4</td><td>切削油推奨</td></tr>
+            <tr><td>硬鋼・SCM440</td><td class="hl">50〜80</td><td>0.01〜0.04</td><td>D×0.5〜1</td><td>D×0.2〜0.3</td><td>エア推奨</td></tr>
+            <tr><td>ねずみ鋳鉄</td><td class="hl">80〜120</td><td>0.03〜0.08</td><td>D×1〜1.5</td><td>D×0.4〜0.5</td><td>乾式可</td></tr>
+            <tr><td>SUS304</td><td class="hl">40〜80</td><td>0.01〜0.03</td><td>D×0.5〜1</td><td>D×0.2〜0.3</td><td>低速・大送り</td></tr>
+            <tr><td>アルミ合金</td><td class="hl">200〜500</td><td>0.05〜0.15</td><td>D×1〜2</td><td>D×0.5〜0.8</td><td>切削油必須</td></tr>
+            <tr><td>真鍮</td><td class="hl">100〜200</td><td>0.03〜0.08</td><td>D×1〜1.5</td><td>D×0.3〜0.5</td><td>乾式可</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ドリル -->
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--warn);margin-bottom:6px">🟡 ドリル（超硬・HSS共通目安）</div>
+      <div class="data-table-wrap">
+        <table>
+          <thead>
+            <tr><th>材料</th><th>Vc 超硬（m/min）</th><th>Vc HSS（m/min）</th><th>f（mm/rev）</th><th>備考</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>軟鋼・SS400</td><td class="hl">80〜120</td><td>20〜30</td><td>0.1〜0.3</td><td>切削油推奨</td></tr>
+            <tr><td>中硬鋼・S45C</td><td class="hl">60〜100</td><td>15〜25</td><td>0.08〜0.2</td><td>切削油推奨</td></tr>
+            <tr><td>硬鋼・SCM440</td><td class="hl">50〜80</td><td>10〜18</td><td>0.05〜0.15</td><td>切削油必須</td></tr>
+            <tr><td>ねずみ鋳鉄</td><td class="hl">60〜100</td><td>15〜25</td><td>0.1〜0.3</td><td>乾式可</td></tr>
+            <tr><td>SUS304</td><td class="hl">30〜60</td><td>8〜15</td><td>0.05〜0.15</td><td>低速・切削油必須</td></tr>
+            <tr><td>アルミ合金</td><td class="hl">150〜300</td><td>40〜80</td><td>0.1〜0.4</td><td>切削油推奨</td></tr>
+            <tr><td>真鍮</td><td class="hl">80〜150</td><td>25〜50</td><td>0.1〜0.3</td><td>乾式可</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="memo">
+      <b>注意</b>：上記はあくまで目安です。工具メーカーの推奨条件・機械剛性・クーラント有無・加工形状によって大きく変わります。<br>
+      初めて加工する材料は<b>低めの条件から始めて様子を見る</b>のが基本です。
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB: テーパ・角度 ══════ -->
+<div id="tab-taper" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">計算モード</div>
+        <div class="field">
+          <select id="tp-mode">
+            <option value="ratio2deg">勾配（1/n）→ 角度</option>
+            <option value="deg2ratio">角度 → 勾配（1/n）</option>
+            <option value="dim2deg">寸法（径差・長さ）→ 角度・勾配</option>
+            <option value="deg2dim">角度・長さ → 径差・テーパ量</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+
+      <!-- 入力エリア（モード別） -->
+      <div id="tp-input-ratio2deg">
+        <div class="section-title">勾配 → 角度</div>
+        <div class="field">
+          <label>勾配分母 n（1/n テーパ）</label>
+          <input type="number" id="tp-n" value="10" min="0.01" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="memo">
+          <b>例</b>：1/10 勾配 → n=10 と入力<br>
+          テーパ角（全角）と半角（片側）の両方を表示します。<br>
+          よく使う勾配：<br>
+          1/10（6°）　1/20（2.86°）　1/50（1.15°）<br>
+          モールステーパ：約 1/20〜1/19
+        </div>
+      </div>
+
+      <div id="tp-input-deg2ratio" style="display:none">
+        <div class="section-title">角度 → 勾配</div>
+        <div class="field">
+          <label>テーパ半角 α（°）</label>
+          <input type="number" id="tp-alpha" value="3" min="0.01" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="memo">
+          片側の角度（半角）を入力してください。<br>
+          全角（テーパ角）の場合は ÷2 して入力。
+        </div>
+      </div>
+
+      <div id="tp-input-dim2deg" style="display:none">
+        <div class="section-title">寸法 → 角度・勾配</div>
+        <div class="field">
+          <label>大径 D（mm）</label>
+          <input type="number" id="tp-D" value="30" min="0" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="field">
+          <label>小径 d（mm）</label>
+          <input type="number" id="tp-d" value="20" min="0" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="field">
+          <label>テーパ長さ L（mm）</label>
+          <input type="number" id="tp-L" value="100" min="0.1" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="memo">
+          旋盤の複式刃物台角度、心押し台オフセット計算に使用。
+        </div>
+      </div>
+
+      <div id="tp-input-deg2dim" style="display:none">
+        <div class="section-title">角度・長さ → 径差</div>
+        <div class="field">
+          <label>テーパ半角 α（°）</label>
+          <input type="number" id="tp-alpha2" value="3" min="0.01" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="field">
+          <label>テーパ長さ L（mm）</label>
+          <input type="number" id="tp-L2" value="100" min="0.1" step="0.1" oninput="calcTaper()">
+        </div>
+        <div class="field">
+          <label>大径 D（mm）※任意</label>
+          <input type="number" id="tp-D2" value="30" min="0" step="0.1" oninput="calcTaper()">
+        </div>
+      </div>
+
+    </div>
+    <div class="panel-right">
+      <div class="result-cards-2" id="tp-cards">
+        <div class="card accent">
+          <div class="card-label" id="tp-c1-label">テーパ半角 α</div>
+          <div class="card-value" id="tp-c1">—<span class="card-unit">°</span></div>
+          <div class="card-sub" id="tp-c1-sub"></div>
+        </div>
+        <div class="card good">
+          <div class="card-label" id="tp-c2-label">テーパ全角（頂角）</div>
+          <div class="card-value" id="tp-c2">—<span class="card-unit">°</span></div>
+          <div class="card-sub" id="tp-c2-sub"></div>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table>
+          <thead><tr><th>項目</th><th>値</th><th>備考</th></tr></thead>
+          <tbody id="tp-tbody"></tbody>
+        </table>
+      </div>
+      <!-- よく使うテーパ早見 -->
+      <div>
+        <div class="section-title">よく使うテーパ早見表</div>
+        <div class="data-table-wrap">
+          <table>
+            <thead><tr><th>名称</th><th>勾配</th><th>半角 α</th><th>全角</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td>1/10 勾配</td><td class="hl">1/10</td><td>2.862°</td><td>5.724°</td><td>一般テーパ・旋盤</td></tr>
+              <tr><td>1/20 勾配</td><td class="hl">1/20</td><td>1.432°</td><td>2.864°</td><td>軽圧入・テーパピン</td></tr>
+              <tr><td>1/50 勾配</td><td class="hl">1/50</td><td>0.573°</td><td>1.146°</td><td>精密テーパ</td></tr>
+              <tr><td>MT#1</td><td class="hl">1/19.254</td><td>1.491°</td><td>2.982°</td><td>モールステーパ</td></tr>
+              <tr><td>MT#2</td><td class="hl">1/20.020</td><td>1.434°</td><td>2.868°</td><td>モールステーパ</td></tr>
+              <tr><td>MT#3</td><td class="hl">1/19.922</td><td>1.438°</td><td>2.876°</td><td>モールステーパ</td></tr>
+              <tr><td>MT#4</td><td class="hl">1/19.254</td><td>1.491°</td><td>2.982°</td><td>モールステーパ</td></tr>
+              <tr><td>MT#5</td><td class="hl">1/19.002</td><td>1.508°</td><td>3.016°</td><td>モールステーパ</td></tr>
+              <tr><td>30° テーパ</td><td class="hl">—</td><td>15°</td><td>30°</td><td>センタ穴・皿ねじ</td></tr>
+              <tr><td>60° テーパ</td><td class="hl">—</td><td>30°</td><td>60°</td><td>センタ穴・旋盤センタ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ══════ タブ切り替え ══════
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+  const tabEl = document.getElementById('tab-' + name);
+  if (tabEl) tabEl.classList.add('active');
+  const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+  if (btn) btn.classList.add('active');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      showTab(this.getAttribute('data-tab'));
+    });
+  });
+});
+
+// ══════ 材料別デフォルトVc ══════
+// ══════ 入力値警告ヘルパー ══════
+// 推奨上限を超えたら赤くする
+const WARN_LIMITS_LATHE = {
+  outer:  { ap_max: 3.0,  f_max: 0.4  },
+  inner:  { ap_max: 1.5,  f_max: 0.25 },
+  drill:  { ap_max: null, f_max: 0.3  },  // drillはapなし
+  cutoff: { ap_max: null, f_max: 0.1  },
+};
+const WARN_LIMITS_MILL = {
+  fz_max: 0.1,   // 汎用上限
+};
+
+function setWarn(fieldId, inputId, hintId, isWarn, msg) {
+  const field = $(fieldId);
+  const input = $(inputId);
+  const hint  = $(hintId);
+  if (!field || !input || !hint) return;
+  if (isWarn) {
+    field.classList.add('input-warn');
+    hint.textContent = '⚠ ' + (msg || '推奨上限を超えています');
+    hint.classList.add('show');
+  } else {
+    field.classList.remove('input-warn');
+    hint.classList.remove('show');
+  }
+}
+
+const MAT_VC_LATHE = {
+  steel_soft: 120, steel_mid: 100, steel_hard: 80,
+  cast_iron: 100, sus: 80, alum: 300, brass: 180, custom: null
+};
+const MAT_VC_MILL = {
+  steel_soft: 100, steel_mid: 80, steel_hard: 60,
+  cast_iron: 100, sus: 60, alum: 300, brass: 150, custom: null
+};
+
+$('lt-mat').addEventListener('change', function() {
+  const vc = MAT_VC_LATHE[this.value];
+  if (vc) $('lt-vc').value = vc;
+  updateLatheMemo();
+  calcLathe();
+});
+$('ml-mat').addEventListener('change', function() {
+  const vc = MAT_VC_MILL[this.value];
+  if (vc) $('ml-vc').value = vc;
+  calcMill();
+});
+$('lt-tool').addEventListener('change', function() {
+  updateLatheMemo();
+  calcLathe();
+});
+
+function updateLatheMemo() {
+  const tool = $('lt-tool').value;
+  const memos = {
+    outer: '<b>外径バイト目安</b><br>荒加工：ap 1〜3mm、f 0.2〜0.4mm/rev<br>仕上げ：ap 0.1〜0.5mm、f 0.05〜0.15mm/rev',
+    inner: '<b>内径バイト目安</b><br>荒加工：ap 0.5〜1.5mm、f 0.1〜0.25mm/rev<br>仕上げ：ap 0.05〜0.3mm、f 0.05〜0.1mm/rev<br>工具剛性に注意（細長バイトは振動しやすい）',
+    drill: '<b>ドリル目安</b><br>送り量 f：ドリル径×0.01〜0.03 mm/rev<br>深穴は途中で引き抜いて切粉排出（ステップ送り）<br>加工深さ＝穴深さ＋先端角分（先端≒ドリル径×0.3）',
+    cutoff: '<b>突っ切り目安</b><br>切削速度は通常旋削の 50〜70% に落とす<br>送り量：0.03〜0.1mm/rev（工作物径が大きいほど小さく）<br>工作物径が大きいと切り込みが深くなるので回転数も落とす'
+  };
+  $('lt-memo').innerHTML = memos[tool] || '';
+
+  const labels = {
+    outer: '工作物径 D（mm）', inner: '加工穴径 D（mm）',
+    drill: 'ドリル径 D（mm）', cutoff: '工作物径 D（mm）'
+  };
+  $('lt-d-label').textContent = labels[tool] || '径 D（mm）';
+}
+
+// ══════ 旋盤計算 ══════
+function calcLathe() {
+  const tool = $('lt-tool').value;
+  const vc   = +$('lt-vc').value;
+  const D    = +$('lt-d').value;
+  const ap   = +$('lt-ap').value;
+  const f    = +$('lt-f').value;
+  const L    = +$('lt-L').value;
+  if (!vc || !D || !f || !L) return;
+
+  const n  = (vc * 1000) / (Math.PI * D);         // rpm
+  const vf = n * f;                                 // mm/min
+  const tc = L / vf;                                // min
+
+  $('lt-rpm').innerHTML = `${Math.round(n)}<span class="card-unit"> rpm</span>`;
+  $('lt-rpm-sub').textContent = `Vc=${vc} m/min、D=${D}mm`;
+  $('lt-vf').innerHTML = `${Math.round(vf)}<span class="card-unit"> mm/min</span>`;
+  $('lt-vf-sub').textContent = `f=${f} mm/rev`;
+  $('lt-tc').innerHTML = `${tc.toFixed(2)}<span class="card-unit"> min</span>`;
+  $('lt-tc-sub').textContent = `約 ${(tc * 60).toFixed(0)} 秒`;
+
+  const rows = [
+    ['工具種別',       tool==='outer'?'外径バイト':tool==='inner'?'内径バイト':tool==='drill'?'ドリル':'突っ切りバイト', ''],
+    ['回転数 n',       `${Math.round(n)} rpm`,   '= 1000×Vc / (π×D)'],
+    ['送り速度 vf',    `${Math.round(vf)} mm/min`, '= n × f'],
+    ['切削時間 tc',    `${tc.toFixed(2)} min`,   `= L / vf`],
+  ];
+
+  if (tool === 'cutoff') {
+    const vc_rec = vc * 0.6;
+    const n_rec  = (vc_rec * 1000) / (Math.PI * D);
+    rows.push(['突っ切り推奨Vc', `${vc_rec.toFixed(0)} m/min`, '通常の60%目安']);
+    rows.push(['突っ切り推奨n',  `${Math.round(n_rec)} rpm`,   '参考値']);
+  }
+  if (tool === 'drill') {
+    const tip = D * 0.3;
+    rows.push(['ドリル先端長',   `${tip.toFixed(1)} mm`,  '≈ D×0.3（118°の場合）']);
+    rows.push(['実質加工深さ',   `${(L + tip).toFixed(1)} mm`, '穴深さ + 先端長']);
+  }
+
+  $('lt-tbody').innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+  ).join('');
+
+  // ── 警告判定 ──
+  const lim = WARN_LIMITS_LATHE[tool] || {};
+  if (lim.ap_max !== null && lim.ap_max !== undefined) {
+    setWarn('lt-ap-field', 'lt-ap', 'lt-ap-hint', ap > lim.ap_max,
+      `推奨上限 ${lim.ap_max}mm を超えています`);
+  } else {
+    setWarn('lt-ap-field', 'lt-ap', 'lt-ap-hint', false);
+  }
+  setWarn('lt-f-field', 'lt-f', 'lt-f-hint', f > lim.f_max,
+    `推奨上限 ${lim.f_max}mm/rev を超えています`);
+
+  // 仕上げ代メモ
+  const finishes = {
+    outer: 'φ仕上げ代目安：0.2〜0.5mm（直径で）／ 長さ仕上げ代：0.1〜0.3mm',
+    inner: '内径仕上げ代目安：0.2〜0.4mm（直径で）',
+    drill: 'リーマ仕上げを使う場合は 0.1〜0.3mm の仕上げ代を残す',
+    cutoff: '突っ切り後の端面仕上げ代：0.1〜0.3mm'
+  };
+  $('lt-result-memo').innerHTML = `<b>仕上げ代の目安</b><br>${finishes[tool]}`;
+}
+
+// ══════ フライス計算 ══════
+function calcMill() {
+  const vc  = +$('ml-vc').value;
+  const D   = +$('ml-d').value;
+  const z   = +$('ml-z').value;
+  const fz  = +$('ml-fz').value;
+  const ap  = +$('ml-ap').value;
+  const ae  = +$('ml-ae').value;
+  const L   = +$('ml-L').value;
+  if (!vc || !D || !z || !fz || !L) return;
+
+  const n    = (vc * 1000) / (Math.PI * D);   // rpm
+  const frev = fz * z;                          // mm/rev
+  const vf   = n * frev;                        // mm/min
+  const tc   = L / vf;                          // min
+  const area = ap * ae;                          // mm²
+  const mrr  = (vf * ap * ae) / 1000;           // cm³/min
+
+  $('ml-rpm').innerHTML  = `${Math.round(n)}<span class="card-unit"> rpm</span>`;
+  $('ml-vf').innerHTML   = `${Math.round(vf)}<span class="card-unit"> mm/min</span>`;
+  $('ml-vf-sub').textContent = `fz=${fz} × z=${z} × n`;
+  $('ml-tc').innerHTML   = `${tc.toFixed(2)}<span class="card-unit"> min</span>`;
+  $('ml-area').innerHTML = `${area.toFixed(1)}<span class="card-unit"> mm²</span>`;
+  $('ml-mrr').innerHTML  = `${mrr.toFixed(1)}<span class="card-unit"> cm³/min</span>`;
+  $('ml-frev').innerHTML = `${frev.toFixed(3)}<span class="card-unit"> mm/rev</span>`;
+  $('ml-d-out').innerHTML = `${D}<span class="card-unit"> mm</span>`;
+
+  // ae/D 比チェック
+  const ae_ratio = ae / D;
+  const ae_warn  = ae_ratio > 0.5 ? `<span class="warn-text">⚠ ae/D=${ae_ratio.toFixed(2)}（50%超、工具負荷大）</span>` : `<span class="good-text">✓ ae/D=${ae_ratio.toFixed(2)}</span>`;
+
+  const rows = [
+    ['工具径 D', `${D} mm`, ''],
+    ['刃数 z', `${z} 枚`, ''],
+    ['回転数 n', `${Math.round(n)} rpm`, '= 1000×Vc / (π×D)'],
+    ['1回転送り量', `${frev.toFixed(3)} mm/rev`, '= fz × z'],
+    ['テーブル送り vf', `${Math.round(vf)} mm/min`, '= n × frev'],
+    ['切削時間 tc', `${tc.toFixed(2)} min`, `約 ${(tc*60).toFixed(0)} 秒`],
+    ['ae/D 比', `${(ae_ratio*100).toFixed(0)} %`, ae_ratio > 0.5 ? '50%超は要注意' : '適正範囲'],
+    ['MRR（除去体積）', `${mrr.toFixed(1)} cm³/min`, 'ap × ae × vf'],
+  ];
+  $('ml-tbody').innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+  ).join('');
+
+  // ── 警告判定 ──
+  setWarn('ml-fz-field', 'ml-fz', 'ml-fz-hint', fz > WARN_LIMITS_MILL.fz_max,
+    `推奨上限 ${WARN_LIMITS_MILL.fz_max}mm/刃 を超えています`);
+  setWarn('ml-ap-field', 'ml-ap', 'ml-ap-hint', ap > D * 1.5,
+    `ap が工具径(${D}mm)の1.5倍(${(D*1.5).toFixed(1)}mm)を超えています`);
+  setWarn('ml-ae-field', 'ml-ae', 'ml-ae-hint', ae > D * 0.5,
+    `ae が工具径(${D}mm)の50%(${(D*0.5).toFixed(1)}mm)を超えています`);
+}
+
+// ══════ テーパ・角度計算 ══════
+$('tp-mode').addEventListener('change', function() {
+  ['ratio2deg','deg2ratio','dim2deg','deg2dim'].forEach(m => {
+    $('tp-input-' + m).style.display = m === this.value ? '' : 'none';
+  });
+  calcTaper();
+});
+
+function calcTaper() {
+  const mode = $('tp-mode').value;
+  const fmt4 = v => v.toFixed(4);
+  const fmt2 = v => v.toFixed(2);
+  let rows = [];
+
+  if (mode === 'ratio2deg') {
+    const n = +$('tp-n').value;
+    if (!n) return;
+    const alpha_rad = Math.atan(1 / (2 * n));     // 半角（ラジアン）
+    const alpha_deg = alpha_rad * 180 / Math.PI;  // 半角（度）
+    const full_deg  = alpha_deg * 2;               // 全角
+    const alpha_dms = toDMS(alpha_deg);
+    const full_dms  = toDMS(full_deg);
+
+    $('tp-c1-label').textContent = 'テーパ半角 α';
+    $('tp-c2-label').textContent = 'テーパ全角（頂角）';
+    $('tp-c1').innerHTML = `${fmt4(alpha_deg)}<span class="card-unit">°</span>`;
+    $('tp-c1-sub').textContent = alpha_dms;
+    $('tp-c2').innerHTML = `${fmt4(full_deg)}<span class="card-unit">°</span>`;
+    $('tp-c2-sub').textContent = full_dms;
+
+    rows = [
+      ['勾配',          `1 / ${n}`,              '片側'],
+      ['勾配（両側）',  `1 / ${n/2}`,            '全体'],
+      ['テーパ半角 α',  `${fmt4(alpha_deg)} °`,  alpha_dms],
+      ['テーパ全角',    `${fmt4(full_deg)} °`,   full_dms],
+      ['tan(α)',        `${Math.tan(alpha_rad).toFixed(6)}`, '= 1/(2n)'],
+      ['旋盤複式刃物台角度', `${fmt4(alpha_deg)} °`, '半角をセット'],
+    ];
+
+  } else if (mode === 'deg2ratio') {
+    const alpha = +$('tp-alpha').value;
+    if (!alpha) return;
+    const alpha_rad = alpha * Math.PI / 180;
+    const ratio = 1 / (2 * Math.tan(alpha_rad));
+    const full  = alpha * 2;
+
+    $('tp-c1-label').textContent = '勾配（1/n）';
+    $('tp-c2-label').textContent = 'テーパ全角';
+    $('tp-c1').innerHTML = `1 / ${fmt2(ratio)}`;
+    $('tp-c1-sub').textContent = '';
+    $('tp-c2').innerHTML = `${fmt4(full)}<span class="card-unit">°</span>`;
+    $('tp-c2-sub').textContent = toDMS(full);
+
+    rows = [
+      ['入力半角 α',    `${alpha} °`,            toDMS(alpha)],
+      ['テーパ全角',    `${fmt4(full)} °`,        toDMS(full)],
+      ['勾配（1/n）',   `1 / ${fmt2(ratio)}`,    '片側'],
+      ['tan(α)',        `${Math.tan(alpha_rad).toFixed(6)}`, ''],
+    ];
+
+  } else if (mode === 'dim2deg') {
+    const D = +$('tp-D').value;
+    const d = +$('tp-d').value;
+    const L = +$('tp-L').value;
+    if (!L || D <= d) return;
+    const ratio_half = (D - d) / (2 * L);
+    const alpha_rad  = Math.atan(ratio_half);
+    const alpha_deg  = alpha_rad * 180 / Math.PI;
+    const full_deg   = alpha_deg * 2;
+    const ratio_n    = 1 / (2 * Math.tan(alpha_rad));
+    // 心押し台オフセット（全長に対して）
+    const tailstock  = (D - d) / 2;
+
+    $('tp-c1-label').textContent = 'テーパ半角 α';
+    $('tp-c2-label').textContent = 'テーパ全角（頂角）';
+    $('tp-c1').innerHTML = `${fmt4(alpha_deg)}<span class="card-unit">°</span>`;
+    $('tp-c1-sub').textContent = toDMS(alpha_deg);
+    $('tp-c2').innerHTML = `${fmt4(full_deg)}<span class="card-unit">°</span>`;
+    $('tp-c2-sub').textContent = toDMS(full_deg);
+
+    rows = [
+      ['大径 D',         `${D} mm`,              ''],
+      ['小径 d',         `${d} mm`,              ''],
+      ['テーパ長さ L',   `${L} mm`,              ''],
+      ['径差 (D-d)',      `${(D-d).toFixed(3)} mm`, ''],
+      ['テーパ半角 α',   `${fmt4(alpha_deg)} °`, toDMS(alpha_deg)],
+      ['テーパ全角',     `${fmt4(full_deg)} °`,  toDMS(full_deg)],
+      ['勾配（1/n）',    `1 / ${fmt2(ratio_n)}`, ''],
+      ['複式刃物台角度', `${fmt4(alpha_deg)} °`, '旋盤テーパ加工'],
+      ['心押し台オフセット', `${tailstock.toFixed(3)} mm`, '= (D-d)/2'],
+    ];
+
+  } else if (mode === 'deg2dim') {
+    const alpha = +$('tp-alpha2').value;
+    const L     = +$('tp-L2').value;
+    const D     = +$('tp-D2').value;
+    if (!alpha || !L) return;
+    const alpha_rad = alpha * Math.PI / 180;
+    const diff      = 2 * L * Math.tan(alpha_rad);   // 径差
+    const d         = D - diff;
+
+    $('tp-c1-label').textContent = '径差 (D-d)';
+    $('tp-c2-label').textContent = '小径 d';
+    $('tp-c1').innerHTML = `${diff.toFixed(3)}<span class="card-unit">mm</span>`;
+    $('tp-c1-sub').textContent = '';
+    $('tp-c2').innerHTML = `${d.toFixed(3)}<span class="card-unit">mm</span>`;
+    $('tp-c2-sub').textContent = D ? `D=${D}mm の場合` : '';
+
+    rows = [
+      ['テーパ半角 α',   `${alpha} °`,          toDMS(alpha)],
+      ['テーパ全角',     `${(alpha*2).toFixed(4)} °`, toDMS(alpha*2)],
+      ['テーパ長さ L',   `${L} mm`,             ''],
+      ['径差 (D-d)',      `${diff.toFixed(3)} mm`, '= 2L×tan(α)'],
+      ['大径 D（入力）', `${D} mm`,             ''],
+      ['小径 d',         `${d.toFixed(3)} mm`,  D ? '= D − 径差' : '大径入力で算出'],
+      ['勾配（1/n）',    `1 / ${fmt2(1/(2*Math.tan(alpha_rad)))}`, ''],
+    ];
+  }
+
+  $('tp-tbody').innerHTML = rows.map(r =>
+    `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+  ).join('');
+}
+
+// 度 → 度分秒変換
+function toDMS(deg) {
+  const d = Math.floor(deg);
+  const m = Math.floor((deg - d) * 60);
+  const s = ((deg - d) * 60 - m) * 60;
+  return `${d}° ${m}' ${s.toFixed(1)}"`;
+}
+
+// ══════ 初期計算 ══════
+updateLatheMemo();
+calcLathe();
+calcMill();
+calcTaper();
+
+// ══════ バージョン情報をコメントから読み込み ══════
+window.addEventListener('DOMContentLoaded', function() {
+  for (var n of document.head.childNodes) {
+    if (n.nodeType === Node.COMMENT_NODE && n.nodeValue.includes('build:')) {
+      var parts = n.nodeValue.trim().replace('build:', '').split('|').map(function(s){ return s.trim(); }).filter(Boolean);
+      var ver  = parts[0] || '--';
+      var date = parts[1] ? parts[1].replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3') : '';
+      var el = document.getElementById('verBadge');
+      if (el) el.textContent = 'Lathe Milling Tools ver.' + ver + (date ? '  ' + date : '');
+      break;
+    }
+  }
+});
+</script>
+</body>
+</html>
