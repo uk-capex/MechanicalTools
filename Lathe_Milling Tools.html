@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- build: 1.01 | 20260219 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.04 | 20260225 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,22 +38,39 @@ body {
 }
 header {
   border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   background: var(--surface);
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  min-height: 44px;
 }
-header h1 { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
-.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+header h1 {
+  font-size: 13px; font-weight: 700; letter-spacing: .02em;
+  white-space: nowrap; flex-shrink: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.badge {
+  font-size: 10px; font-weight: 600; padding: 2px 6px;
+  border-radius: 999px; border: 1px solid;
+  white-space: nowrap; flex-shrink: 0;
+}
 .badge-green { border-color: var(--good); color: var(--good); }
 .badge-blue  { border-color: var(--accent); color: var(--accent); }
 #verBadge {
-  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
   color: var(--muted); background: var(--surface2);
   border: 1px solid var(--border); border-radius: 4px;
-  padding: 2px 8px; white-space: nowrap; margin-left: auto;
+  padding: 2px 6px; white-space: nowrap; margin-left: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  header { padding: 6px 10px; gap: 6px; }
+  header h1 { font-size: 12px; }
+  #verBadge { display: none; }
+  .badge { font-size: 9px; padding: 1px 5px; }
 }
 
 /* タブバー */
@@ -179,6 +196,68 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
 /* 材料タブ専用 */
 .mat-full { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
 
+/* ── モード切替トグル ── */
+.mode-toggle {
+  display: flex; gap: 0; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; flex-shrink: 0;
+}
+.mode-toggle button {
+  flex: 1; padding: 7px 14px; font-size: 12px; font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif;
+  background: none; color: var(--muted); border: none; cursor: pointer;
+  transition: background .15s, color .15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; min-height: 36px;
+}
+.mode-toggle button.active {
+  background: var(--accent); color: #fff;
+}
+.mode-toggle button:first-child { border-right: 1px solid var(--border); }
+
+/* ── OKK 推奨パネル ── */
+#okk-panel {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--accent);
+  border-radius: 10px; padding: 14px;
+}
+#okk-panel.show { display: block; }
+
+#mazak-panel {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--accent);
+  border-radius: 10px; padding: 14px;
+}
+#mazak-panel.show { display: block; }
+.okk-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  color: var(--accent); margin-bottom: 10px; text-transform: uppercase;
+}
+.okk-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px; flex-wrap: wrap;
+}
+.okk-row label { font-size: 12px; color: var(--muted); width: 130px; flex-shrink: 0; }
+.okk-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip {
+  padding: 4px 10px; border-radius: 6px; font-size: 12px;
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); cursor: default; transition: all .15s;
+}
+.chip.recommended {
+  background: var(--accent-dim); border-color: var(--accent);
+  color: var(--accent);
+}
+.chip.ok {
+  background: var(--good-dim); border-color: var(--good);
+  color: var(--good);
+}
+.okk-note {
+  font-size: 11px; color: var(--muted); margin-top: 10px;
+  border-top: 1px solid var(--border); padding-top: 8px; line-height: 1.7;
+}
+.okk-note b { color: var(--warn); }
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -210,6 +289,33 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
 <div id="tab-lathe" class="tab-content active">
   <div class="two-panel">
     <div class="panel-left">
+      <!-- 機械モード切替 -->
+      <div>
+        <div class="section-title">使用機械</div>
+        <div class="mode-toggle" id="lathe-machine-toggle">
+          <button class="active" data-mode="generic" onclick="setLatheMachineMode('generic')">汎用</button>
+          <button data-mode="mazak860" onclick="setLatheMachineMode('mazak860')">🏭 MAZAK-860</button>
+        </div>
+      </div>
+
+      <!-- MAZAK推奨パネル -->
+      <div id="mazak-panel">
+        <div class="okk-title">⚙ MAZAK-860 推奨設定</div>
+        <div class="okk-row">
+          <label>主軸回転数 n（rpm）</label>
+          <div class="okk-chips" id="mazak-rpm-chips"></div>
+        </div>
+        <div class="okk-row">
+          <label>送り量 f（mm/rev）</label>
+          <div class="okk-chips" id="mazak-feed-chips"></div>
+        </div>
+        <div class="okk-note">
+          <b>■</b> 推奨（計算値に最も近い段）　■ 使用可能な段<br>
+          ※ 主軸 25〜1500 rpm・12段、送り 0.04〜1.6 mm/rev・24段<br>
+          ※ 実機のギヤプレートで必ず確認してください
+        </div>
+      </div>
+
       <div>
         <div class="section-title">加工種別</div>
         <div class="field">
@@ -303,6 +409,33 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
 <div id="tab-mill" class="tab-content">
   <div class="two-panel">
     <div class="panel-left">
+      <!-- 機械モード切替 -->
+      <div>
+        <div class="section-title">使用機械</div>
+        <div class="mode-toggle" id="machine-toggle">
+          <button class="active" data-mode="generic" onclick="setMachineMode('generic')">汎用</button>
+          <button data-mode="okk" onclick="setMachineMode('okk')">🏭 OKK MH-3V2</button>
+        </div>
+      </div>
+
+      <!-- OKK推奨パネル -->
+      <div id="okk-panel">
+        <div class="okk-title">⚙ OKK MH-3V2 推奨設定</div>
+        <div class="okk-row">
+          <label>主軸回転数 n（rpm）</label>
+          <div class="okk-chips" id="okk-rpm-chips"></div>
+        </div>
+        <div class="okk-row">
+          <label>テーブル送り vf（mm/min）</label>
+          <div class="okk-chips" id="okk-feed-chips"></div>
+        </div>
+        <div class="okk-note">
+          <b>■</b> 推奨（計算値に最も近い段）　■ 使用可能な段<br>
+          ※ 主軸 45〜1600 rpm・12段、送り 18〜900 mm/min・12段<br>
+          ※ 実機のギヤプレートで必ず確認してください
+        </div>
+      </div>
+
       <div>
         <div class="section-title">工具種別</div>
         <div class="field">
@@ -790,6 +923,9 @@ function calcLathe() {
     cutoff: '突っ切り後の端面仕上げ代：0.1〜0.3mm'
   };
   $('lt-result-memo').innerHTML = `<b>仕上げ代の目安</b><br>${finishes[tool]}`;
+
+  // MAZAK モード推奨チップ更新
+  updateMazakChips(n, f);
 }
 
 // ══════ フライス計算 ══════
@@ -844,6 +980,116 @@ function calcMill() {
     `ap が工具径(${D}mm)の1.5倍(${(D*1.5).toFixed(1)}mm)を超えています`);
   setWarn('ml-ae-field', 'ml-ae', 'ml-ae-hint', ae > D * 0.5,
     `ae が工具径(${D}mm)の50%(${(D*0.5).toFixed(1)}mm)を超えています`);
+
+  // OKK モード推奨チップ更新
+  updateOkkChips(n, vf);
+}
+
+// ══════ 共通ユーティリティ ══════
+// 配列から最も近い値を返す
+function closestVal(arr, target) {
+  return arr.reduce((prev, cur) =>
+    Math.abs(cur - target) < Math.abs(prev - target) ? cur : prev
+  );
+}
+
+// ══════ MAZAK-860 汎用旋盤 機械モード ══════
+
+// 主軸回転数 12段（25〜1500 rpm、R20系列）
+const MAZAK860_RPM = [25, 35, 50, 70, 100, 140, 195, 275, 390, 560, 800, 1120, 1500];
+// ※上記は12段だが最終端1500rpmを含め13要素持たせて実機幅をカバー。
+// 送り量 24段（0.04〜1.6 mm/rev、R20系列 x2組）
+const MAZAK860_FEED = [
+  0.04, 0.05, 0.063, 0.08, 0.1, 0.125, 0.16, 0.2,
+  0.25, 0.315, 0.4, 0.5, 0.63, 0.8, 1.0, 1.25, 1.6
+];
+
+let latheMachineMode = 'generic';
+
+function setLatheMachineMode(mode) {
+  latheMachineMode = mode;
+  document.querySelectorAll('#lathe-machine-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  const panel = $('mazak-panel');
+  if (mode === 'mazak860') {
+    panel.classList.add('show');
+  } else {
+    panel.classList.remove('show');
+  }
+  calcLathe();
+}
+
+function updateMazakChips(n_calc, f_calc) {
+  if (latheMachineMode !== 'mazak860') return;
+
+  const bestRpm  = closestVal(MAZAK860_RPM,  n_calc);
+  const bestFeed = closestVal(MAZAK860_FEED, f_calc);
+
+  function renderChipsLathe(arr, bestVal, calcVal, containerId) {
+    const container = $(containerId);
+    if (!container) return;
+    const html = arr.map(v => {
+      const diff = Math.abs(v - calcVal) / (calcVal || 1);
+      const isRecommended = v === bestVal;
+      const isOk = !isRecommended && diff <= 0.3;
+      const cls = isRecommended ? 'chip recommended' : isOk ? 'chip ok' : 'chip';
+      return `<span class="${cls}">${v}</span>`;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  renderChipsLathe(MAZAK860_RPM,  bestRpm,  n_calc,  'mazak-rpm-chips');
+  renderChipsLathe(MAZAK860_FEED, bestFeed, f_calc,  'mazak-feed-chips');
+}
+
+// ══════ OKK MH-3V2 機械モード ══════
+
+// MH-3V / MH-3VⅡ 主軸回転数 12段（45〜1600 rpm、R20系列）
+const OKK_RPM = [45, 63, 90, 125, 180, 250, 355, 500, 710, 1000, 1400, 1600];
+
+// テーブル送り 12段（18〜900 mm/min、R20系列 60Hz相当）
+const OKK_FEED = [18, 25, 35.5, 50, 71, 100, 140, 200, 280, 400, 560, 900];
+
+let machineMode = 'generic';  // 'generic' | 'okk'
+
+function setMachineMode(mode) {
+  machineMode = mode;
+  document.querySelectorAll('#machine-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  const panel = $('okk-panel');
+  if (mode === 'okk') {
+    panel.classList.add('show');
+  } else {
+    panel.classList.remove('show');
+  }
+  calcMill();
+}
+
+// OKKチップ更新（rpm, vf の計算値を渡す）
+function updateOkkChips(n_calc, vf_calc) {
+  if (machineMode !== 'okk') return;
+
+  const bestRpm  = closestVal(OKK_RPM, n_calc);
+  const bestFeed = closestVal(OKK_FEED, vf_calc);
+
+  // 許容範囲：計算値の ±30% 以内を「使用可能」と判定
+  function renderChips(arr, bestVal, calcVal, containerId) {
+    const container = $(containerId);
+    if (!container) return;
+    const html = arr.map(v => {
+      const diff = Math.abs(v - calcVal) / calcVal;
+      const isRecommended = v === bestVal;
+      const isOk = !isRecommended && diff <= 0.3;
+      const cls = isRecommended ? 'chip recommended' : isOk ? 'chip ok' : 'chip';
+      return `<span class="${cls}">${v}</span>`;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  renderChips(OKK_RPM,  bestRpm,  n_calc,  'okk-rpm-chips');
+  renderChips(OKK_FEED, bestFeed, vf_calc, 'okk-feed-chips');
 }
 
 // ══════ テーパ・角度計算 ══════
