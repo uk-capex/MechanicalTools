@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- build: 1.20 | 2026020 | Mechanical Tools | uk |-->
+    <!-- build: 1.21 | 20260225 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1377,13 +1377,13 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
     </div>
     <div class="field"><label>荷重 P / w</label>
       <div class="two-col">
-        <input type="number" id="load-val" value="1000" step="10" min="0" oninput="calcBeam()">
+        <input type="number" id="load-val" value="100" step="10" min="0" oninput="calcBeam()">
         <select id="load-unit" onchange="calcBeam()">
+          <option value="kgf" selected>kgf（集中荷重）</option>
+          <option value="kgf/mm">kgf/mm（均等分布）</option>
           <option value="N">N（集中荷重）</option>
           <option value="kN">kN（集中荷重）</option>
-          <option value="kgf">kgf（集中荷重）</option>
           <option value="N/mm">N/mm（分布荷重）</option>
-          <option value="N/m">N/m（分布荷重）</option>
         </select>
       </div>
     </div>
@@ -2927,15 +2927,15 @@ function calcCarea(H,B,tw,tf) {
 function getLoadN() {
   const val = parseFloat(document.getElementById('load-val').value)||0;
   const unit = document.getElementById('load-unit').value;
-  if (unit==='kN') return val*1000;
-  if (unit==='kgf') return val*9.80665;
-  if (unit==='N/m') return val/1000; // → N/mm
+  if (unit==='kN')     return val*1000;
+  if (unit==='kgf')    return val*9.80665;
+  if (unit==='kgf/mm') return val*9.80665;  // → N/mm（分布）
   return val; // N or N/mm
 }
 
 function isDistributed() {
   const unit = document.getElementById('load-unit').value;
-  return unit==='N/mm' || unit==='N/m';
+  return unit==='N/mm' || unit==='kgf/mm';
 }
 
 function calcBeamResults(I, E, L, P_or_w, sType, a) {
