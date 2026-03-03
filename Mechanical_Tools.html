@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- build: 1.22 | 20260225 | Mechanical Tools | uk |-->
+    <!-- build: 1.30 | 20260302 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,40 +38,17 @@ body {
 }
 header {
   border-bottom: 1px solid var(--border);
-  padding: 8px 14px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   background: var(--surface);
   flex-shrink: 0;
-  flex-wrap: nowrap;
-  min-height: 44px;
 }
-header h1 {
-  font-size: 13px; font-weight: 700; letter-spacing: .02em;
-  white-space: nowrap; flex-shrink: 1; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis;
-}
-.badge {
-  font-size: 10px; font-weight: 600; padding: 2px 6px;
-  border-radius: 999px; border: 1px solid;
-  white-space: nowrap; flex-shrink: 0;
-}
+header h1 { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
 .badge-green { border-color: var(--good); color: var(--good); }
 .badge-blue  { border-color: var(--accent); color: var(--accent); }
-#verBadge {
-  font-size: 9px; font-family: 'JetBrains Mono', monospace;
-  color: var(--muted); background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 4px;
-  padding: 2px 6px; white-space: nowrap; margin-left: auto;
-  flex-shrink: 0;
-}
-@media (max-width: 480px) {
-  header { padding: 6px 10px; gap: 6px; }
-  header h1 { font-size: 12px; }
-  #verBadge { display: none; }
-  .badge { font-size: 9px; padding: 1px 5px; }
-}
 
 .tabbar {
   display: flex;
@@ -591,6 +568,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
   <button class="tab-btn" onclick="showTab('fit',event.currentTarget)">📏 はめあい公差</button>
   <button class="tab-btn" onclick="showTab('unit',event.currentTarget)">📐 単位変換</button>
   <button class="tab-btn" onclick="showTab('beam',event.currentTarget)">🏗️ 梁計算</button>
+  <button class="tab-btn" onclick="showTab('keyway',event.currentTarget)">🗝️ キー溝寸法</button>
+  <button class="tab-btn" onclick="showTab('oil',event.currentTarget)">🛢️ 油脂類</button>
 </div>
 
 <!-- ══════ TAB: 焼き嵌め ══════ -->
@@ -1400,13 +1379,13 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
     </div>
     <div class="field"><label>荷重 P / w</label>
       <div class="two-col">
-        <input type="number" id="load-val" value="100" step="10" min="0" oninput="calcBeam()">
+        <input type="number" id="load-val" value="1000" step="10" min="0" oninput="calcBeam()">
         <select id="load-unit" onchange="calcBeam()">
-          <option value="kgf" selected>kgf（集中荷重）</option>
-          <option value="kgf/mm">kgf/mm（均等分布）</option>
           <option value="N">N（集中荷重）</option>
           <option value="kN">kN（集中荷重）</option>
+          <option value="kgf">kgf（集中荷重）</option>
           <option value="N/mm">N/mm（分布荷重）</option>
+          <option value="N/m">N/m（分布荷重）</option>
         </select>
       </div>
     </div>
@@ -1632,6 +1611,377 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
 </div><!-- /stab-section -->
 
 </div><!-- /tab-beam -->
+
+<!-- ══════ TAB: キー溝寸法 ══════ -->
+<div id="tab-keyway" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">規格選択</div>
+        <div class="mat-tabs" style="margin-bottom:12px">
+          <div class="mat-tab active" id="kw-tab-new" onclick="switchKwTab('new',this)">新JIS 1996</div>
+          <div class="mat-tab" id="kw-tab-old1" onclick="switchKwTab('old1',this)">旧JIS 1種</div>
+          <div class="mat-tab" id="kw-tab-old2" onclick="switchKwTab('old2',this)">旧JIS 2種</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">軸径から検索</div>
+        <div class="field">
+          <label>軸径 d (mm)</label>
+          <input type="number" id="kw-shaft-d" step="1" value="30" min="6" max="500" oninput="filterKeyway()">
+        </div>
+        <div id="kw-match-info" class="bearing-result-info">— 対応するキー溝寸法を表示</div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>⚠ 新旧JISは互換不可</b><br>
+        呼び寸法（b・h）が同じでも <b style="color:var(--bad)">b の公差方向が異なる</b> ため、新旧混用は厳禁。<br><br>
+        <b>新JIS（B 1301:1996）</b>：ISO 773準拠。b の公差を「キー側」と「溝側」で独立指定。現行標準。<br>
+        <b>旧JIS 1種（B 1301:1959）</b>：すきまばめ。キーが溝に対し幅方向に遊びあり。一般用途。<br>
+        <b>旧JIS 2種（B 1301:1959）</b>：中間ばめ。キーが溝にほぼ密着。精密・高トルク用。<br><br>
+        <b>記号説明</b>：<br>
+        b = キー幅（公差注記あり）<br>
+        h = キー高さ　t₁ = 軸側溝深さ　t₂ = ボス側溝深さ<br>
+        L = キー長さ範囲（参考値、端部形状による変動なし）<br><br>
+        <b>端部形状</b>（寸法に影響しない）：<br>
+        ■ 両丸形（A形）/ ■ 両角形（B形）/ ■ 片丸片角形（C形）<br>
+        端部形状はキー長さの有効係合長に影響するが、b・h・t₁・t₂ は変わらない。<br><br>
+        <b>適用軸径の差（新旧）</b>：基本は同範囲だが、旧JISは一部境界値が異なる（例：85〜100 vs 85〜95）。詳細は各表参照。
+      </div>
+    </div>
+    <div class="panel-right">
+      <!-- 詳細カード -->
+      <div id="kw-detail-card" class="card" style="display:none">
+        <div class="card-label" id="kw-detail-label">選択中のキー溝寸法</div>
+        <div id="kw-detail-content" style="margin-top:8px;font-size:13px"></div>
+      </div>
+
+      <!-- 新JIS テーブル -->
+      <div id="kw-table-new">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+          <div class="section-title" style="margin-bottom:0">新JIS B 1301:1996 — 平行キー溝</div>
+          <span style="font-size:11px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent);border-radius:4px;padding:2px 7px">ISO 773準拠</span>
+        </div>
+        <!-- 公差体系説明 -->
+        <div style="background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
+          <b style="color:var(--accent)">b（キー幅）公差体系 — 新JIS</b><br>
+          キー幅 b の公差はキー側・溝側で独立して指定（ISO方式）。<br>
+          <span style="font-family:'JetBrains Mono',monospace">
+            軸溝 b₁：<b style="color:var(--good)">N9</b>（マイナス公差側） ／ ボス溝 b₂：<b style="color:var(--warn)">JS9</b>（±対称）<br>
+            キー b：<b style="color:var(--accent)">h9</b>（0〜マイナス）
+          </span><br>
+          <span style="color:var(--bad)">⚠ 旧JIS部品と混用不可</span>
+        </div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>適用軸径 d (mm)</th>
+                <th style="color:var(--accent)">b (mm)</th>
+                <th>h (mm)</th>
+                <th style="color:var(--good)">t₁ 軸 (mm)</th>
+                <th style="color:var(--warn)">t₂ ボス (mm)</th>
+                <th>L 範囲 (mm)</th>
+              </tr>
+            </thead>
+            <tbody id="kw-tbody-new"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div class="section-title" style="margin-bottom:0">こう配キー溝（新JIS参考）</div>
+            <span style="font-size:11px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:2px 7px">勾配 1:100</span>
+          </div>
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>適用軸径 d (mm)</th>
+                  <th style="color:var(--accent)">b (mm)</th>
+                  <th>h (mm)</th>
+                  <th style="color:var(--good)">t₁ 軸 (mm)</th>
+                  <th style="color:var(--warn)">t₂ ボス (mm)</th>
+                </tr>
+              </thead>
+              <tbody id="kw-tbody-taper"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 旧JIS 1種 テーブル -->
+      <div id="kw-table-old1" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+          <div class="section-title" style="margin-bottom:0">旧JIS B 1301:1959 — 1種（すきまばめ）</div>
+          <span style="font-size:11px;color:var(--warn);background:var(--warn-dim);border:1px solid var(--warn);border-radius:4px;padding:2px 7px">旧規格・現場残存</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
+          <b style="color:var(--warn)">b（キー幅）公差体系 — 旧JIS 1種</b><br>
+          キー幅 b の公差はキーと溝を一体で規定（旧来方式）。<br>
+          <span style="font-family:'JetBrains Mono',monospace">
+            軸溝 b₁・ボス溝 b₂：<b style="color:var(--warn)">D10相当</b>（プラス公差側・すきまあり）<br>
+            キー b：<b style="color:var(--muted)">h9相当</b>
+          </span><br>
+          <span style="color:var(--muted)">一般用途（軽〜中トルク、着脱頻度あり）</span><br>
+          <span style="color:var(--bad)">⚠ 新JIS部品・旧JIS2種と混用不可</span>
+        </div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>適用軸径 d (mm)</th>
+                <th style="color:var(--warn)">b (mm)</th>
+                <th>h (mm)</th>
+                <th style="color:var(--good)">t₁ 軸 (mm)</th>
+                <th style="color:var(--warn)">t₂ ボス (mm)</th>
+                <th>L 範囲 (mm)</th>
+              </tr>
+            </thead>
+            <tbody id="kw-tbody-old1"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 旧JIS 2種 テーブル -->
+      <div id="kw-table-old2" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+          <div class="section-title" style="margin-bottom:0">旧JIS B 1301:1959 — 2種（中間ばめ）</div>
+          <span style="font-size:11px;color:var(--bad);background:var(--bad-dim);border:1px solid var(--bad);border-radius:4px;padding:2px 7px">旧規格・現場残存</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--bad);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7">
+          <b style="color:var(--bad)">b（キー幅）公差体系 — 旧JIS 2種</b><br>
+          1種より公差が締まり方向。キーと溝の密着性が高い。<br>
+          <span style="font-family:'JetBrains Mono',monospace">
+            軸溝 b₁・ボス溝 b₂：<b style="color:var(--bad)">JS9相当</b>（±対称・中間ばめ）<br>
+            キー b：<b style="color:var(--muted)">h9相当</b>
+          </span><br>
+          <span style="color:var(--muted)">精密用途（高トルク、振動・衝撃あり、着脱少）</span><br>
+          <span style="color:var(--bad)">⚠ 新JIS部品・旧JIS1種と混用不可</span>
+        </div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>適用軸径 d (mm)</th>
+                <th style="color:var(--bad)">b (mm)</th>
+                <th>h (mm)</th>
+                <th style="color:var(--good)">t₁ 軸 (mm)</th>
+                <th style="color:var(--warn)">t₂ ボス (mm)</th>
+                <th>L 範囲 (mm)</th>
+              </tr>
+            </thead>
+            <tbody id="kw-tbody-old2"></tbody>
+          </table>
+        </div>
+        <div class="memo" style="margin-top:10px">
+          <b>1種と2種の適用軸径の差（旧JIS）</b>：基本的に同一だが、境界値が一部異なる場合がある。<br>
+          例：85mm軸 → 1種:85〜100mm枠 / 2種:85〜95mm枠。いずれも b=25mm だが <b style="color:var(--bad)">公差が異なるため互換不可</b>。
+        </div>
+      </div>
+
+      <!-- 比較カード（常時表示） -->
+      <div style="margin-top:14px">
+        <div class="section-title">新旧JIS 公差方向 比較</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div class="card accent">
+            <div class="card-label">新JIS — 軸溝 b₁</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--good)">N9</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">マイナス側公差<br>キーに対し締まり傾向</div>
+          </div>
+          <div class="card accent">
+            <div class="card-label">新JIS — ボス溝 b₂</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--warn)">JS9</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">±対称公差<br>中間ばめ傾向</div>
+          </div>
+          <div class="card">
+            <div class="card-label">新JIS — キー b</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent)">h9</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">0〜マイナス公差<br>基準軸方式</div>
+          </div>
+          <div class="card warn">
+            <div class="card-label">旧JIS 1種 — 溝</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--warn)">D10相当</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">プラス側公差<br>すきまばめ</div>
+          </div>
+          <div class="card bad">
+            <div class="card-label">旧JIS 2種 — 溝</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--bad)">JS9相当</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">±対称公差<br>中間ばめ</div>
+          </div>
+          <div class="card" style="border-color:var(--bad);background:var(--bad-dim)">
+            <div class="card-label" style="color:var(--bad)">⚠ 混用禁止</div>
+            <div style="font-size:12px;color:var(--bad);font-weight:700;margin-top:4px">新旧・1種2種<br>すべて互換不可</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">b の公差方向が異なる</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-keyway -->
+
+<!-- ══════ TAB: 油脂類 ══════ -->
+<div id="tab-oil" class="tab-content">
+  <div class="two-panel">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">カテゴリ選択</div>
+        <div class="mat-tabs" style="margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr">
+          <div class="mat-tab active" id="oil-tab-hyd" onclick="switchOilTab('hyd',this)">作動油</div>
+          <div class="mat-tab" id="oil-tab-lub" onclick="switchOilTab('lub',this)">潤滑油</div>
+          <div class="mat-tab" id="oil-tab-grease" onclick="switchOilTab('grease',this)">グリス</div>
+          <div class="mat-tab" id="oil-tab-brand" onclick="switchOilTab('brand',this)">銘柄対応</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="memo">
+        <b>粘度グレード（ISO VG）</b>：40℃における動粘度（mm²/s = cSt）の中心値。数値が大きいほど高粘度。<br><br>
+        <b>作動油</b>：油圧機器の動力伝達媒体。清浄性・防錆性・消泡性が重要。<br><br>
+        <b>潤滑油</b>：摩擦低減・摩耗防止・冷却。機器・環境に合わせて選定。<br><br>
+        <b>グリス</b>：ちょう度番号が大きいほど固い（JIS K 2220）。<br>
+        000:445〜475 / 0:355〜385 / 1:310〜340<br>
+        2:265〜295 / 3:220〜250 / 4:175〜205<br><br>
+        <b>銘柄対応</b>：主要メーカー製品名とISO VGの対応。異メーカー間の代替選定に利用。あくまで参考値。最終確認はメーカーTDSで行うこと。<br><br>
+        <b>選定の目安</b>：高速・低荷重 → 低粘度。低速・高荷重 → 高粘度。
+      </div>
+    </div>
+    <div class="panel-right">
+      <div id="oil-table-hyd">
+        <div class="section-title">作動油（ISO VG グレード別 用途対応表）</div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ISO VG</th><th>粘度 40℃ (cSt)</th><th>主な用途</th><th>適用機器・環境</th><th>備考・注意点</th>
+              </tr>
+            </thead>
+            <tbody id="oil-tbody-hyd"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="oil-table-lub" style="display:none">
+        <div class="section-title">潤滑油（ISO VG グレード別 用途対応表）</div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>種別・ISO VG</th><th>粘度 40℃ (cSt)</th><th>主な用途</th><th>適用機器・環境</th><th>備考・注意点</th>
+              </tr>
+            </thead>
+            <tbody id="oil-tbody-lub"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="oil-table-grease" style="display:none">
+        <div class="section-title">グリス（ちょう度番号・種類別 用途対応表）</div>
+        <div class="data-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ちょう度</th><th>基油粘度 (cSt)</th><th>増ちょう剤</th><th>主な用途</th><th>適用機器・環境</th><th>備考</th>
+              </tr>
+            </thead>
+            <tbody id="oil-tbody-grease"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px">
+          <div class="section-title">増ちょう剤 特性比較</div>
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr><th>増ちょう剤</th><th>耐熱温度</th><th>耐水性</th><th>耐荷重性</th><th>特徴</th></tr>
+              </thead>
+              <tbody id="oil-tbody-thickener"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- 銘柄対応表 -->
+      <div id="oil-table-brand" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+          <div class="section-title" style="margin-bottom:0">主要銘柄 × ISO VG 対応表</div>
+          <span style="font-size:11px;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:2px 7px">参考値 / TDS要確認</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--muted)">
+          銘柄名はメーカー商品名。異メーカー品との代替・比較用。添加剤処方・基油種が異なる場合があるため、<b style="color:var(--warn)">機器メーカー承認品か必ず確認</b>。Shell/ExxonMobil/出光/JXTGは国内流通量が多い主力製品を掲載。
+        </div>
+        <div class="mat-tabs" style="margin-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr)">
+          <div class="mat-tab active" id="brand-tab-hyd" onclick="switchBrandTab('hyd',this)">作動油</div>
+          <div class="mat-tab" id="brand-tab-gear" onclick="switchBrandTab('gear',this)">ギア油</div>
+          <div class="mat-tab" id="brand-tab-turb" onclick="switchBrandTab('turb',this)">タービン油</div>
+          <div class="mat-tab" id="brand-tab-grease" onclick="switchBrandTab('grease',this)">グリス</div>
+        </div>
+        <div id="brand-table-hyd">
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ISO VG</th>
+                  <th>Shell（シェル）</th>
+                  <th>ExxonMobil（モービル）</th>
+                  <th>出光興産</th>
+                  <th>ENEOS（旧JX）</th>
+                  <th>カストロール</th>
+                </tr>
+              </thead>
+              <tbody id="oil-tbody-brand-hyd"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="brand-table-gear" style="display:none">
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ISO VG</th>
+                  <th>Shell（シェル）</th>
+                  <th>ExxonMobil（モービル）</th>
+                  <th>出光興産</th>
+                  <th>ENEOS（旧JX）</th>
+                  <th>カストロール</th>
+                </tr>
+              </thead>
+              <tbody id="oil-tbody-brand-gear"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="brand-table-turb" style="display:none">
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ISO VG</th>
+                  <th>Shell（シェル）</th>
+                  <th>ExxonMobil（モービル）</th>
+                  <th>出光興産</th>
+                  <th>ENEOS（旧JX）</th>
+                  <th>カストロール</th>
+                </tr>
+              </thead>
+              <tbody id="oil-tbody-brand-turb"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="brand-table-grease" style="display:none">
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ちょう度/用途</th>
+                  <th>Shell（シェル）</th>
+                  <th>ExxonMobil（モービル）</th>
+                  <th>出光興産</th>
+                  <th>ENEOS（旧JX）</th>
+                  <th>THK（直動用）</th>
+                </tr>
+              </thead>
+              <tbody id="oil-tbody-brand-grease"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-oil -->
 
 <script>
 const $ = id => document.getElementById(id);
@@ -2950,15 +3300,15 @@ function calcCarea(H,B,tw,tf) {
 function getLoadN() {
   const val = parseFloat(document.getElementById('load-val').value)||0;
   const unit = document.getElementById('load-unit').value;
-  if (unit==='kN')     return val*1000;
-  if (unit==='kgf')    return val*9.80665;
-  if (unit==='kgf/mm') return val*9.80665;  // → N/mm（分布）
+  if (unit==='kN') return val*1000;
+  if (unit==='kgf') return val*9.80665;
+  if (unit==='N/m') return val/1000; // → N/mm
   return val; // N or N/mm
 }
 
 function isDistributed() {
   const unit = document.getElementById('load-unit').value;
-  return unit==='N/mm' || unit==='kgf/mm';
+  return unit==='N/mm' || unit==='N/m';
 }
 
 function calcBeamResults(I, E, L, P_or_w, sType, a) {
@@ -3658,6 +4008,8 @@ function getV(id) { return parseFloat(document.getElementById(id)?.value)||0; }
 
 window.addEventListener('DOMContentLoaded', () => {
   init(); // 梁計算初期化
+  initKeyway();
+  initOil();
   for (const n of document.head.childNodes) {
     if (n.nodeType === Node.COMMENT_NODE && n.nodeValue.includes('build:')) {
       // "冒頭のコメント欄からパース
@@ -3670,6 +4022,469 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+// ════════════════════════════════════════════════════
+//  TAB: キー溝寸法
+// ════════════════════════════════════════════════════
+// 新JIS B 1301:1996 平行キー溝寸法
+// [d_min, d_max, b, h, t1, t2, L_min, L_max]
+const KW_NEW = [
+  [6,   8,   2,  2,  1.2, 1.0,  6,  20],
+  [8,   10,  3,  3,  1.8, 1.4,  6,  36],
+  [10,  12,  4,  4,  2.5, 1.8,  8,  45],
+  [12,  17,  5,  5,  3.0, 2.3, 10,  56],
+  [17,  22,  6,  6,  3.5, 2.8, 14,  70],
+  [22,  30,  8,  7,  4.0, 3.3, 18,  90],
+  [30,  38, 10,  8,  5.0, 3.3, 22, 110],
+  [38,  44, 12,  8,  5.0, 3.3, 28, 140],
+  [44,  50, 14,  9,  5.5, 3.8, 36, 160],
+  [50,  58, 16, 10,  6.0, 4.3, 45, 180],
+  [58,  65, 18, 11,  7.0, 4.4, 50, 200],
+  [65,  75, 20, 12,  7.5, 4.9, 56, 220],
+  [75,  85, 22, 14,  9.0, 5.4, 63, 250],
+  [85,  95, 25, 14,  9.0, 5.4, 70, 280],
+  [95, 110, 28, 16, 10.0, 6.4, 80, 320],
+  [110,130, 32, 18, 11.0, 7.4, 90, 360],
+  [130,150, 36, 20, 12.0, 8.4,100, 400],
+  [150,170, 40, 22, 13.0, 9.4,110, 450],
+  [170,200, 45, 25, 15.0,10.4,125, 500],
+  [200,230, 50, 28, 17.0,11.4,140, 500],
+  [230,260, 56, 32, 20.0,12.4,160, 500],
+  [260,290, 63, 32, 20.0,12.4,180, 500],
+  [290,330, 70, 36, 22.0,14.4,200, 500],
+  [330,380, 80, 40, 25.0,15.4,220, 500],
+  [380,440, 90, 45, 28.0,17.4,250, 500],
+  [440,500,100, 50, 31.0,19.5,280, 500],
+];
+
+// こう配キー（新JIS参考） [d_min, d_max, b, h, t1, t2]
+const KW_TAPER = [
+  [6,   8,   2,  2,  1.2, 1.0],
+  [8,   10,  3,  3,  1.8, 1.4],
+  [10,  12,  4,  4,  2.5, 1.8],
+  [12,  17,  5,  5,  3.0, 2.3],
+  [17,  22,  6,  6,  3.5, 2.8],
+  [22,  30,  8,  7,  4.0, 3.3],
+  [30,  38, 10,  8,  5.0, 3.3],
+  [38,  44, 12,  8,  5.0, 3.3],
+  [44,  50, 14,  9,  5.5, 3.8],
+  [50,  58, 16, 10,  6.0, 4.3],
+  [58,  65, 18, 11,  7.0, 4.4],
+  [65,  75, 20, 12,  7.5, 4.9],
+  [75,  85, 22, 14,  9.0, 5.4],
+  [85,  95, 25, 14,  9.0, 5.4],
+  [95, 110, 28, 16, 10.0, 6.4],
+  [110,130, 32, 18, 11.0, 7.4],
+  [130,150, 36, 20, 12.0, 8.4],
+];
+
+// 旧JIS B 1301:1959 1種（すきまばめ）
+// 適用軸径の境界が新JISと一部異なる点に注意
+const KW_OLD1 = [
+  [6,   8,   2,  2,  1.2, 1.0,  6,  20],
+  [8,   10,  3,  3,  1.8, 1.4,  6,  36],
+  [10,  12,  4,  4,  2.5, 1.8,  8,  45],
+  [12,  17,  5,  5,  3.0, 2.3, 10,  56],
+  [17,  22,  6,  6,  3.5, 2.8, 14,  70],
+  [22,  30,  8,  7,  4.0, 3.3, 18,  90],
+  [30,  38, 10,  8,  5.0, 3.3, 22, 110],
+  [38,  44, 12,  8,  5.0, 3.3, 28, 140],
+  [44,  50, 14,  9,  5.5, 3.8, 36, 160],
+  [50,  58, 16, 10,  6.0, 4.3, 45, 180],
+  [58,  65, 18, 11,  7.0, 4.4, 50, 200],
+  [65,  75, 20, 12,  7.5, 4.9, 56, 220],
+  [75,  85, 22, 14,  9.0, 5.4, 63, 250],
+  [85, 100, 25, 14,  9.0, 5.4, 70, 280],  // ← 新JISは85〜95 ※境界差
+  [100,120, 28, 16, 10.0, 6.4, 80, 320],  // ← 新JISは95〜110 ※境界差
+  [120,140, 32, 18, 11.0, 7.4, 90, 360],
+  [140,160, 36, 20, 12.0, 8.4,100, 400],
+  [160,180, 40, 22, 13.0, 9.4,110, 450],
+  [180,200, 45, 25, 15.0,10.4,125, 500],
+  [200,230, 50, 28, 17.0,11.4,140, 500],
+  [230,260, 56, 32, 20.0,12.4,160, 500],
+  [260,300, 63, 32, 20.0,12.4,180, 500],  // ← 新JISは260〜290 ※境界差
+  [300,340, 70, 36, 22.0,14.4,200, 500],  // ← 新JISは290〜330 ※境界差
+  [340,400, 80, 40, 25.0,15.4,220, 500],  // ← 新JISは330〜380 ※境界差
+  [400,460, 90, 45, 28.0,17.4,250, 500],
+  [460,500,100, 50, 31.0,19.5,280, 500],
+];
+
+// 旧JIS B 1301:1959 2種（中間ばめ）
+// b・h・t1・t2の公称値は1種と同一、公差体系のみ異なる
+const KW_OLD2 = [
+  [6,   8,   2,  2,  1.2, 1.0,  6,  20],
+  [8,   10,  3,  3,  1.8, 1.4,  6,  36],
+  [10,  12,  4,  4,  2.5, 1.8,  8,  45],
+  [12,  17,  5,  5,  3.0, 2.3, 10,  56],
+  [17,  22,  6,  6,  3.5, 2.8, 14,  70],
+  [22,  30,  8,  7,  4.0, 3.3, 18,  90],
+  [30,  38, 10,  8,  5.0, 3.3, 22, 110],
+  [38,  44, 12,  8,  5.0, 3.3, 28, 140],
+  [44,  50, 14,  9,  5.5, 3.8, 36, 160],
+  [50,  58, 16, 10,  6.0, 4.3, 45, 180],
+  [58,  65, 18, 11,  7.0, 4.4, 50, 200],
+  [65,  75, 20, 12,  7.5, 4.9, 56, 220],
+  [75,  85, 22, 14,  9.0, 5.4, 63, 250],
+  [85,  95, 25, 14,  9.0, 5.4, 70, 280],  // ← 1種は85〜100 ※境界差
+  [95, 110, 28, 16, 10.0, 6.4, 80, 320],  // ← 1種は100〜120 ※境界差
+  [110,130, 32, 18, 11.0, 7.4, 90, 360],
+  [130,150, 36, 20, 12.0, 8.4,100, 400],
+  [150,170, 40, 22, 13.0, 9.4,110, 450],
+  [170,200, 45, 25, 15.0,10.4,125, 500],
+  [200,230, 50, 28, 17.0,11.4,140, 500],
+  [230,260, 56, 32, 20.0,12.4,160, 500],
+  [260,290, 63, 32, 20.0,12.4,180, 500],
+  [290,330, 70, 36, 22.0,14.4,200, 500],
+  [330,380, 80, 40, 25.0,15.4,220, 500],
+  [380,440, 90, 45, 28.0,17.4,250, 500],
+  [440,500,100, 50, 31.0,19.5,280, 500],
+];
+
+// 境界値が新JISと異なる旧JIS行にフラグ（インデックス）
+const KW_OLD1_DIFF = new Set([13,14,21,22,23]); // d境界差異行
+const KW_OLD2_DIFF = new Set([13,14]);
+
+let kwCurrentTab = 'new';
+
+function switchKwTab(tab, el) {
+  kwCurrentTab = tab;
+  document.querySelectorAll('[id^="kw-tab-"]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  ['new','old1','old2'].forEach(t => {
+    const el = document.getElementById(`kw-table-${t}`);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  filterKeyway();
+}
+
+function initKeyway() {
+  renderKwTable('kw-tbody-new',  KW_NEW,  'new',  new Set());
+  renderKwTable('kw-tbody-old1', KW_OLD1, 'old1', KW_OLD1_DIFF);
+  renderKwTable('kw-tbody-old2', KW_OLD2, 'old2', KW_OLD2_DIFF);
+  renderKwTaperTable();
+  filterKeyway();
+}
+
+function renderKwTable(tbodyId, data, tabType, diffSet) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  const bColor = tabType === 'new' ? 'var(--accent)' : tabType === 'old1' ? 'var(--warn)' : 'var(--bad)';
+  tbody.innerHTML = data.map((r, i) => {
+    const isDiff = diffSet.has(i);
+    const diffMark = isDiff ? ' <span style="color:var(--bad);font-size:10px" title="新JISと境界値が異なる">★境界差</span>' : '';
+    return `<tr data-kw-idx="${i}" onclick="highlightKw(this,'${tbodyId}',${i},'${tabType}')" style="cursor:pointer">
+      <td>${r[0]} 〜 ${r[1]}${diffMark}</td>
+      <td style="font-weight:700;color:${bColor}">${r[2]}</td>
+      <td>${r[3]}</td>
+      <td style="color:var(--good)">${r[4]}</td>
+      <td style="color:var(--warn)">${r[5]}</td>
+      <td style="color:var(--muted);font-size:11px">${r[6]} 〜 ${r[7]}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderKwTaperTable() {
+  const tbody = document.getElementById('kw-tbody-taper');
+  if (!tbody) return;
+  tbody.innerHTML = KW_TAPER.map(r => `
+    <tr>
+      <td>${r[0]} 〜 ${r[1]}</td>
+      <td style="font-weight:700;color:var(--accent)">${r[2]}</td>
+      <td>${r[3]}</td>
+      <td style="color:var(--good)">${r[4]}</td>
+      <td style="color:var(--warn)">${r[5]}</td>
+    </tr>`).join('');
+}
+
+function highlightKw(row, tbodyId, idx, tabType) {
+  document.querySelectorAll(`#${tbodyId} tr`).forEach(r => r.style.background = '');
+  row.style.background = 'var(--accent-dim)';
+  const dataMap = {new: KW_NEW, old1: KW_OLD1, old2: KW_OLD2};
+  const r = (dataMap[tabType] || KW_NEW)[idx];
+  const card = document.getElementById('kw-detail-card');
+  const content = document.getElementById('kw-detail-content');
+  const label = document.getElementById('kw-detail-label');
+  const tabLabel = {new:'新JIS', old1:'旧JIS 1種', old2:'旧JIS 2種'};
+  const bColor = tabType === 'new' ? 'var(--accent)' : tabType === 'old1' ? 'var(--warn)' : 'var(--bad)';
+  const fitType = tabType === 'new' ? 'b₁:N9 / b₂:JS9' : tabType === 'old1' ? 'D10相当（すきま）' : 'JS9相当（中間）';
+  if (card && content && r) {
+    card.style.display = '';
+    if (label) label.textContent = `${tabLabel[tabType]} — 軸径 ${r[0]}〜${r[1]}mm の詳細`;
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+        <div class="card" style="border-color:${bColor};background:var(--surface2)">
+          <div class="card-label">キー幅 b</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:${bColor}">${r[2]}<span style="font-size:12px;color:var(--muted)"> mm</span></div>
+          <div style="font-size:10px;color:${bColor};margin-top:3px">${fitType}</div>
+        </div>
+        <div class="card good"><div class="card-label">軸溝深さ t₁</div><div class="card-value" style="color:var(--good)">${r[4]}<span class="card-unit">mm</span></div></div>
+        <div class="card warn"><div class="card-label">ボス溝深さ t₂</div><div class="card-value" style="color:var(--warn)">${r[5]}<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">キー高さ h</div><div class="card-value">${r[3]}<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">適用軸径</div><div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">${r[0]}〜${r[1]}<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">キー長さ L</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600">${r[6]}〜${r[7]}<span class="card-unit">mm</span></div></div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--muted)">
+        端部形状：A形（両丸）/ B形（両角）/ C形（片丸片角）— <b>いずれも上記寸法は共通</b>。端部形状はキー長有効係合長に影響するが b・h・t₁・t₂ は変わらない。
+      </div>`;
+  }
+}
+
+function filterKeyway() {
+  const d = parseFloat(document.getElementById('kw-shaft-d')?.value) || 0;
+  const info = document.getElementById('kw-match-info');
+  const dataMap = {new: KW_NEW, old1: KW_OLD1, old2: KW_OLD2};
+  const diffMap  = {new: new Set(), old1: KW_OLD1_DIFF, old2: KW_OLD2_DIFF};
+  const tabType  = kwCurrentTab;
+  const data     = dataMap[tabType];
+  const diffSet  = diffMap[tabType];
+  const tbodyId  = `kw-tbody-${tabType}`;
+
+  // 全タブ再描画（軸径ハイライト適用）
+  ['new','old1','old2'].forEach(t => {
+    renderKwTableFiltered(`kw-tbody-${t}`, dataMap[t], t, diffMap[t], d);
+  });
+
+  if (!info) return;
+  if (d <= 0) { info.textContent = '全件表示中'; return; }
+
+  const matchIdx = data.findIndex(r => d > r[0] && d <= r[1]);
+  if (matchIdx >= 0) {
+    const r = data[matchIdx];
+    const isDiff = diffSet.has(matchIdx);
+    const diffNote = isDiff ? ' <span style="color:var(--bad)">★新JISと境界値が異なります</span>' : '';
+    info.innerHTML = `✅ 軸径 <b style="color:var(--accent)">${d}mm</b> → b=<b style="color:var(--accent)">${r[2]}mm</b> h=${r[3]}mm t₁=${r[4]}mm t₂=${r[5]}mm${diffNote}`;
+    // 詳細カードを自動表示
+    const fakeRow = {};
+    highlightKwByData(r, tabType, matchIdx);
+  } else {
+    info.innerHTML = `<span style="color:var(--warn)">⚠ 軸径 ${d}mm は対応範囲外（6〜500mm）</span>`;
+  }
+}
+
+function renderKwTableFiltered(tbodyId, data, tabType, diffSet, highlightD) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  const bColor = tabType === 'new' ? 'var(--accent)' : tabType === 'old1' ? 'var(--warn)' : 'var(--bad)';
+  tbody.innerHTML = data.map((r, i) => {
+    const isMatch = highlightD > 0 && highlightD > r[0] && highlightD <= r[1];
+    const isDiff  = diffSet.has(i);
+    const bg      = isMatch ? 'background:var(--accent-dim);' : '';
+    const diffMark = isDiff ? ' <span style="color:var(--bad);font-size:10px">★境界差</span>' : '';
+    return `<tr data-kw-idx="${i}" onclick="highlightKw(this,'${tbodyId}',${i},'${tabType}')" style="cursor:pointer;${bg}">
+      <td>${isMatch?`<b style="color:var(--accent)">`:''} ${r[0]} 〜 ${r[1]}${isMatch?'</b>':''}${diffMark}</td>
+      <td style="font-weight:700;color:${bColor}">${r[2]}</td>
+      <td>${r[3]}</td>
+      <td style="color:var(--good)">${r[4]}</td>
+      <td style="color:var(--warn)">${r[5]}</td>
+      <td style="color:var(--muted);font-size:11px">${r[6]} 〜 ${r[7]}</td>
+    </tr>`;
+  }).join('');
+}
+
+function highlightKwByData(r, tabType, idx) {
+  const card = document.getElementById('kw-detail-card');
+  const content = document.getElementById('kw-detail-content');
+  const label = document.getElementById('kw-detail-label');
+  const tabLabel = {new:'新JIS', old1:'旧JIS 1種', old2:'旧JIS 2種'};
+  const bColor = tabType === 'new' ? 'var(--accent)' : tabType === 'old1' ? 'var(--warn)' : 'var(--bad)';
+  const fitType = tabType === 'new' ? 'b₁:N9 / b₂:JS9' : tabType === 'old1' ? 'D10相当（すきま）' : 'JS9相当（中間）';
+  if (card && content && r) {
+    card.style.display = '';
+    if (label) label.textContent = `${tabLabel[tabType]} — 軸径 ${r[0]}〜${r[1]}mm の詳細`;
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+        <div class="card" style="border-color:${bColor};background:var(--surface2)">
+          <div class="card-label">キー幅 b</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:${bColor}">${r[2]}<span style="font-size:12px;color:var(--muted)"> mm</span></div>
+          <div style="font-size:10px;color:${bColor};margin-top:3px">${fitType}</div>
+        </div>
+        <div class="card good"><div class="card-label">軸溝深さ t₁</div><div class="card-value" style="color:var(--good)">${r[4]}<span class="card-unit">mm</span></div></div>
+        <div class="card warn"><div class="card-label">ボス溝深さ t₂</div><div class="card-value" style="color:var(--warn)">${r[5]}<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">キー高さ h</div><div class="card-value">${r[3]}<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">適用軸径</div><div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">${r[0]}〜${r[1]}<span class="card-unit">mm</span></div></div>
+        <div class="card"><div class="card-label">キー長さ L</div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600">${r[6]}〜${r[7]}<span class="card-unit">mm</span></div></div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--muted)">
+        端部形状：A形（両丸）/ B形（両角）/ C形（片丸片角）— <b>いずれも上記寸法は共通</b>
+      </div>`;
+  }
+}
+// ════════════════════════════════════════════════════
+//  TAB: 油脂類
+// ════════════════════════════════════════════════════
+const OIL_HYD = [
+  ['VG 10',  '9〜11',      '高速・低圧油圧',    '精密油圧機器、高速油圧ポンプ、薄膜潤滑部',          '低温始動性良好。漏れに注意'],
+  ['VG 15',  '13.5〜16.5', '低圧・高速油圧',    '一部の低圧工作機械油圧、一般工業用小型装置',          '極低温環境向け'],
+  ['VG 22',  '19.8〜24.2', '汎用低圧油圧',      '小型油圧ユニット、一般機械油圧（低圧系）',            '低温流動性が必要な場合'],
+  ['VG 32',  '28.8〜35.2', '汎用中圧油圧',      '一般産業用油圧ユニット、工作機械油圧、NC装置',        '最も汎用的なグレード。迷ったらVG32or46'],
+  ['VG 46',  '41.4〜50.6', '汎用中〜高圧油圧',  '産業用油圧ユニット、プレス機、成形機、射出成型機',    '国内工場で最多使用グレード'],
+  ['VG 68',  '61.2〜74.8', '高圧・中速油圧',    '高圧油圧システム、重負荷プレス、建設機械油圧',        '夏季高温環境に適する'],
+  ['VG 100', '90〜110',    '高圧・低速油圧',    '重作業用油圧クレーン、高負荷・低速シリンダ',          '高温・高負荷環境向け'],
+  ['VG 150', '135〜165',   '超高圧・極低速',    '特殊高圧プレス、鍛造機械',                            '一般用途には粘度過多'],
+];
+
+const OIL_LUB = [
+  ['ギヤ油 VG 68',         '61〜75',   'ウォームギア・平歯車の潤滑',    '低速・高負荷の閉形歯車装置、一般ギアボックス',    'EP添加剤入りタイプ推奨'],
+  ['ギヤ油 VG 100',        '90〜110',  '閉形歯車・スピンドル歯車',      'インライン・ヘリカルギア、標準閉鎖型歯車箱',      '汎用ギアオイルの標準'],
+  ['ギヤ油 VG 150',        '135〜165', '中速・高荷重歯車',              '傘歯車、ハイポイドギア（一般）',                  '極圧性が必要な場合はEPグレード'],
+  ['ギヤ油 VG 220',        '198〜242', '低速・高荷重歯車',              '低速大型ギアボックス、ウォームギア（高比率）',    '最も汎用性の高いギア油グレード'],
+  ['ギヤ油 VG 320',        '288〜352', '超低速・重負荷歯車',            '製鉄・製紙の低速大型減速機',                      '高温環境での粘度安定性が必要'],
+  ['ギヤ油 VG 460',        '414〜506', '極低速・超重負荷',              '露天クレーン減速機、製鉄所圧延設備',              '低温流動性に注意'],
+  ['コンプレッサ油 VG 32', '29〜35',   '回転式コンプレッサ',            'スクリュー・ベーンコンプレッサ',                  '専用品推奨。エアー混合で劣化しやすい'],
+  ['コンプレッサ油 VG 46', '41〜51',   '往復式・汎用コンプレッサ',      'レシプロコンプレッサ（低圧〜中圧段）',            '酸化安定性重要'],
+  ['コンプレッサ油 VG 68', '61〜75',   '高圧往復式コンプレッサ',        '高圧多段レシプロコンプレッサ',                    '供給量制御が必要'],
+  ['タービン油 VG 32',     '29〜35',   'ガスタービン・蒸気タービン',    '高速回転機器、大型タービン軸受',                  '高酸化安定性・水分離性が必要'],
+  ['タービン油 VG 46',     '41〜51',   '中型タービン・水力発電',        '水車軸受、中型蒸気タービン',                      '防錆性・消泡性重視'],
+  ['スピンドル油 VG 2',    '1.8〜2.2', '超高速精密軸受',                '高速グラインダースピンドル（20,000rpm超）',        'オイルミスト潤滑用'],
+  ['スピンドル油 VG 5',    '4.5〜5.5', '高速精密軸受',                  '精密研削盤スピンドル（10,000〜20,000rpm）',        'ミスト・循環供給両用'],
+  ['スピンドル油 VG 10',   '9〜11',    '精密工作機械軸受',              '旋盤・MC主軸（〜10,000rpm）',                      '低発熱・高精度維持'],
+  ['チェーン油 VG 68',     '61〜75',   'コンベヤチェーン（常温）',      '食品・一般搬送コンベヤチェーン',                  '食品用は白色鉱物油を使用'],
+  ['チェーン油 VG 100',    '90〜110',  'コンベヤチェーン（高温）',      '高温オーブン・焼付炉内コンベヤ（〜150℃）',        '150℃超はシンセティック系推奨'],
+  ['冷凍機油 VG 32',       '29〜35',   '冷凍・冷蔵コンプレッサ',        'アンモニア・フロン冷媒コンプレッサ',              '冷媒との相溶性確認が必須'],
+  ['冷凍機油 VG 46',       '41〜51',   '空調・大型冷凍機',              '大型チラー、産業用冷凍設備',                      'HFC対応はエステル系'],
+];
+
+const OIL_GREASE = [
+  ['000（半流動）',      '68〜220',  '金属石けん系',          'ギアボックス内部の充填潤滑',        '密閉ギアボックス、ウォームギア',          'オイルとグリスの中間。流動性高い'],
+  ['00（半流動）',       '68〜220',  '金属石けん系',          'ギアボックス充填・セントラル供給',  '自動給脂装置（集中潤滑）',                'ポンプ圧送が容易'],
+  ['0（軟質）',          '46〜150',  'リチウム系',            '低速・重負荷すべり軸受',            '鉄鋼・製紙設備の低速軸受',                'チャージ量多め可'],
+  ['1（軟質）',          '46〜150',  'リチウム系',            '一般機械軸受・汎用グリス',          '低速〜中速転がり軸受、スライド部',        '汎用性高い。手動給脂に適す'],
+  ['2（標準・最汎用）',  '46〜220',  'リチウム系',            '汎用転がり軸受・スライド部',        '電動機軸受、コンベヤ軸受、ロッド端',      '最も広く使用されるちょう度'],
+  ['2（高温用）',        '100〜460', 'リチウムコンプレックス','高温転がり軸受',                    '炉内コンベヤ軸受、熱処理炉周辺（〜200℃）','Li複合石けんで耐熱性向上'],
+  ['2（食品用）',        '46〜220',  'アルミ系/合成',         '食品機械の軸受・スライド',          '食品・製薬工場の接触可能箇所',            'NSF H1認定品を使用。白色外観'],
+  ['2（極圧用）',        '68〜460',  'リチウム系+EP',         '重負荷・衝撃荷重環境',              'クレーン・建設機械ピン・ブッシュ',        'MoS2（モリブデン）入りも有'],
+  ['3（硬質）',          '100〜460', 'リチウム系',            '高速軽荷重軸受・水平面',            '電動工具軸受、精密機器',                  '漏れにくい。高速に有利'],
+  ['3（防水用）',        '100〜460', 'リチウム系/ウレア',     '水洗い・水没環境の軸受',            '食品機械洗浄ライン、船舶補機軸受',        '耐水洗性。Ca系も選択肢'],
+  ['4〜6（固形）',       '150〜460', '各種',                  'カップグリス・特殊用途',            '鉄道車軸、特殊工業機器',                  '現在は限定的使用'],
+];
+
+const OIL_THICKENER = [
+  ['リチウム（Li）',             '〜130℃', '良好',   '普通',   '汎用性最高。最も広く使用。コスト低い'],
+  ['リチウムコンプレックス（Li-X）','〜200℃','良好',  '良好',   '高温・高荷重対応。多目的グリスに最適'],
+  ['カルシウム（Ca）',           '〜80℃',  '優れる', '普通',   '旧来型。耐水・防錆に優れるが低耐熱'],
+  ['カルシウムコンプレックス（Ca-X）','〜200℃','優れる','良好', '高耐熱と耐水を両立。食品機械向けも'],
+  ['ウレア（ポリウレア）',       '〜180℃', '良好',   '良好',   '電動機軸受に最適。長寿命・耐熱・高速向き'],
+  ['ナトリウム（Na）',           '〜140℃', '不良',   '普通',   '旧来型。耐水性低い。代替品推奨'],
+  ['ベントナイト',               '〜250℃', '良好',   '普通',   '石けん不使用。超高温専用（炉内等）'],
+  ['PTFE（テフロン）',           '〜260℃', '優れる', '普通',   '化学耐性・耐薬品性が必要な特殊用途'],
+  ['二硫化モリブデン（MoS2）',   '—',      '—',      '優れる', '固体潤滑剤添加。極圧・衝撃荷重環境'],
+];
+
+const BRAND_HYD = [
+  ['VG 10',  'Shell Tellus S2 V 10',   'Mobil DTE 10 Excel 10',   '出光ダフニー スーパーハイドローリック 10',  'ENEOS ハイドロ 10',         'Castrol Hyspin AWH-M 10'],
+  ['VG 22',  'Shell Tellus S2 V 22',   'Mobil DTE 10 Excel 22',   '出光ダフニー スーパーハイドローリック 22',  'ENEOS ハイドロ 22',         'Castrol Hyspin AWH-M 22'],
+  ['VG 32',  'Shell Tellus S2 V 32',   'Mobil DTE 10 Excel 32',   '出光ダフニー スーパーハイドローリック 32',  'ENEOS ハイドロ 32',         'Castrol Hyspin AWS 32'],
+  ['VG 46',  'Shell Tellus S2 V 46',   'Mobil DTE 10 Excel 46',   '出光ダフニー スーパーハイドローリック 46',  'ENEOS ハイドロ 46',         'Castrol Hyspin AWS 46'],
+  ['VG 68',  'Shell Tellus S2 V 68',   'Mobil DTE 10 Excel 68',   '出光ダフニー スーパーハイドローリック 68',  'ENEOS ハイドロ 68',         'Castrol Hyspin AWS 68'],
+  ['VG 100', 'Shell Tellus S2 V 100',  'Mobil DTE 10 Excel 100',  '出光ダフニー スーパーハイドローリック 100', 'ENEOS ハイドロ 100',        'Castrol Hyspin AWS 100'],
+];
+
+const BRAND_GEAR = [
+  ['VG 68（EP）',   'Shell Omala S2 G 68',   'Mobil Gear 600 XP 68',   '出光ダフニー マルチギア 68',        'ENEOS ギヤオイル EP 68',   'Castrol Alpha SP 68'],
+  ['VG 100（EP）',  'Shell Omala S2 G 100',  'Mobil Gear 600 XP 100',  '出光ダフニー マルチギア 100',       'ENEOS ギヤオイル EP 100',  'Castrol Alpha SP 100'],
+  ['VG 150（EP）',  'Shell Omala S2 G 150',  'Mobil Gear 600 XP 150',  '出光ダフニー マルチギア 150',       'ENEOS ギヤオイル EP 150',  'Castrol Alpha SP 150'],
+  ['VG 220（EP）',  'Shell Omala S2 G 220',  'Mobil Gear 600 XP 220',  '出光ダフニー マルチギア 220',       'ENEOS ギヤオイル EP 220',  'Castrol Alpha SP 220'],
+  ['VG 320（EP）',  'Shell Omala S2 G 320',  'Mobil Gear 600 XP 320',  '出光ダフニー マルチギア 320',       'ENEOS ギヤオイル EP 320',  'Castrol Alpha SP 320'],
+  ['VG 460（EP）',  'Shell Omala S2 G 460',  'Mobil Gear 600 XP 460',  '出光ダフニー マルチギア 460',       'ENEOS ギヤオイル EP 460',  'Castrol Alpha SP 460'],
+  ['VG 68（合成）', 'Shell Omala S4 GX 68',  'Mobil SHC Gear 68',      '出光ダフニー スーパーマルチギア 68','ENEOS スーパーギヤ 68',     '—'],
+  ['VG 220（合成）','Shell Omala S4 GX 220', 'Mobil SHC Gear 220',     '出光ダフニー スーパーマルチギア 220','ENEOS スーパーギヤ 220',   '—'],
+  ['VG 320（合成）','Shell Omala S4 GX 320', 'Mobil SHC Gear 320',     '出光ダフニー スーパーマルチギア 320','ENEOS スーパーギヤ 320',   '—'],
+];
+
+const BRAND_TURB = [
+  ['VG 32',        'Shell Turbo T 32',       'Mobil DTE 732',          '出光タービン 32',                   'ENEOS タービン 32',         'Castrol Turbinol X-32'],
+  ['VG 46',        'Shell Turbo T 46',       'Mobil DTE 746',          '出光タービン 46',                   'ENEOS タービン 46',         'Castrol Turbinol X-46'],
+  ['VG 68',        'Shell Turbo T 68',       'Mobil DTE 768',          '出光タービン 68',                   'ENEOS タービン 68',         '—'],
+  ['VG 32（合成）', 'Shell Turbo S4 X 32',   'Mobil SHC Turbine 32',   '出光ダフニー スーパータービン 32',  'ENEOS スーパータービン 32', '—'],
+  ['VG 46（合成）', 'Shell Turbo S4 X 46',   'Mobil SHC Turbine 46',   '出光ダフニー スーパータービン 46',  'ENEOS スーパータービン 46', '—'],
+];
+
+const BRAND_GREASE = [
+  ['汎用 #2（Li）',       'Shell Gadus S2 V100 2',  'Mobilux EP 2',          '出光ダフニー グリース SRL #2',        'ENEOS リチウムグリース #2', 'THK AFB-LF'],
+  ['汎用 #3（Li）',       'Shell Gadus S2 V100 3',  'Mobilux EP 3',          '出光ダフニー グリース SRL #3',        'ENEOS リチウムグリース #3', '—'],
+  ['高温 #2（Li-X）',     'Shell Gadus S3 V220C 2', 'Mobilith SHC 220',      '出光ダフニー コンプレックスグリース', 'ENEOS コンプレックス #2',   'THK AFE-CA'],
+  ['極圧 #2（Li+EP）',    'Shell Gadus S2 V220AC 2','Mobilux EP 2',          '出光ダフニー EPグリース',             'ENEOS EPグリース #2',       '—'],
+  ['ウレア #2',           'Shell Gadus S5 T100 2',  'Mobilith SHC 100',      '出光ダフニー ウレアグリース',         'ENEOS ユニウレア #2',       'THK Lucina A'],
+  ['食品用 #2（NSF H1）', 'Shell Gadus S2 FG 2',    'Mobilgrease FM 102',    '出光ダフニー フードグリース',         'ENEOS フードグリース #2',   '—'],
+  ['直動ガイド用',        'Shell Gadus S2 V100 2',  'Mobil Vactra Oil No.2', '出光ダフニー ウェイオイル 68',        'ENEOS スライドウェイ 68',   'THK AFE'],
+  ['半流動（#00）',       'Shell Gadus S2 OG 00',   'Mobilgear OGL 007',     '出光ダフニー マルチギアグリース',     'ENEOS セミフルード 00',     '—'],
+];
+
+let oilCurrentTab = 'hyd';
+let brandCurrentTab = 'hyd';
+
+function switchOilTab(tab, el) {
+  oilCurrentTab = tab;
+  document.querySelectorAll('[id^="oil-tab-"]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  ['hyd','lub','grease','brand'].forEach(t => {
+    const div = document.getElementById('oil-table-' + t);
+    if (div) div.style.display = t === tab ? '' : 'none';
+  });
+
+}
+
+function switchBrandTab(tab, el) {
+  brandCurrentTab = tab;
+  document.querySelectorAll('[id^="brand-tab-"]').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  ['hyd','gear','turb','grease'].forEach(t => {
+    const div = document.getElementById('brand-table-' + t);
+    if (div) div.style.display = t === tab ? '' : 'none';
+  });
+}
+
+function initOil() {
+  renderOilTable('oil-tbody-hyd', OIL_HYD);
+  renderOilTable('oil-tbody-lub', OIL_LUB);
+  renderGreaseTable();
+  renderThickenerTable();
+  renderBrandTable('oil-tbody-brand-hyd',    BRAND_HYD,    false);
+  renderBrandTable('oil-tbody-brand-gear',   BRAND_GEAR,   false);
+  renderBrandTable('oil-tbody-brand-turb',   BRAND_TURB,   false);
+  renderBrandTable('oil-tbody-brand-grease', BRAND_GREASE, true);
+}
+
+function renderOilTable(tbodyId, data) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.innerHTML = data.map(r =>
+    '<tr><td style="font-family:JetBrains Mono,monospace;color:var(--accent);font-weight:600">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td style="color:var(--muted);font-size:12px">' + r[3] + '</td><td style="color:var(--muted);font-size:11px">' + r[4] + '</td></tr>'
+  ).join('');
+}
+
+function renderGreaseTable() {
+  const tbody = document.getElementById('oil-tbody-grease');
+  if (!tbody) return;
+  tbody.innerHTML = OIL_GREASE.map(r =>
+    '<tr><td style="font-family:JetBrains Mono,monospace;color:var(--warn);font-weight:600">' + r[0] + '</td><td>' + r[1] + '</td><td style="color:var(--muted);font-size:12px">' + r[2] + '</td><td>' + r[3] + '</td><td style="color:var(--muted);font-size:12px">' + r[4] + '</td><td style="color:var(--muted);font-size:11px">' + r[5] + '</td></tr>'
+  ).join('');
+}
+
+function renderThickenerTable() {
+  const tbody = document.getElementById('oil-tbody-thickener');
+  if (!tbody) return;
+  const colors = {'優れる':'var(--good)','良好':'var(--accent)','普通':'var(--muted)','不良':'var(--bad)'};
+  tbody.innerHTML = OIL_THICKENER.map(r => {
+    const c1 = colors[r[2]] || 'var(--muted)';
+    const c2 = colors[r[3]] || 'var(--muted)';
+    return '<tr><td style="font-weight:600;color:var(--ink)">' + r[0] + '</td><td style="font-family:JetBrains Mono,monospace;color:var(--warn)">' + r[1] + '</td><td style="color:' + c1 + ';font-weight:600">' + r[2] + '</td><td style="color:' + c2 + ';font-weight:600">' + r[3] + '</td><td style="color:var(--muted);font-size:12px">' + r[4] + '</td></tr>';
+  }).join('');
+}
+
+function renderBrandTable(tbodyId, data, isGrease) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  tbody.innerHTML = data.map(r => {
+    const cells = r.slice(1).map(v =>
+      '<td style="font-size:11px;color:' + (v === '—' ? 'var(--muted)' : 'var(--ink)') + '">' + v + '</td>'
+    ).join('');
+    return '<tr><td style="font-family:JetBrains Mono,monospace;font-weight:700;color:' + (isGrease ? 'var(--warn)' : 'var(--accent)') + ';white-space:nowrap">' + r[0] + '</td>' + cells + '</tr>';
+  }).join('');
+}
+
+
+
 </script>
 </body>
 </html>
