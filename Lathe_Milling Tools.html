@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- build: 1.04 | 20260225 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.06 | 20260225 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -996,7 +996,7 @@ function closestVal(arr, target) {
 // ══════ MAZAK-860 汎用旋盤 機械モード ══════
 
 // 主軸回転数 12段（25〜1500 rpm、R20系列）
-const MAZAK860_RPM = [25, 35, 50, 70, 100, 140, 195, 275, 390, 560, 800, 1120, 1500];
+const MAZAK860_RPM = [25, 37, 54, 77, 112, 160, 240, 350, 500, 720, 1050, 1500];
 // ※上記は12段だが最終端1500rpmを含め13要素持たせて実機幅をカバー。
 // 送り量 24段（0.04〜1.6 mm/rev、R20系列 x2組）
 const MAZAK860_FEED = [
@@ -1046,10 +1046,10 @@ function updateMazakChips(n_calc, f_calc) {
 // ══════ OKK MH-3V2 機械モード ══════
 
 // MH-3V / MH-3VⅡ 主軸回転数 12段（45〜1600 rpm、R20系列）
-const OKK_RPM = [45, 63, 90, 125, 180, 250, 355, 500, 710, 1000, 1400, 1600];
+const OKK_RPM = [45, 70, 105, 155, 195, 240, 300, 370, 460, 670, 1050, 1600];
 
 // テーブル送り 12段（18〜900 mm/min、R20系列 60Hz相当）
-const OKK_FEED = [18, 25, 35.5, 50, 71, 100, 140, 200, 280, 400, 560, 900];
+const OKK_FEED = [10, 16, 26, 40, 65, 100, 160, 260, 400, 650, 1030, 1650];
 
 let machineMode = 'generic';  // 'generic' | 'okk'
 
