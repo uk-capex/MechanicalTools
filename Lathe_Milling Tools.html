@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- build: 1.06 | 20260225 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.08 | 20260225 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -447,6 +447,13 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <option value="drill">ドリル（MC用）</option>
           </select>
         </div>
+        <div class="field">
+          <label>工具材種</label>
+          <div style="display:flex;gap:6px">
+            <button id="mlg-carbide" onclick="setMillGrade('carbide')" style="flex:1;padding:6px 0;border-radius:6px;border:1.5px solid var(--accent);background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">超硬</button>
+            <button id="mlg-hss" onclick="setMillGrade('hss')" style="flex:1;padding:6px 0;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--fg);font-size:12px;font-weight:700;cursor:pointer">ハイス (HSS)</button>
+          </div>
+        </div>
       </div>
       <hr class="divider">
       <div>
@@ -503,13 +510,7 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
         </div>
       </div>
       <hr class="divider">
-      <div class="memo">
-        <b>エンドミル目安（超硬・鋼材）</b><br>
-        Vc：60〜100 m/min<br>
-        fz：0.01〜0.05 mm/刃<br>
-        ap：工具径の 1〜1.5倍まで<br>
-        ae：工具径の 50% 以下推奨
-      </div>
+      <div class="memo" id="ml-memo"></div>
     </div>
     <div class="panel-right">
       <div class="result-cards">
@@ -823,10 +824,49 @@ const MAT_VC_LATHE = {
   cast_iron: 100, sus: 80, alum: 300, brass: 180, custom: null
 };
 const MAT_VC_MILL = {
-  steel_soft: 100, steel_mid: 80, steel_hard: 60,
-  cast_iron: 100, sus: 60, alum: 300, brass: 150, custom: null
+  carbide:{ steel_soft:100,steel_mid:80, steel_hard:60, cast_iron:100,sus:60, alum:300,brass:150,custom:null },
+  hss:    { steel_soft:30, steel_mid:25, steel_hard:18, cast_iron:25, sus:18, alum:80, brass:50, custom:null }
 };
+let millGrade='carbide';
+function setMillGrade(g){
+  millGrade=g;
+  ['carbide','hss'].forEach(k=>{
+    const b=document.getElementById('mlg-'+k);
+    if(k===g){b.style.background='var(--accent)';b.style.color='#fff';b.style.borderColor='var(--accent)';}
+    else{b.style.background='transparent';b.style.color='var(--fg)';b.style.borderColor='var(--border)';}
+  });
+  const vc=MAT_VC_MILL[g][document.getElementById('ml-mat').value];
+  if(vc)document.getElementById('ml-vc').value=vc;
+  updateMillMemo();calcMill();
+}
+function updateMillMemo(){
+  const tool=document.getElementById('ml-tool').value;
+  const gl=millGrade==='hss'?'ハイス (HSS)':'超硬';
+  const d={
+    endmill:{
+      carbide:'Vc：60〒70 m/min / fz：0.01〒0.05 mm/刃<br>ap：工具径×1〒1.5 / ae：50% 以下',
+      hss:    'Vc：20〒35 m/min / fz：0.01〒0.03 mm/刃<br>ap：工具径×0.5〒1 / ae：30% 以下'
+    },
+    ballmill:{
+      carbide:'Vc：60〒100 m/min（有効径基準）/ fz：0.01〒0.04 mm/刃<br>ap：工具径×0.3〒0.5 / ae：30% 以下',
+      hss:    'Vc：20〒30 m/min（有効径基準）/ fz：0.008〒0.025 mm/刃<br>ap：工具径×0.2〒0.4 / ae：25% 以下'
+    },
+    facemill:{
+      carbide:'Vc：100〒200 m/min / fz：0.05〒0.2 mm/刃<br>ap：0.5〒3mm（荒）/ ae：工具径の60〒80%',
+      hss:    'Vc：25〒50 m/min / fz：0.03〒0.1 mm/刃<br>ap：0.3〒1.5mm / ae：工具径の60% 以下'
+    },
+    drill:{
+      carbide:'Vc：60〒120 m/min / f：径×0.01〒0.03 mm/rev<br>深穴はステップ送りで切粉排出',
+      hss:    'Vc：20〒35 m/min / f：径×0.01〒0.025 mm/rev<br>深穴はステップ送りで切粉排出'
+    }
+  };
+  const nm={endmill:'エンドミル',ballmill:'ボールエンドミル',facemill:'正面フライス',drill:'ドリル'};
+  const m=d[tool]||d.endmill;
+  document.getElementById('ml-memo').innerHTML='<b>'+(nm[tool]||'エンドミル')+' 目安（'+gl+'）</b><br>'+(m[millGrade]||m.carbide);
+}
 
+$('ml-tool').addEventListener('change',function(){updateMillMemo();calcMill();});
+window.addEventListener('load',function(){updateMillMemo();});
 $('lt-mat').addEventListener('change', function() {
   const vc = MAT_VC_LATHE[this.value];
   if (vc) $('lt-vc').value = vc;
@@ -834,9 +874,9 @@ $('lt-mat').addEventListener('change', function() {
   calcLathe();
 });
 $('ml-mat').addEventListener('change', function() {
-  const vc = MAT_VC_MILL[this.value];
+  const vc = MAT_VC_MILL[millGrade][this.value];
   if (vc) $('ml-vc').value = vc;
-  calcMill();
+  updateMillMemo(); calcMill();
 });
 $('lt-tool').addEventListener('change', function() {
   updateLatheMemo();
@@ -1072,7 +1112,12 @@ function updateOkkChips(n_calc, vf_calc) {
   if (machineMode !== 'okk') return;
 
   const bestRpm  = closestVal(OKK_RPM, n_calc);
-  const bestFeed = closestVal(OKK_FEED, vf_calc);
+
+  // 実機rpmでvfを再計算（回転数クリップ時の送り過多を防ぐ）
+  const fz_val = +document.getElementById('ml-fz').value;
+  const z_val  = +document.getElementById('ml-z').value;
+  const vf_actual = bestRpm * fz_val * z_val;
+  const bestFeed = closestVal(OKK_FEED, vf_actual);
 
   // 許容範囲：計算値の ±30% 以内を「使用可能」と判定
   function renderChips(arr, bestVal, calcVal, containerId) {
@@ -1088,8 +1133,8 @@ function updateOkkChips(n_calc, vf_calc) {
     container.innerHTML = html;
   }
 
-  renderChips(OKK_RPM,  bestRpm,  n_calc,  'okk-rpm-chips');
-  renderChips(OKK_FEED, bestFeed, vf_calc, 'okk-feed-chips');
+  renderChips(OKK_RPM,  bestRpm,  n_calc,    'okk-rpm-chips');
+  renderChips(OKK_FEED, bestFeed, vf_actual, 'okk-feed-chips');
 }
 
 // ══════ テーパ・角度計算 ══════
