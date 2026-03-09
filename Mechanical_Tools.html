@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- build: 1.32 | 20260309 | Mechanical Tools | uk |-->
+    <!-- build: 1.33 | 20260309 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -2317,14 +2317,21 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
         <div class="section-title">流体・共通設定</div>
         <div class="field"><label>流体種別</label>
           <select id="pl-fluid" onchange="onFluidChange(); calcPipeLoss()">
-            <option value="water">水（清水）</option>
+            <option value="water">水</option>
             <option value="oil">油（鉱物油）</option>
             <option value="air">エア（圧縮空気）</option>
           </select>
         </div>
         <div class="two-col">
-          <div class="field"><label>流量 Q（L/min）</label>
-            <input type="number" id="pl-q" placeholder="例: 30" step="0.1" oninput="calcPipeLoss()">
+          <div class="field">
+            <label id="pl-q-label">流量 Q（L/min）</label>
+            <input type="number" id="pl-q" placeholder="例: 30" step="0.01" oninput="calcPipeLoss()">
+            <!-- エアモード時の単位換算表示 -->
+            <div id="pl-q-conv" style="display:none;margin-top:5px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:11px;line-height:1.9;color:var(--muted)">
+              <span style="color:var(--ink)">= </span><span id="pl-q-nm3h" style="font-family:'JetBrains Mono',monospace;color:var(--accent)">—</span><span> Nm³/h</span><br>
+              <span style="color:var(--ink)">= </span><span id="pl-q-nlmin" style="font-family:'JetBrains Mono',monospace;color:var(--accent)">—</span><span> NL/min</span><br>
+              <span style="color:var(--ink)">= </span><span id="pl-q-nls" style="font-family:'JetBrains Mono',monospace;color:var(--accent)">—</span><span> NL/s</span>
+            </div>
           </div>
           <div class="field" id="pl-kin-wrap" style="display:none"><label>動粘度 ν（mm²/s）</label>
             <select id="pl-oil-grade" onchange="setOilViscosity()">
@@ -2378,12 +2385,14 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
               <div class="card-value" id="pl-hf">—</div></div>
             <div class="card"><div class="card-label">継手損失合計</div>
               <div class="card-value" id="pl-hm">—</div></div>
+            <div class="card"><div class="card-label">レデューサー損失</div>
+              <div class="card-value" id="pl-hr">—</div></div>
             <div class="card"><div class="card-label">静揚程</div>
               <div class="card-value" id="pl-hz">—</div></div>
-            <div class="card" style="border-color:var(--accent)"><div class="card-label">全揚程 H</div>
-              <div class="card-value" id="pl-H" style="color:var(--accent)">—</div></div>
           </div>
           <div class="result-cards-2" style="margin-bottom:10px">
+            <div class="card" style="border-color:var(--accent)"><div class="card-label">全揚程 H</div>
+              <div class="card-value" id="pl-H" style="color:var(--accent)">—</div></div>
             <div class="card" style="border-color:var(--accent)"><div class="card-label">必要圧力</div>
               <div class="card-value" id="pl-P">—</div>
               <div class="card-sub" id="pl-P-sub"></div></div>
@@ -2399,6 +2408,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
               <div class="card-value" id="pl-dPf">—</div></div>
             <div class="card"><div class="card-label">継手 ΔP合計</div>
               <div class="card-value" id="pl-dPm">—</div></div>
+            <div class="card"><div class="card-label">レデューサー ΔP</div>
+              <div class="card-value" id="pl-dPr">—</div></div>
           </div>
           <div class="result-cards-2" style="margin-bottom:10px">
             <div class="card" style="border-color:var(--bad)"><div class="card-label">総圧力損失 ΔP</div>
@@ -2445,7 +2456,7 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
           <b>計算式：</b>ダルシー・ワイスバッハ式　hf = λ(L/d)v²/2g<br>
           継手損失は相当長さ法（Le/d 係数） / λ：コールブルック式（反復）<br>
           直列接続：各区間の損失を合算 / 流量は全区間共通<br>
-          エア流量入力は ANR（大気圧 0.1013 MPa 換算）。配管内実体積に自動変換して計算。
+          エア流量入力は Nm³/min（ノルマル立方メートル毎分）。入力欄下に Nm³/h・NL/min・NL/s を自動換算表示。配管内実体積は入力値 × (0.1013 / P₁) で自動変換して計算。
         </div>
       </div>
     </div>
@@ -2466,6 +2477,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
           </div>
         </div>
         <div class="field"><label style="font-size:11px;color:var(--muted)">※ 配管損失タブで計算後「送る」ボタンで自動入力されます</label></div>
+        <!-- エアモード送信時の内訳ノート -->
+        <div id="pa-q-note" style="display:none;margin-top:-4px;margin-bottom:6px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.7"></div>
 
         <div class="section-title" style="margin-top:14px">現在のポンプ</div>
         <div class="two-col">
@@ -5681,11 +5694,24 @@ const FITTING_LABEL = {
 function onFluidChange() {
   const fluid = $('pl-fluid').value;
   const isAir = fluid === 'air';
-  $('pl-kin-wrap').style.display    = fluid === 'oil' ? '' : 'none';
-  $('pl-air-wrap').style.display    = isAir ? '' : 'none';
-  $('pl-height-wrap').style.display = isAir ? 'none' : '';
+  $('pl-kin-wrap').style.display     = fluid === 'oil' ? '' : 'none';
+  $('pl-air-wrap').style.display     = isAir ? '' : 'none';
+  $('pl-height-wrap').style.display  = isAir ? 'none' : '';
   $('pl-liquid-cards').style.display = isAir ? 'none' : '';
   $('pl-air-cards').style.display    = isAir ? '' : 'none';
+  $('pl-q-conv').style.display       = isAir ? '' : 'none';
+  // 流量ラベル・placeholder 切り替え
+  const qLabel = $('pl-q-label');
+  const qInput = $('pl-q');
+  if (isAir) {
+    qLabel.textContent = '流量 Q（Nm³/min）';
+    qInput.placeholder = '例: 0.5';
+    qInput.step        = '0.01';
+  } else {
+    qLabel.textContent = '流量 Q（L/min）';
+    qInput.placeholder = '例: 30';
+    qInput.step        = '0.1';
+  }
   // 区間別内訳テーブルのヘッダ変更
   const col = $('pl-seg-col-loss');
   if (col) col.textContent = isAir ? 'ΔP (kPa)' : '損失水頭 (m)';
@@ -5785,7 +5811,7 @@ function calcPipeLoss() {
 
   // 流体物性（全区間共通）
   let rho, nu, P1_MPa = 0, Q_m3s;
-  const P_atm = 0.101325; // MPa（ANR基準圧力）
+  const P_atm = 0.101325; // MPa（ANR / ノルマル基準圧力）
   if (fluid === 'water') {
     rho   = 1000; nu = 1.004e-6;
     Q_m3s = Q_lpm / 1000 / 60;
@@ -5794,21 +5820,28 @@ function calcPipeLoss() {
     rho   = 870;
     Q_m3s = Q_lpm / 1000 / 60;
   } else {
-    // エア：ANR(大気圧換算)→配管内実体積に変換
+    // エア：入力は Nm³/min（ノルマル換算）→ 配管内実体積流量に変換
+    // Q_Nm3min [Nm³/min] × (P_atm / P1) → 配管内 m³/min → /60 → m³/s
     P1_MPa = +$('pl-p1').value || 0.7;
     const T_K = (+$('pl-temp').value || 20) + 273.15;
-    rho   = P1_MPa * 1e6 / (287 * T_K);
-    nu    = 1.81e-5 / rho;
-    // Q_lpm は ANR(0.1013 MPa)換算として扱う → 配管内実体積 = Q_ANR × P_atm / P1
-    Q_m3s = (Q_lpm * P_atm / P1_MPa) / 1000 / 60;
+    rho   = P1_MPa * 1e6 / (287 * T_K);  // 配管内密度 [kg/m³]
+    const mu = 1.81e-5;  // 空気粘性係数 [Pa·s]（圧力によらずほぼ一定）
+    nu    = mu / rho;    // 動粘度 [m²/s]
+    // Q_lpm はここでは Nm³/min として扱う（ラベル変更済み）
+    const Q_Nm3min = Q_lpm;  // 変数名を明示（内部は同じフィールド流用）
+    Q_m3s = (Q_Nm3min * P_atm / P1_MPa) / 60;  // m³/s（配管内実流量）
+
+    // 単位換算を入力欄下に表示
+    if ($('pl-q-nm3h'))  $('pl-q-nm3h').textContent  = (Q_Nm3min * 60).toFixed(3);
+    if ($('pl-q-nlmin')) $('pl-q-nlmin').textContent  = (Q_Nm3min * 1000).toFixed(1);
+    if ($('pl-q-nls'))   $('pl-q-nls').textContent    = (Q_Nm3min * 1000 / 60).toFixed(2);
   }
 
   // 区間ごとに計算
-  let totalHf = 0, totalHm = 0;   // 液体
-  let totalDPf = 0, totalDPm = 0; // エア
+  let totalHf = 0, totalHm = 0, totalHr = 0;   // 液体：直管・継手・レデューサー
+  let totalDPf = 0, totalDPm = 0, totalDPr = 0; // エア：直管・継手・レデューサー
   const segRows = [];
-
-  let allValid = true;
+  let hasInvalidSeg = false;  // 未入力区間フラグ（結果表示の抑制に使用）
   for (const seg of segments) {
     const id  = seg.id;
     const d_mm = +document.getElementById(`seg${id}-d`)?.value || 0;
@@ -5816,7 +5849,7 @@ function calcPipeLoss() {
     const eps  = +document.getElementById(`seg${id}-rough`)?.value || 0.046;
     const extraLe = +document.getElementById(`seg${id}-extraLe`)?.value || 0;
 
-    if (!d_mm) { allValid = false; segRows.push(`<tr><td colspan="5" style="padding:5px;color:var(--muted)">区間${seg.label}: 内径未入力</td></tr>`); continue; }
+    if (!d_mm) { hasInvalidSeg = true; segRows.push(`<tr><td colspan="5" style="padding:5px;color:var(--muted)">区間${seg.label}: 内径未入力</td></tr>`); continue; }
 
     const d_m   = d_mm / 1000;
     const A     = Math.PI * d_m * d_m / 4;
@@ -5851,20 +5884,20 @@ function calcPipeLoss() {
           const K = 0.5 * (1 - A2 / A1);
           if (isAir) {
             hr_or_dPr = K * rho * v2 * v2 / 2;  // Pa
-            totalDPm += hr_or_dPr;
+            totalDPr += hr_or_dPr;
           } else {
             hr_or_dPr = K * v2 * v2 / (2 * g);  // m
-            totalHm  += hr_or_dPr;
+            totalHr  += hr_or_dPr;
           }
           reducerNote = `縮小(${prevD_mm}→${d_mm}mm) K=${K.toFixed(3)}`;
         } else {
           // 拡大: バーダ式  h = (v1-v2)²/2g
           if (isAir) {
             hr_or_dPr = rho * (v1 - v2) * (v1 - v2) / 2;  // Pa
-            totalDPm += hr_or_dPr;
+            totalDPr += hr_or_dPr;
           } else {
             hr_or_dPr = (v1 - v2) * (v1 - v2) / (2 * g);  // m
-            totalHm  += hr_or_dPr;
+            totalHr  += hr_or_dPr;
           }
           reducerNote = `拡大(${prevD_mm}→${d_mm}mm)`;
         }
@@ -5909,7 +5942,7 @@ function calcPipeLoss() {
   $('pl-seg-tbody').innerHTML = segRows.join('');
 
   if (isAir) {
-    const dP_total_Pa  = totalDPf + totalDPm;
+    const dP_total_Pa  = totalDPf + totalDPm + totalDPr;
     const dP_kPa = dP_total_Pa / 1000;
     const dP_MPa = dP_total_Pa / 1e6;
     const Pend   = P1_MPa - dP_MPa;
@@ -5917,6 +5950,9 @@ function calcPipeLoss() {
 
     $('pl-dPf').innerHTML = `${fmt(totalDPf/1000,2)}<span class="card-unit"> kPa</span>`;
     $('pl-dPm').innerHTML = `${fmt(totalDPm/1000,2)}<span class="card-unit"> kPa</span>`;
+    $('pl-dPr').innerHTML = totalDPr > 0
+      ? `${fmt(totalDPr/1000,2)}<span class="card-unit"> kPa</span>`
+      : `<span style="color:var(--muted)">—</span>`;
     $('pl-dP').innerHTML  = `${fmt(dP_kPa,2)}<span class="card-unit"> kPa</span>`;
     $('pl-dP-sub').textContent = `= ${fmt(dP_MPa,4)} MPa（-${fmt(drop,1)}%）`;
     $('pl-Pend').innerHTML = Pend <= 0
@@ -5927,30 +5963,47 @@ function calcPipeLoss() {
       : `${P1_MPa} MPa − ${fmt(dP_MPa,4)} MPa`;
 
     $('pl-detail-tbody').innerHTML = [
-      ['流量 Q (ANR)',  `${Q_lpm} L/min`,       '大気圧換算（入力値）'],
-      ['配管内実流量',  `${(Q_m3s*1000*60).toFixed(2)} L/min`, `= Q×${P_atm}/${P1_MPa} (P₁換算)`],
-      ['流体密度 ρ',   `${fmt(rho,3)} kg/m³`,   `${P1_MPa} MPa abs`],
-      ['入口圧力 P₁',  `${P1_MPa} MPa`,         '絶対圧'],
-      ['直管ΔP合計',   `${fmt(totalDPf/1000,3)} kPa`, ''],
-      ['継手ΔP合計',   `${fmt(totalDPm/1000,3)} kPa`, ''],
-      ['総ΔP',         `${fmt(dP_kPa,3)} kPa`,  `${fmt(dP_MPa,5)} MPa`],
-      ['末端圧力',     `${fmt(Pend,4)} MPa`,     'P₁ − ΔP'],
-      ['圧力降下率',   `${fmt(drop,2)} %`,       ''],
+      ['流量 Q (ノルマル)',  `${Q_lpm} Nm³/min`,        'ノルマル換算入力値'],
+      ['　= Nm³/h',         `${(Q_lpm*60).toFixed(3)} Nm³/h`,   '× 60'],
+      ['　= NL/min',        `${(Q_lpm*1000).toFixed(1)} NL/min`, '× 1000'],
+      ['　= NL/s',          `${(Q_lpm*1000/60).toFixed(2)} NL/s`,'÷ 60'],
+      ['配管内実流量',      `${(Q_m3s*1000*60).toFixed(4)} L/min`, `= Q×${P_atm}/${P1_MPa} (P₁換算)`],
+      ['流体密度 ρ',        `${fmt(rho,3)} kg/m³`,   `${P1_MPa} MPa abs`],
+      ['入口圧力 P₁',       `${P1_MPa} MPa`,         '絶対圧'],
+      ['直管ΔP合計',        `${fmt(totalDPf/1000,3)} kPa`, ''],
+      ['継手ΔP合計',        `${fmt(totalDPm/1000,3)} kPa`, '（相当長さ法）'],
+      ['レデューサーΔP',    `${fmt(totalDPr/1000,3)} kPa`, '（バーダ・カルノー式）'],
+      ['総ΔP',              `${fmt(dP_kPa,3)} kPa`,  `${fmt(dP_MPa,5)} MPa`],
+      ['末端圧力',          `${fmt(Pend,4)} MPa`,     'P₁ − ΔP'],
+      ['圧力降下率',        `${fmt(drop,2)} %`,       ''],
     ].map(r => `<tr><td style="padding:4px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
       <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[1]}</td>
       <td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${r[2]}</td></tr>`).join('');
 
-    window._pumpLossResult = { Q_lpm, P_MPa: dP_MPa, isAir: true, P1_MPa, Pend_MPa: Pend };
+    // needP_MPa = コンプレッサーが出すべき圧力 = 入口圧力 P1
+    // （末端必要圧 + 配管損失ΔP = P1 として設計されているため）
+    window._pumpLossResult = {
+      isAir    : true,
+      Q_Nm3min : Q_lpm,   // Nm³/min（エア流量入力値）
+      Q_lpm    : null,
+      needP_MPa: P1_MPa,  // 代替判定へ渡す圧力 = P1（ΔPではない）
+      dP_MPa,             // 配管損失（参考値）
+      P1_MPa,
+      Pend_MPa : Pend,
+    };
 
   } else {
     const z1  = +$('pl-z1').value || 0;
     const z2  = +$('pl-z2').value || 0;
     const hz  = z2 - z1;
-    const H   = totalHf + totalHm + hz;
+    const H   = totalHf + totalHm + totalHr + hz;
     const P_MPa = rho * g * H / 1e6;
 
     $('pl-hf').innerHTML = `${fmt(totalHf,3)}<span class="card-unit"> m</span>`;
     $('pl-hm').innerHTML = `${fmt(totalHm,3)}<span class="card-unit"> m</span>`;
+    $('pl-hr').innerHTML = totalHr > 0
+      ? `${fmt(totalHr,3)}<span class="card-unit"> m</span>`
+      : `<span style="color:var(--muted)">—</span>`;
     $('pl-hz').innerHTML = `${fmt(hz,1)}<span class="card-unit"> m</span>`;
     $('pl-H').innerHTML  = `${fmt(H,2)}<span class="card-unit"> m</span>`;
     $('pl-P').innerHTML  = P_MPa <= 0
@@ -5962,24 +6015,33 @@ function calcPipeLoss() {
     $('pl-Le').innerHTML = `—`;
 
     $('pl-detail-tbody').innerHTML = [
-      ['流量 Q',       `${Q_lpm} L/min`,      '全区間共通'],
-      ['流体密度 ρ',   `${fmt(rho,1)} kg/m³`, ''],
-      ['直管損失 Σhf', `${fmt(totalHf,3)} m`,  '全区間合計'],
-      ['継手損失 Σhm', `${fmt(totalHm,3)} m`,  '全区間合計'],
-      ['静揚程 hz',    `${fmt(hz,2)} m`,        'Z₂−Z₁'],
-      ['全揚程 H',     `${fmt(H,3)} m`,         'Σhf+Σhm+hz'],
-      ['必要圧力 P',   `${fmt(P_MPa,4)} MPa`,   'ρgH'],
+      ['流量 Q',           `${Q_lpm} L/min`,      '全区間共通'],
+      ['流体密度 ρ',       `${fmt(rho,1)} kg/m³`, ''],
+      ['直管損失 Σhf',     `${fmt(totalHf,3)} m`,  '全区間合計'],
+      ['継手損失 Σhm',     `${fmt(totalHm,3)} m`,  '（相当長さ法）'],
+      ['レデューサー損失', `${fmt(totalHr,3)} m`,  '（バーダ・カルノー式）'],
+      ['静揚程 hz',        `${fmt(hz,2)} m`,        'Z₂−Z₁'],
+      ['全揚程 H',         `${fmt(H,3)} m`,         'Σhf+Σhm+Σhr+hz'],
+      ['必要圧力 P',       `${fmt(P_MPa,4)} MPa`,   'ρgH'],
     ].map(r => `<tr><td style="padding:4px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
       <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[1]}</td>
       <td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${r[2]}</td></tr>`).join('');
 
-    window._pumpLossResult = { Q_lpm, P_MPa, isAir: false };
+    window._pumpLossResult = {
+      isAir    : false,
+      Q_Nm3min : null,
+      Q_lpm,              // 液体流量入力値 L/min
+      needP_MPa: P_MPa,  // 代替判定へ渡す圧力 = ρgH（必要揚程から算出）
+      dP_MPa   : null,
+      P1_MPa   : null,
+      Pend_MPa : null,
+    };
   }
 }
 
 function clearPipeLoss() {
-  ['pl-hf','pl-hm','pl-hz','pl-H','pl-P','pl-Le',
-   'pl-dPf','pl-dPm','pl-dP','pl-Pend'].forEach(id => {
+  ['pl-hf','pl-hm','pl-hr','pl-hz','pl-H','pl-P','pl-Le',
+   'pl-dPf','pl-dPm','pl-dPr','pl-dP','pl-Pend'].forEach(id => {
     const el = $(id); if (el) el.innerHTML = '—';
   });
   ['pl-P-sub','pl-dP-sub','pl-Pend-sub'].forEach(id => {
@@ -5992,8 +6054,30 @@ function clearPipeLoss() {
 function sendToAlt() {
   const r = window._pumpLossResult;
   if (!r) { alert('先に配管損失を計算してください'); return; }
-  $('pa-q').value = r.Q_lpm.toFixed(1);
-  $('pa-p').value = r.P_MPa.toFixed(4);
+
+  // 流量：エアは Nm³/min→L/min 換算して渡す、液体はそのまま
+  const qVal = r.isAir
+    ? (r.Q_Nm3min * 1000).toFixed(1)   // Nm³/min → NL/min（代替判定はL/min単位）
+    : r.Q_lpm.toFixed(1);
+
+  // 圧力：液体=ρgH（必要圧力）、エア=P1（コンプレッサー出口圧）
+  const pVal = r.needP_MPa.toFixed(4);
+
+  $('pa-q').value = qVal;
+  $('pa-p').value = pVal;
+
+  // エアモード時は代替判定の単位ラベルにノートを追加
+  const noteEl = $('pa-q-note');
+  if (noteEl) {
+    if (r.isAir) {
+      noteEl.textContent = `※ エアモード送信値: ${r.Q_Nm3min} Nm³/min = ${qVal} NL/min / 必要圧力 = P₁ ${r.P1_MPa} MPa（配管損失 ΔP = ${r.dP_MPa.toFixed(4)} MPa）`;
+      noteEl.style.display = '';
+    } else {
+      noteEl.textContent = '';
+      noteEl.style.display = 'none';
+    }
+  }
+
   showPumpTab('palt', $('ptab-palt'));
   calcPumpAlt();
 }
@@ -6019,8 +6103,9 @@ function evalPump(pumpQ, pumpP, needQ, needP, label) {
     icon='❌'; main=`${label}：流量不足`; color='var(--bad)';
     sub = `流量 ${pumpQ} L/min（必要: ${needQ} L/min）/ 圧力は OK`;
   } else {
-    icon='⚠️'; main=`${label}：圧力不足`; color='var(--warn)';
-    sub = `圧力 ${pumpP} MPa（必要: ${needP} MPa）/ 流量は OK ― リリーフ弁は無効`;
+    // qOk && !pOk：流量OKだが圧力不足
+    icon='❌'; main=`${label}：圧力不足`; color='var(--bad)';
+    sub = `圧力 ${pumpP} MPa（必要: ${needP} MPa）/ 流量は OK — リリーフ弁での補填は不可`;
   }
   return { icon, main, sub, color, qOk, pOk, qRatio, pRatio };
 }
@@ -6062,33 +6147,42 @@ function calcPumpAlt() {
     setCard('pa-alt-card','pa-alt-icon','pa-alt-main','pa-alt-sub', r);
 
     // リリーフ弁検討
+    // リリーフ弁 = 圧力が高すぎるポンプの上限を設ける用途
+    // altP > needP のときに「リリーフでneedP以下に設定すれば使える」が正しい判定
     if (useRelief) {
       const reliefP = +$('pa-relief-p').value || 0;
       const rCard = $('pa-relief-card');
       if (!reliefP) {
+        $('pa-relief-icon').textContent = '🔧';
         $('pa-relief-main').textContent = 'リリーフ設定圧力を入力してください';
         $('pa-relief-sub').textContent  = '';
         rCard.style.borderColor = 'var(--border)';
-      } else if (altP >= needP) {
-        $('pa-relief-icon').textContent = '⚠️';
-        $('pa-relief-main').textContent = 'リリーフ弁は不要（代替候補の圧力は十分）';
-        $('pa-relief-sub').textContent  = `代替 ${altP} MPa ≥ 必要 ${needP} MPa`;
-        rCard.style.borderColor = 'var(--good)';
-      } else if (reliefP <= needP && altQ >= needQ) {
-        $('pa-relief-icon').textContent = '✅';
-        $('pa-relief-main').textContent = 'リリーフ弁で対応可能';
-        $('pa-relief-sub').textContent  = `代替ポンプ ${altP} MPa → リリーフ設定 ${reliefP} MPa（≤ 必要 ${needP} MPa） / 流量は OK`;
-        rCard.style.borderColor = 'var(--good)';
+      } else if (altP < needP) {
+        // 代替候補の圧力が不足 → リリーフでは補えない
+        $('pa-relief-icon').textContent = '❌';
+        $('pa-relief-main').textContent = 'リリーフ弁では対応不可（代替候補の圧力が不足）';
+        $('pa-relief-sub').textContent  = `代替 ${altP} MPa ＜ 必要 ${needP} MPa。リリーフ弁は高圧を逃がすものであり、圧力不足の補填には使えません`;
+        rCard.style.borderColor = 'var(--bad)';
       } else if (altQ < needQ) {
+        // 流量不足 → リリーフでは補えない
         $('pa-relief-icon').textContent = '❌';
         $('pa-relief-main').textContent = 'リリーフでは対応不可（流量不足）';
         $('pa-relief-sub').textContent  = 'リリーフ弁は圧力調整のみ。流量不足は解消できません';
         rCard.style.borderColor = 'var(--bad)';
-      } else {
-        $('pa-relief-icon').textContent = '⚠️';
-        $('pa-relief-main').textContent = 'リリーフ設定圧力を見直してください';
-        $('pa-relief-sub').textContent  = `設定 ${reliefP} MPa が必要 ${needP} MPa を超えています`;
-        rCard.style.borderColor = 'var(--warn)';
+      } else if (altP >= needP && altQ >= needQ) {
+        // 圧力・流量ともに十分 → リリーフで圧力を needP 以下に絞れるか確認
+        if (reliefP <= needP) {
+          $('pa-relief-icon').textContent = '✅';
+          $('pa-relief-main').textContent = 'リリーフ弁で圧力調整可能';
+          $('pa-relief-sub').textContent  = `代替 ${altP} MPa → リリーフ設定 ${reliefP} MPa（≤ 必要 ${needP} MPa） / 流量 OK`;
+          rCard.style.borderColor = 'var(--good)';
+        } else {
+          // リリーフ設定が必要圧力を超えている
+          $('pa-relief-icon').textContent = '⚠️';
+          $('pa-relief-main').textContent = 'リリーフ設定圧力が高すぎます';
+          $('pa-relief-sub').textContent  = `設定 ${reliefP} MPa ＞ 必要 ${needP} MPa。設定圧力を ${needP} MPa 以下にしてください`;
+          rCard.style.borderColor = 'var(--warn)';
+        }
       }
     }
   }
@@ -6125,8 +6219,9 @@ function calcPumpAlt() {
   const advLines = [];
   if (altQ && altP) {
     const r = evalPump(altQ, altP, needQ, needP, '');
-    if (!r.pOk && altP < needP) advLines.push('⚠️ <b>圧力不足：</b>代替候補の吐出圧が不足しています。リリーフ弁は高圧側を逃がすものであり、圧力不足の補填には使えません。');
+    if (!r.pOk) advLines.push('❌ <b>圧力不足：</b>代替候補の吐出圧が不足しています。リリーフ弁は高圧側を逃がすものであり、圧力不足の補填には使えません。');
     if (!r.qOk) advLines.push('❌ <b>流量不足：</b>流量不足はリリーフ弁では解消できません。配管径の拡大か、ポンプの大型化を検討してください。');
+    if (r.qOk && r.pOk && r.pRatio > 1.2) advLines.push('💡 <b>圧力余裕あり：</b>代替候補の圧力がオーバースペックです。リリーフ弁で必要圧力以下に設定することで過圧を防止できます。');
     if (r.qOk && r.pOk && r.qRatio > 1.5) advLines.push('💡 <b>流量余裕大：</b>流量が大きく余っています。省エネの観点からインバータ制御や絞り弁による流量調整を検討してください。');
     if (r.qOk && r.pOk) advLines.push('✅ <b>代替可能：</b>スペック上は代替候補ポンプで対応できます。ただし実機での確認を推奨します。');
   }
