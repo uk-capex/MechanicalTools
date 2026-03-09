@@ -2467,20 +2467,35 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
     <div class="two-panel">
       <!-- 左: 入力 -->
       <div class="panel-left">
-        <div class="section-title">必要条件（配管損失タブから自動入力 or 手動）</div>
+
+        <div class="section-title">要求条件</div>
         <div class="two-col">
-          <div class="field"><label>必要流量 Q（L/min）</label>
+          <div class="field"><label>最低必要流量（L/min）</label>
             <input type="number" id="pa-q" placeholder="例: 30" step="0.1" oninput="calcPumpAlt()">
           </div>
-          <div class="field"><label>必要圧力（MPa）</label>
+          <div class="field"><label>最低必要圧力（MPa）</label>
             <input type="number" id="pa-p" placeholder="例: 0.35" step="0.01" oninput="calcPumpAlt()">
           </div>
         </div>
-        <div class="field"><label style="font-size:11px;color:var(--muted)">※ 配管損失タブで計算後「送る」ボタンで自動入力されます</label></div>
-        <!-- エアモード送信時の内訳ノート -->
-        <div id="pa-q-note" style="display:none;margin-top:-4px;margin-bottom:6px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.7"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:-4px;margin-bottom:8px">※ 配管損失タブ「送る」で自動入力されます</div>
+        <div id="pa-q-note" style="display:none;margin-bottom:8px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.7"></div>
 
-        <div class="section-title" style="margin-top:14px">現在のポンプ</div>
+        <hr class="divider" style="margin-bottom:12px">
+
+        <div class="section-title">推奨余裕率</div>
+        <div class="two-col">
+          <div class="field"><label>流量 余裕率（%）</label>
+            <input type="number" id="pa-margin-q" value="20" min="0" max="100" step="5" oninput="calcPumpAlt()">
+          </div>
+          <div class="field"><label>圧力 余裕率（%）</label>
+            <input type="number" id="pa-margin-p" value="20" min="0" max="100" step="5" oninput="calcPumpAlt()">
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:-4px;margin-bottom:8px">※ 推奨代替レンジの下限に反映されます（0% = 要求値ちょうど）</div>
+
+        <hr class="divider" style="margin-bottom:12px">
+
+        <div class="section-title">現ポンプ</div>
         <div class="two-col">
           <div class="field"><label>定格流量（L/min）</label>
             <input type="number" id="pa-cur-q" placeholder="例: 40" step="0.1" oninput="calcPumpAlt()">
@@ -2493,7 +2508,9 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
           <input type="number" id="pa-cur-eff" value="70" min="1" max="100" step="1" oninput="calcPumpAlt()">
         </div>
 
-        <div class="section-title" style="margin-top:14px">代替候補ポンプ</div>
+        <hr class="divider" style="margin-bottom:12px">
+
+        <div class="section-title">代替候補ポンプ <span style="font-size:10px;color:var(--muted);font-weight:400">（任意）</span></div>
         <div class="two-col">
           <div class="field"><label>定格流量（L/min）</label>
             <input type="number" id="pa-alt-q" placeholder="例: 35" step="0.1" oninput="calcPumpAlt()">
@@ -2505,8 +2522,6 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
         <div class="field"><label>ポンプ効率 η（%）</label>
           <input type="number" id="pa-alt-eff" value="70" min="1" max="100" step="1" oninput="calcPumpAlt()">
         </div>
-
-        <div class="section-title" style="margin-top:14px">オプション</div>
         <div class="field">
           <label><input type="checkbox" id="pa-relief" onchange="calcPumpAlt()" style="margin-right:6px">リリーフ弁で圧力調整を検討</label>
         </div>
@@ -2515,48 +2530,85 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <input type="number" id="pa-relief-p" placeholder="例: 0.35" step="0.01" oninput="calcPumpAlt()">
           </div>
         </div>
+
       </div>
 
       <!-- 右: 結果 -->
       <div class="panel-right">
+
+        <!-- 現ポンプ評価 -->
         <div class="section-title">現ポンプ 評価</div>
-        <div class="verdict-card" id="pa-cur-card" style="margin-bottom:12px">
-          <div class="verdict-icon" id="pa-cur-icon">—</div>
-          <div><div class="verdict-main" id="pa-cur-main">—</div>
-               <div class="verdict-sub"  id="pa-cur-sub"></div></div>
-        </div>
-
-        <div class="section-title">代替候補 評価</div>
-        <div class="verdict-card" id="pa-alt-card" style="margin-bottom:12px">
-          <div class="verdict-icon" id="pa-alt-icon">—</div>
-          <div><div class="verdict-main" id="pa-alt-main">—</div>
-               <div class="verdict-sub"  id="pa-alt-sub"></div></div>
-        </div>
-
-        <!-- リリーフ判定 -->
-        <div id="pa-relief-result" style="display:none;margin-bottom:12px">
-          <div class="section-title">リリーフ弁 検討</div>
-          <div class="verdict-card" id="pa-relief-card">
-            <div class="verdict-icon" id="pa-relief-icon">🔧</div>
-            <div><div class="verdict-main" id="pa-relief-main">—</div>
-                 <div class="verdict-sub"  id="pa-relief-sub"></div></div>
+        <div id="pa-cur-card" style="margin-bottom:12px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;display:flex;align-items:flex-start;gap:10px">
+          <div id="pa-cur-icon" style="font-size:22px;line-height:1;flex-shrink:0">—</div>
+          <div style="min-width:0">
+            <div id="pa-cur-main" style="font-weight:700;font-size:13px"></div>
+            <div id="pa-cur-sub" style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.6"></div>
           </div>
         </div>
 
-        <!-- 比較テーブル -->
-        <div class="section-title">スペック比較</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:var(--surface)">
-            <th style="text-align:left;padding:5px;border-bottom:1px solid var(--border)">項目</th>
-            <th style="text-align:center;padding:5px;border-bottom:1px solid var(--border)">必要値</th>
-            <th style="text-align:center;padding:5px;border-bottom:1px solid var(--border)">現ポンプ</th>
-            <th style="text-align:center;padding:5px;border-bottom:1px solid var(--border)">代替候補</th>
-          </tr></thead>
-          <tbody id="pa-tbody"></tbody>
-        </table>
+        <!-- 代替可能レンジ -->
+        <div class="section-title">代替可能レンジ</div>
+        <div id="pa-range-block" style="margin-bottom:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">流量レンジ</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:13px">
+                <span style="color:var(--muted)">最低: </span><span id="pa-range-q-min" style="color:var(--ink)">—</span><span style="color:var(--muted)"> L/min</span><br>
+                <span style="color:var(--muted)">推奨: </span><span id="pa-range-q-rec" style="color:var(--accent);font-weight:700">—</span><span style="color:var(--muted)"> L/min 以上</span><br>
+                <span style="color:var(--muted)">上限目安: </span><span id="pa-range-q-max" style="color:var(--warn)">—</span><span style="color:var(--muted)"> L/min</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px">圧力レンジ</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:13px">
+                <span style="color:var(--muted)">最低: </span><span id="pa-range-p-min" style="color:var(--ink)">—</span><span style="color:var(--muted)"> MPa</span><br>
+                <span style="color:var(--muted)">推奨: </span><span id="pa-range-p-rec" style="color:var(--accent);font-weight:700">—</span><span style="color:var(--muted)"> MPa 以上</span><br>
+                <span style="color:var(--muted)">上限目安: </span><span id="pa-range-p-max" style="color:var(--warn)">—</span><span style="color:var(--muted)"> MPa</span>
+              </div>
+            </div>
+          </div>
+          <div id="pa-range-note" style="font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border);line-height:1.7"></div>
+        </div>
+
+        <!-- 代替候補評価（入力時のみ） -->
+        <div id="pa-alt-section" style="display:none">
+          <div class="section-title">代替候補 評価</div>
+          <div id="pa-alt-card" style="margin-bottom:12px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;display:flex;align-items:flex-start;gap:10px">
+            <div id="pa-alt-icon" style="font-size:22px;line-height:1;flex-shrink:0">—</div>
+            <div style="min-width:0">
+              <div id="pa-alt-main" style="font-weight:700;font-size:13px"></div>
+              <div id="pa-alt-sub" style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.6"></div>
+            </div>
+          </div>
+
+          <!-- リリーフ判定 -->
+          <div id="pa-relief-result" style="display:none;margin-bottom:12px">
+            <div class="section-title">リリーフ弁 検討</div>
+            <div id="pa-relief-card" style="padding:12px 14px;border:1px solid var(--border);border-radius:10px;display:flex;align-items:flex-start;gap:10px">
+              <div id="pa-relief-icon" style="font-size:22px;line-height:1;flex-shrink:0">🔧</div>
+              <div style="min-width:0">
+                <div id="pa-relief-main" style="font-weight:700;font-size:13px">—</div>
+                <div id="pa-relief-sub" style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.6"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- スペック比較テーブル -->
+          <div class="section-title">スペック比較</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <thead><tr style="background:var(--surface)">
+              <th style="text-align:left;padding:5px;border-bottom:1px solid var(--border)">項目</th>
+              <th style="text-align:center;padding:5px;border-bottom:1px solid var(--border)">要求値</th>
+              <th style="text-align:center;padding:5px;border-bottom:1px solid var(--border)">現ポンプ</th>
+              <th style="text-align:center;padding:5px;border-bottom:1px solid var(--border)">代替候補</th>
+            </tr></thead>
+            <tbody id="pa-tbody"></tbody>
+          </table>
+        </div>
 
         <!-- アドバイス -->
-        <div id="pa-advice" style="margin-top:12px;padding:10px;background:var(--surface);border-radius:6px;font-size:12px;line-height:1.8;display:none"></div>
+        <div id="pa-advice" style="padding:10px;background:var(--surface);border-radius:6px;font-size:12px;line-height:1.8;display:none"></div>
+
       </div>
     </div>
   </div><!-- /stab-palt -->
@@ -6082,154 +6134,240 @@ function sendToAlt() {
   calcPumpAlt();
 }
 
-// ── 代替判定 ──
-function evalPump(pumpQ, pumpP, needQ, needP, label) {
-  const qOk = pumpQ >= needQ;
-  const pOk = pumpP >= needP;
-  const qRatio = pumpQ / needQ;
-  const pRatio = pumpP / needP;
-  let icon, main, sub, color;
-  if (qOk && pOk) {
-    if (qRatio >= 1.2 && pRatio >= 1.2) {
-      icon='🟢'; main=`${label}：余裕あり`; color='var(--good)';
-    } else {
-      icon='✅'; main=`${label}：使用可能`; color='var(--good)';
-    }
-    sub = `流量 ${pumpQ} L/min（必要比 ${(qRatio*100).toFixed(0)}%）/ 圧力 ${pumpP} MPa（必要比 ${(pRatio*100).toFixed(0)}%）`;
-  } else if (!qOk && !pOk) {
-    icon='❌'; main=`${label}：流量・圧力ともに不足`; color='var(--bad)';
-    sub = `流量不足 ${pumpQ}→${needQ} L/min / 圧力不足 ${pumpP}→${needP} MPa`;
-  } else if (!qOk) {
-    icon='❌'; main=`${label}：流量不足`; color='var(--bad)';
-    sub = `流量 ${pumpQ} L/min（必要: ${needQ} L/min）/ 圧力は OK`;
-  } else {
-    // qOk && !pOk：流量OKだが圧力不足
-    icon='❌'; main=`${label}：圧力不足`; color='var(--bad)';
-    sub = `圧力 ${pumpP} MPa（必要: ${needP} MPa）/ 流量は OK — リリーフ弁での補填は不可`;
-  }
-  return { icon, main, sub, color, qOk, pOk, qRatio, pRatio };
-}
-
 function calcPumpAlt() {
-  const needQ = +$('pa-q').value || 0;
-  const needP = +$('pa-p').value || 0;
-  const curQ  = +$('pa-cur-q').value || 0;
-  const curP  = +$('pa-cur-p').value || 0;
-  const altQ  = +$('pa-alt-q').value || 0;
-  const altP  = +$('pa-alt-p').value || 0;
-  const curEff = +$('pa-cur-eff').value || 70;
-  const altEff = +$('pa-alt-eff').value || 70;
+  const needQ    = +$('pa-q').value    || 0;
+  const needP    = +$('pa-p').value    || 0;
+  const marginQ  = +$('pa-margin-q').value ?? 20;
+  const marginP  = +$('pa-margin-p').value ?? 20;
+  const curQ     = +$('pa-cur-q').value  || 0;
+  const curP     = +$('pa-cur-p').value  || 0;
+  const curEff   = +$('pa-cur-eff').value || 70;
+  const altQ     = +$('pa-alt-q').value  || 0;
+  const altP     = +$('pa-alt-p').value  || 0;
+  const altEff   = +$('pa-alt-eff').value || 70;
   const useRelief = $('pa-relief').checked;
+  const fmt = (n, d=2) => (n != null && isFinite(n)) ? n.toFixed(d) : '—';
 
-  // リリーフWrap表示
-  $('pa-relief-wrap').style.display  = useRelief ? '' : 'none';
-  $('pa-relief-result').style.display = useRelief ? '' : 'none';
+  $('pa-relief-wrap').style.display   = useRelief ? '' : 'none';
+  $('pa-relief-result').style.display = (useRelief && altQ && altP) ? '' : 'none';
 
-  if (!needQ || !needP) return;
+  // ── 現ポンプ評価 ──
+  const curCard = $('pa-cur-card');
+  if (curQ && curP && needQ && needP) {
+    const qDiff  = curQ - needQ;
+    const pDiff  = curP - needP;
+    const qRatio = (curQ / needQ - 1) * 100;  // % 余裕（マイナスは不足）
+    const pRatio = (curP / needP - 1) * 100;
 
-  const setCard = (cardId, iconId, mainId, subId, result) => {
-    const card = $(cardId);
-    $(iconId).textContent  = result.icon;
-    $(mainId).textContent  = result.main;
-    $(subId).textContent   = result.sub;
-    card.style.borderColor = result.color;
-  };
+    const qLabel = qRatio >= 0
+      ? `<span style="color:var(--good)">+${fmt(qRatio,1)}%（+${fmt(qDiff,1)} L/min）</span>`
+      : `<span style="color:var(--bad)">${fmt(qRatio,1)}%（${fmt(qDiff,1)} L/min）</span>`;
+    const pLabel = pRatio >= 0
+      ? `<span style="color:var(--good)">+${fmt(pRatio,1)}%（+${fmt(pDiff,3)} MPa）</span>`
+      : `<span style="color:var(--bad)">${fmt(pRatio,1)}%（${fmt(pDiff,3)} MPa）</span>`;
 
-  // 現ポンプ
-  if (curQ && curP) {
-    const r = evalPump(curQ, curP, needQ, needP, '現ポンプ');
-    setCard('pa-cur-card','pa-cur-icon','pa-cur-main','pa-cur-sub', r);
+    const qOk = curQ >= needQ;
+    const pOk = curP >= needP;
+    let icon, main, color;
+    if (qOk && pOk) {
+      if (qRatio >= marginQ && pRatio >= marginP) {
+        icon='🟢'; main='現ポンプ：余裕あり'; color='var(--good)';
+      } else {
+        icon='✅'; main='現ポンプ：要求を満足'; color='var(--good)';
+      }
+    } else if (!qOk && !pOk) {
+      icon='❌'; main='現ポンプ：流量・圧力ともに不足'; color='var(--bad)';
+    } else if (!qOk) {
+      icon='❌'; main='現ポンプ：流量不足'; color='var(--bad)';
+    } else {
+      icon='❌'; main='現ポンプ：圧力不足'; color='var(--bad)';
+    }
+    $('pa-cur-icon').textContent = icon;
+    $('pa-cur-main').textContent = main;
+    $('pa-cur-sub').innerHTML    = `流量: ${qLabel}　圧力: ${pLabel}`;
+    curCard.style.borderColor    = color;
+  } else {
+    $('pa-cur-icon').textContent = '—';
+    $('pa-cur-main').textContent = curQ && curP ? '要求条件を入力してください' : '現ポンプのスペックを入力してください';
+    $('pa-cur-sub').innerHTML    = '';
+    curCard.style.borderColor    = 'var(--border)';
   }
 
-  // 代替候補
-  if (altQ && altP) {
-    const r = evalPump(altQ, altP, needQ, needP, '代替候補');
-    setCard('pa-alt-card','pa-alt-icon','pa-alt-main','pa-alt-sub', r);
+  // ── 代替可能レンジ ──
+  const rangeBlock = $('pa-range-block');
+  if (needQ && needP) {
+    const recQ  = needQ * (1 + marginQ / 100);
+    const recP  = needP * (1 + marginP / 100);
+    const maxQ  = curQ  ? curQ  * 1.5 : needQ * 2.0;
+    const maxP  = curP  ? curP  * 1.5 : needP * 2.0;
+
+    $('pa-range-q-min').textContent = fmt(needQ, 1);
+    $('pa-range-q-rec').textContent = fmt(recQ,  1);
+    $('pa-range-q-max').textContent = fmt(maxQ,  1);
+    $('pa-range-p-min').textContent = fmt(needP, 3);
+    $('pa-range-p-rec').textContent = fmt(recP,  3);
+    $('pa-range-p-max').textContent = fmt(maxP,  3);
+
+    $('pa-range-note').innerHTML =
+      `推奨下限は余裕率 Q:${marginQ}% / P:${marginP}% を加味した値です。`
+      + `上限目安は現ポンプ定格の 150%（現ポンプ未入力時は要求値の 200%）。`
+      + `<br>過剰スペックのポンプはリリーフ弁での圧力調整が必要になる場合があります。`;
+    rangeBlock.style.display = '';
+  } else {
+    rangeBlock.style.display = 'none';
+  }
+
+  // ── 代替候補評価 ──
+  const altSection = $('pa-alt-section');
+  if (altQ && altP && needQ && needP) {
+    altSection.style.display = '';
+    const qDiff  = altQ - needQ;
+    const pDiff  = altP - needP;
+    const qRatio = (altQ / needQ - 1) * 100;
+    const pRatio = (altP / needP - 1) * 100;
+    const qOk    = altQ >= needQ;
+    const pOk    = altP >= needP;
+    const qWarn  = qRatio >= -marginQ && qRatio < 0;  // 要求割れだが余裕率内
+    const pWarn  = pRatio >= -marginP && pRatio < 0;
+
+    // 上限目安（代替レンジと同じ基準）
+    const maxQ = curQ ? curQ * 1.5 : needQ * 2.0;
+    const maxP = curP ? curP * 1.5 : needP * 2.0;
+    const qOver = altQ > maxQ;  // 流量が上限目安超え
+    const pOver = altP > maxP;  // 圧力が上限目安超え
+
+    const qLabel = qRatio >= 0
+      ? `<span style="color:${qOver?'var(--warn)':'var(--good)'}">+${fmt(qRatio,1)}%（+${fmt(qDiff,1)} L/min）${qOver?'⚠️過剰':''}</span>`
+      : qWarn
+        ? `<span style="color:var(--warn)">${fmt(qRatio,1)}%（${fmt(qDiff,1)} L/min）要確認</span>`
+        : `<span style="color:var(--bad)">${fmt(qRatio,1)}%（${fmt(qDiff,1)} L/min）</span>`;
+    const pLabel = pRatio >= 0
+      ? `<span style="color:${pOver?'var(--warn)':'var(--good)'}">+${fmt(pRatio,1)}%（+${fmt(pDiff,3)} MPa）${pOver?'⚠️過剰':''}</span>`
+      : pWarn
+        ? `<span style="color:var(--warn)">${fmt(pRatio,1)}%（${fmt(pDiff,3)} MPa）要確認</span>`
+        : `<span style="color:var(--bad)">${fmt(pRatio,1)}%（${fmt(pDiff,3)} MPa）</span>`;
+
+    let icon, main, color, sub2 = '';
+    if (qOk && pOk && (qOver || pOver)) {
+      // 上限目安超え → 過剰スペック警告
+      icon='⚠️'; main='代替候補：スペック過剰（要検討）'; color='var(--warn)';
+      const overItems = [...(qOver?[`流量 ${fmt(altQ,1)} L/min（上限目安 ${fmt(maxQ,1)}）`]:[]),
+                         ...(pOver?[`圧力 ${fmt(altP,3)} MPa（上限目安 ${fmt(maxP,3)}）`]:[])];
+      sub2 = `上限目安超え：${overItems.join(' / ')}<br>リリーフ弁・インバータ制御等の対策が前提となります。`;
+    } else if (qOk && pOk && qRatio >= marginQ && pRatio >= marginP) {
+      icon='🟢'; main='代替候補：余裕あり（推奨）'; color='var(--good)';
+    } else if (qOk && pOk) {
+      icon='✅'; main='代替候補：要求を満足'; color='var(--good)';
+    } else if ((qWarn || qOk) && (pWarn || pOk)) {
+      icon='⚠️'; main='代替候補：要確認（余裕率未満）'; color='var(--warn)';
+      sub2 = `余裕率の範囲内での不足です。末端機器の最低要求値と照合してください。`;
+    } else if (!qOk && !pOk) {
+      icon='❌'; main='代替候補：流量・圧力ともに不足'; color='var(--bad)';
+    } else if (!qOk) {
+      icon='❌'; main='代替候補：流量不足'; color='var(--bad)';
+    } else {
+      icon='❌'; main='代替候補：圧力不足（リリーフ弁での補填は不可）'; color='var(--bad)';
+    }
+    $('pa-alt-icon').textContent = icon;
+    $('pa-alt-main').textContent = main;
+    $('pa-alt-sub').innerHTML    = `流量: ${qLabel}　圧力: ${pLabel}`
+                                 + (sub2 ? `<br>${sub2}` : '');
+    $('pa-alt-card').style.borderColor = color;
 
     // リリーフ弁検討
-    // リリーフ弁 = 圧力が高すぎるポンプの上限を設ける用途
-    // altP > needP のときに「リリーフでneedP以下に設定すれば使える」が正しい判定
     if (useRelief) {
       const reliefP = +$('pa-relief-p').value || 0;
-      const rCard = $('pa-relief-card');
+      const rCard   = $('pa-relief-card');
       if (!reliefP) {
         $('pa-relief-icon').textContent = '🔧';
         $('pa-relief-main').textContent = 'リリーフ設定圧力を入力してください';
         $('pa-relief-sub').textContent  = '';
         rCard.style.borderColor = 'var(--border)';
-      } else if (altP < needP) {
-        // 代替候補の圧力が不足 → リリーフでは補えない
+      } else if (!pOk && !pWarn) {
+        // 余裕率を超えた圧力不足 → リリーフでは補えない
         $('pa-relief-icon').textContent = '❌';
         $('pa-relief-main').textContent = 'リリーフ弁では対応不可（代替候補の圧力が不足）';
         $('pa-relief-sub').textContent  = `代替 ${altP} MPa ＜ 必要 ${needP} MPa。リリーフ弁は高圧を逃がすものであり、圧力不足の補填には使えません`;
         rCard.style.borderColor = 'var(--bad)';
-      } else if (altQ < needQ) {
-        // 流量不足 → リリーフでは補えない
+      } else if (!qOk && !qWarn) {
+        // 余裕率を超えた流量不足 → リリーフでは補えない
         $('pa-relief-icon').textContent = '❌';
         $('pa-relief-main').textContent = 'リリーフでは対応不可（流量不足）';
         $('pa-relief-sub').textContent  = 'リリーフ弁は圧力調整のみ。流量不足は解消できません';
         rCard.style.borderColor = 'var(--bad)';
-      } else if (altP >= needP && altQ >= needQ) {
-        // 圧力・流量ともに十分 → リリーフで圧力を needP 以下に絞れるか確認
-        if (reliefP <= needP) {
+      } else if (pWarn || qWarn) {
+        // 余裕率内の不足 → ⚠️ で要確認扱い
+        $('pa-relief-icon').textContent = '⚠️';
+        $('pa-relief-main').textContent = '要確認（余裕率未満）';
+        $('pa-relief-sub').textContent  = `スペックは余裕率の範囲内での不足です。末端機器の最低要求値と照合した上でリリーフ設定を検討してください`;
+        rCard.style.borderColor = 'var(--warn)';
+      } else {
+        // 圧力・流量ともに十分 → リリーフで圧力を絞れるか確認
+        if (pOver) {
+          // 大幅過剰 → リリーフ必須の旨を強調
+          if (reliefP <= needP) {
+            $('pa-relief-icon').textContent = '⚠️';
+            $('pa-relief-main').textContent = 'リリーフ弁必須（圧力大幅過剰）';
+            $('pa-relief-sub').textContent  = `代替 ${altP} MPa は上限目安 ${fmt(maxP,3)} MPa を超えています。リリーフ設定 ${reliefP} MPa で使用可能ですが、配管・機器の耐圧も要確認。`;
+            rCard.style.borderColor = 'var(--warn)';
+          } else {
+            $('pa-relief-icon').textContent = '⚠️';
+            $('pa-relief-main').textContent = 'リリーフ設定圧力が高すぎます（圧力大幅過剰）';
+            $('pa-relief-sub').textContent  = `代替 ${altP} MPa は上限目安超え。リリーフ設定を ${needP} MPa 以下にしてください。`;
+            rCard.style.borderColor = 'var(--warn)';
+          }
+        } else if (reliefP <= needP) {
           $('pa-relief-icon').textContent = '✅';
           $('pa-relief-main').textContent = 'リリーフ弁で圧力調整可能';
           $('pa-relief-sub').textContent  = `代替 ${altP} MPa → リリーフ設定 ${reliefP} MPa（≤ 必要 ${needP} MPa） / 流量 OK`;
           rCard.style.borderColor = 'var(--good)';
         } else {
-          // リリーフ設定が必要圧力を超えている
           $('pa-relief-icon').textContent = '⚠️';
           $('pa-relief-main').textContent = 'リリーフ設定圧力が高すぎます';
-          $('pa-relief-sub').textContent  = `設定 ${reliefP} MPa ＞ 必要 ${needP} MPa。設定圧力を ${needP} MPa 以下にしてください`;
+          $('pa-relief-sub').textContent  = `設定 ${reliefP} MPa ＞ 必要 ${needP} MPa。${needP} MPa 以下に設定してください`;
           rCard.style.borderColor = 'var(--warn)';
         }
       }
     }
-  }
 
-  // 軸動力計算
-  const shaftPow = (Q_lpm, P_MPa, eff) => {
-    if (!Q_lpm || !P_MPa || !eff) return null;
-    return (Q_lpm / 1000 / 60) * P_MPa * 1e6 / (eff / 100); // W
-  };
-  const curPow = shaftPow(curQ, curP, curEff);
-  const altPow = shaftPow(altQ, altP, altEff);
+    // スペック比較テーブル
+    const shaftPow = (Q, P, eff) => (!Q||!P||!eff) ? null : (Q/1000/60)*P*1e6/(eff/100);
+    const curPow   = shaftPow(curQ, curP, curEff);
+    const altPow   = shaftPow(altQ, altP, altEff);
+    const badge = (val, need, unit, decimals=1) => {
+      if (!val || !need) return `${fmt(val,decimals)} ${unit}`;
+      const ratio = (val/need-1)*100;
+      const color = ratio >= marginQ ? 'var(--good)' : ratio >= 0 ? 'var(--good)' : ratio >= -marginQ ? 'var(--warn)' : 'var(--bad)';
+      const sign  = ratio >= 0 ? '+' : '';
+      return `<span style="color:${color}">${fmt(val,decimals)} ${unit} (${sign}${fmt(ratio,1)}%)</span>`;
+    };
+    $('pa-tbody').innerHTML = [
+      ['流量 Q',       `${fmt(needQ,1)} L/min`,  badge(curQ,needQ,'L/min',1), badge(altQ,needQ,'L/min',1)],
+      ['圧力',         `${fmt(needP,3)} MPa`,     badge(curP,needP,'MPa',3),   badge(altP,needP,'MPa',3)],
+      ['ポンプ効率',   '—',                        `${curEff} %`,               `${altEff} %`],
+      ['軸動力（概算）','—',                        curPow?`${(curPow/1000).toFixed(2)} kW`:'—', altPow?`${(altPow/1000).toFixed(2)} kW`:'—'],
+    ].map(r=>`<tr>
+      <td style="padding:5px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
+      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[1]}</td>
+      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[2]}</td>
+      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[3]}</td>
+    </tr>`).join('');
 
-  // 比較テーブル
-  const fmt = (n, d=2) => (n != null && isFinite(n)) ? n.toFixed(d) : '—';
-  const okBadge = (val, need, unit) => {
-    if (!val || !need) return `${fmt(val)} ${unit}`;
-    const ok = val >= need;
-    return `<span style="color:${ok?'var(--good)':'var(--bad)'}">${fmt(val)} ${unit} ${ok?'✅':'❌'}</span>`;
-  };
-  $('pa-tbody').innerHTML = [
-    ['流量 Q',    `${fmt(needQ,1)} L/min`, okBadge(curQ, needQ,'L/min'), okBadge(altQ, needQ,'L/min')],
-    ['吐出圧力',  `${fmt(needP,3)} MPa`,   okBadge(curP, needP,'MPa'),   okBadge(altP, needP,'MPa')],
-    ['ポンプ効率', '—',                    `${curEff} %`,                 `${altEff} %`],
-    ['軸動力（概算）', '—',               curPow ? `${(curPow/1000).toFixed(2)} kW` : '—', altPow ? `${(altPow/1000).toFixed(2)} kW` : '—'],
-  ].map(r => `<tr>
-    <td style="padding:5px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
-    <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[1]}</td>
-    <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[2]}</td>
-    <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[3]}</td>
-  </tr>`).join('');
+    // アドバイス
+    const advLines = [];
+    if (!qOk && !qWarn) advLines.push('❌ <b>流量不足：</b>リリーフ弁での解消は不可。配管径の拡大かポンプの大型化を検討してください。');
+    if (!pOk && !pWarn) advLines.push('❌ <b>圧力不足：</b>リリーフ弁は高圧を逃がすものであり、圧力不足の補填には使えません。');
+    if (qWarn || pWarn)  advLines.push('⚠️ <b>要確認：</b>不足率が余裕率の範囲内です。末端機器の最低要求値・実運転条件で問題ないか確認してください。');
+    if (qOver) advLines.push('⚠️ <b>流量過剰：</b>上限目安を超えています。インバータ制御や絞り弁による流量調整が必要です。エネルギーロスにも注意してください。');
+    if (pOver) advLines.push('⚠️ <b>圧力過剰：</b>上限目安を超えています。リリーフ弁での圧力管理が必須です。配管・機器・シールの耐圧も確認してください。');
+    if (qOk && pOk && !qOver && !pOver) advLines.push('✅ <b>代替可能：</b>スペック上は要求を満足します。ただし実機での確認を推奨します。');
+    const adv = $('pa-advice');
+    if (advLines.length) { adv.innerHTML = advLines.join('<br>'); adv.style.display = ''; }
+    else                 { adv.style.display = 'none'; }
 
-  // アドバイス
-  const adv = $('pa-advice');
-  const advLines = [];
-  if (altQ && altP) {
-    const r = evalPump(altQ, altP, needQ, needP, '');
-    if (!r.pOk) advLines.push('❌ <b>圧力不足：</b>代替候補の吐出圧が不足しています。リリーフ弁は高圧側を逃がすものであり、圧力不足の補填には使えません。');
-    if (!r.qOk) advLines.push('❌ <b>流量不足：</b>流量不足はリリーフ弁では解消できません。配管径の拡大か、ポンプの大型化を検討してください。');
-    if (r.qOk && r.pOk && r.pRatio > 1.2) advLines.push('💡 <b>圧力余裕あり：</b>代替候補の圧力がオーバースペックです。リリーフ弁で必要圧力以下に設定することで過圧を防止できます。');
-    if (r.qOk && r.pOk && r.qRatio > 1.5) advLines.push('💡 <b>流量余裕大：</b>流量が大きく余っています。省エネの観点からインバータ制御や絞り弁による流量調整を検討してください。');
-    if (r.qOk && r.pOk) advLines.push('✅ <b>代替可能：</b>スペック上は代替候補ポンプで対応できます。ただし実機での確認を推奨します。');
-  }
-  if (advLines.length) {
-    adv.innerHTML = advLines.join('<br>');
-    adv.style.display = '';
   } else {
-    adv.style.display = 'none';
+    altSection.style.display = 'none';
+    $('pa-advice').style.display = 'none';
   }
 }
 
