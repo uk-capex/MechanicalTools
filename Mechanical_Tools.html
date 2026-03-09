@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- build: 1.30 | 20260302 | Mechanical Tools | uk |-->
+    <!-- build: 1.31 | 20260309 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1033,41 +1033,304 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
 </div>
 
 <!-- ══════ TAB: ベアリング ══════ -->
-<div id="tab-bearing" class="tab-content">
-  <div class="two-panel">
-    <div class="panel-left">
-      <div>
-        <div class="section-title">型式検索</div>
-        <div class="field"><label>型式を入力（例: 6205, 7308, NU210）</label>
-          <div class="search-wrap">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="bearing-query" placeholder="型式を入力..." oninput="searchBearing()">
+<div id="tab-bearing" class="tab-content" style="flex-direction:column;">
+  <div class="subtabbar">
+    <button class="stab-btn active" id="btab-bsearch" onclick="showBearingTab('bsearch',this)">🔍 検索</button>
+    <button class="stab-btn" id="btab-blife"   onclick="showBearingTab('blife',this)">📈 寿命計算</button>
+    <button class="stab-btn" id="btab-bfit"    onclick="showBearingTab('bfit',this)">📐 はめあい</button>
+    <button class="stab-btn" id="btab-bthrust" onclick="showBearingTab('bthrust',this)">⬆️ スラスト</button>
+  </div>
+
+  <!-- ── サブタブ: 検索 ── -->
+  <div id="stab-bsearch" class="stab-content active">
+    <div class="two-panel">
+      <div class="panel-left">
+        <div>
+          <div class="section-title">型式検索</div>
+          <div class="field"><label>型式を入力（例: 6205, 7308, NU210）</label>
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="bearing-query" placeholder="型式を入力..." oninput="filterBearing()">
+            </div>
+            <div class="bearing-result-info" id="bearing-hit-info"></div>
           </div>
-          <div class="bearing-result-info" id="bearing-hit-info"></div>
+          <div class="two-col">
+            <div class="field"><label>内径で絞り込み（mm）</label>
+              <input type="number" id="bearing-bore" placeholder="例: 25" oninput="filterBearing()">
+            </div>
+            <div class="field"><label>外径で絞り込み（mm）</label>
+              <input type="number" id="bearing-od" placeholder="例: 52" oninput="filterBearing()">
+            </div>
+          </div>
         </div>
-        <div class="two-col">
-          <div class="field"><label>内径で絞り込み（mm）</label>
-            <input type="number" id="bearing-bore" placeholder="例: 25" oninput="filterBearing()">
-          </div>
-          <div class="field"><label>外径で絞り込み（mm）</label>
-            <input type="number" id="bearing-od" placeholder="例: 52" oninput="filterBearing()">
-          </div>
+        <hr class="divider">
+        <div class="memo">
+          <b>型式の読み方（深溝玉軸受 6xxx）</b><br>
+          6 <b>2</b> <b>05</b> → 系列2、内径コード05（25mm）<br>
+          内径コード：00=10mm, 01=12mm, 02=15mm, 03=17mm, 04以降=コード×5mm<br><br>
+          <b>7xxx</b>：アンギュラ玉軸受 / <b>NU,N,NJ</b>：円筒ころ軸受<br><br>
+          <b style="color:var(--accent)">Cr</b>：動定格荷重。基本寿命100万回転を達成できる荷重。大きいほど高負荷に強い。<br><br>
+          <b style="color:var(--accent)">C0r</b>：静定格荷重。永久変形が生じない限界荷重。衝撃・低速時の基準。<br><br>
+          <b style="color:var(--warn)">グリス限界rpm</b>：封入グリス潤滑での最大回転数。超過すると発熱・グリス劣化。<br><br>
+          <b style="color:var(--warn)">油限界rpm</b>：循環・ミスト等の油潤滑での最大回転数。グリスより高速まで対応。<br><br>
+          <b style="color:var(--muted)">最小荷重</b>：スキッディング（転動体のすべり）防止に必要な最低荷重。軽荷重・高速時に注意。<br><br>
+          <b style="color:var(--muted)">質量</b>：軸受単体の参考質量（kg）。
         </div>
       </div>
-      <hr class="divider">
-      <div class="memo">
-        <b>型式の読み方（深溝玉軸受 6xxx）</b><br>
-        6 <b>2</b> <b>05</b> → 系列2、内径コード05（25mm）<br>
-        内径コード：00=10mm, 01=12mm, 02=15mm, 03=17mm, 04以降=コード×5mm<br><br>
-        <b>7xxx</b>：アンギュラ玉軸受 / <b>NU,N</b>：円筒ころ軸受
+      <div class="panel-right">
+        <div class="data-table-wrap" style="overflow-x:auto;">
+          <table style="min-width:720px;">
+            <thead><tr>
+              <th>型式</th><th>内径 d<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>外径 D<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>幅 B<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>Cr<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+              <th>C0r<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+              <th>グリス限界<br><span style="font-weight:400;font-size:10px">(rpm)</span></th>
+              <th>油限界<br><span style="font-weight:400;font-size:10px">(rpm)</span></th>
+              <th>最小荷重<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+              <th>質量<br><span style="font-weight:400;font-size:10px">(kg)</span></th>
+            </tr></thead>
+            <tbody id="bearing-tbody"><tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <div class="panel-right">
-      <div class="data-table-wrap">
-        <table>
-          <thead><tr><th>型式</th><th>内径 d</th><th>外径 D</th><th>幅 B</th><th>Cr (kN)</th><th>C0r (kN)</th></tr></thead>
-          <tbody id="bearing-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr></tbody>
-        </table>
+  </div>
+
+  <!-- ── サブタブ: 寿命計算 ── -->
+  <div id="stab-blife" class="stab-content">
+    <div class="two-panel">
+      <div class="panel-left">
+        <div>
+          <div class="section-title">軸受種別・荷重入力</div>
+          <div class="field"><label>軸受種別</label>
+            <select id="bl-type" onchange="calcBearingLife()">
+              <option value="ball">深溝玉軸受 / アンギュラ玉軸受（p=3）</option>
+              <option value="roller">円筒ころ軸受（p=10/3）</option>
+            </select>
+          </div>
+          <div class="memo" style="font-size:11px;margin-bottom:8px;">検索タブで型式をクリックすると Cr / C0r が自動入力されます</div>
+          <div class="two-col">
+            <div class="field"><label>動定格荷重 Cr (kN)</label>
+              <input type="number" id="bl-cr" step="0.1" value="17.8" oninput="calcBearingLife()">
+            </div>
+            <div class="field"><label>静定格荷重 C0r (kN)</label>
+              <input type="number" id="bl-c0r" step="0.1" value="9.3" oninput="calcBearingLife()">
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="section-title">当量動荷重（ラジアル系）</div>
+          <div class="two-col">
+            <div class="field"><label>ラジアル荷重 Fr (kN)</label>
+              <input type="number" id="bl-fr" step="0.01" value="2.0" oninput="calcBearingLife()">
+            </div>
+            <div class="field"><label>アキシアル荷重 Fa (kN)</label>
+              <input type="number" id="bl-fa" step="0.01" value="0" oninput="calcBearingLife()">
+            </div>
+          </div>
+          <div class="field"><label>接触角（アンギュラ玉の場合）</label>
+            <select id="bl-angle" onchange="calcBearingLife()">
+              <option value="0">深溝玉（接触角なし）</option>
+              <option value="15">15°</option>
+              <option value="25">25°</option>
+              <option value="40">40°</option>
+            </select>
+          </div>
+          <hr class="divider">
+          <div class="section-title">運転条件</div>
+          <div class="two-col">
+            <div class="field"><label>回転数 n (rpm)</label>
+              <input type="number" id="bl-n" step="1" value="1450" oninput="calcBearingLife()">
+            </div>
+            <div class="field"><label>荷重係数 fw</label>
+              <input type="number" id="bl-fw" step="0.1" value="1.2" oninput="calcBearingLife()">
+            </div>
+          </div>
+          <div class="field"><label>fw プリセット</label>
+            <div class="preset-grid">
+              <button class="preset-btn" onclick="setBLfw(1.0,this)">1.0 静荷重</button>
+              <button class="preset-btn selected" onclick="setBLfw(1.2,this)">1.2 軽衝撃</button>
+              <button class="preset-btn" onclick="setBLfw(1.5,this)">1.5 中衝撃</button>
+              <button class="preset-btn" onclick="setBLfw(2.0,this)">2.0 重衝撃</button>
+              <button class="preset-btn" onclick="setBLfw(3.0,this)">3.0 激衝撃</button>
+            </div>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="memo">
+          <b>計算式</b><br>
+          <span class="formula">Pr = X·Fr + Y·Fa</span>
+          <span class="formula">L10 = (Cr / Pr)^p × 10⁶ 回転</span>
+          <span class="formula">L10h = L10 / (60·n) 時間</span>
+          p = 3（玉）/ 10/3（ころ）<br>
+          fw は振動・衝撃による荷重増加を補正する係数。<br>実際の荷重に fw を乗じて Pr を求める。
+        </div>
+      </div>
+      <div class="panel-right">
+        <div id="bl-xy-info" class="memo" style="margin-bottom:4px;"></div>
+        <div class="result-cards">
+          <div class="card accent">
+            <div class="card-label">当量動荷重 Pr</div>
+            <div class="card-value" id="bl-pr">—<span class="card-unit"> kN</span></div>
+            <div class="card-sub" id="bl-pr-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">基本寿命 L10</div>
+            <div class="card-value" id="bl-l10">—<span class="card-unit"> 万回</span></div>
+          </div>
+          <div class="card">
+            <div class="card-label">Cr / Pr 比</div>
+            <div class="card-value" id="bl-ratio">—</div>
+            <div class="card-sub">大きいほど余裕あり</div>
+          </div>
+        </div>
+        <div id="bl-life-card" class="verdict-banner" style="margin-top:4px;">
+          <div class="verdict-icon">—</div>
+          <div><div class="verdict-main" id="bl-verdict-main">—</div><div class="verdict-sub" id="bl-verdict-sub"></div></div>
+        </div>
+        <div class="result-cards-2" style="margin-top:4px;">
+          <div class="card good">
+            <div class="card-label">基本定格寿命 L10h</div>
+            <div class="card-value" id="bl-l10h">—<span class="card-unit"> h</span></div>
+            <div class="card-sub" id="bl-l10h-year"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">参考：L10h × 5倍寿命</div>
+            <div class="card-value" id="bl-l10h5">—<span class="card-unit"> h</span></div>
+            <div class="card-sub">信頼度90%→95%相当（参考値）</div>
+          </div>
+        </div>
+        <div class="data-table-wrap" style="margin-top:4px;">
+          <table>
+            <thead><tr><th>項目</th><th>値</th><th>備考</th></tr></thead>
+            <tbody id="bl-detail-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── サブタブ: はめあい ── -->
+  <div id="stab-bfit" class="stab-content">
+    <div class="two-panel">
+      <div class="panel-left">
+        <div>
+          <div class="section-title">軸受寸法</div>
+          <div class="memo" style="margin-bottom:10px;font-size:11px;">
+            検索タブで型式をクリックすると自動入力されます
+          </div>
+          <div class="two-col">
+            <div class="field"><label>内径 d (mm)</label>
+              <input type="number" id="bfit-d" step="1" value="25" oninput="calcBearingFit()">
+            </div>
+            <div class="field"><label>外径 D (mm)</label>
+              <input type="number" id="bfit-D" step="1" value="52" oninput="calcBearingFit()">
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="section-title">使用条件</div>
+          <div class="field"><label>回転輪</label>
+            <select id="bfit-rot" onchange="calcBearingFit()">
+              <option value="inner">内輪回転（一般的：軸が回る）</option>
+              <option value="outer">外輪回転（ホイール軸受等）</option>
+            </select>
+          </div>
+          <div class="field"><label>荷重条件</label>
+            <select id="bfit-load" onchange="calcBearingFit()">
+              <option value="normal">普通荷重（C/P ≥ 8）</option>
+              <option value="heavy">重荷重 / 衝撃荷重（C/P &lt; 8）</option>
+            </select>
+          </div>
+          <div class="field"><label>軸受クラス</label>
+            <select id="bfit-class" onchange="calcBearingFit()">
+              <option value="normal">普通級（一般機械）</option>
+              <option value="p6">P6級（工作機械・精密機器）</option>
+            </select>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="memo">
+          <b>はめあいの基本考え方</b><br>
+          <b>回転輪（荷重を受けながら回る側）</b>は締まりばめ（軸：k5/m5等）→ クリープ防止<br>
+          <b>静止輪（動かない側）</b>はすきまばめ〜中間（穴：H7/J7等）→ 取り外し可能に<br><br>
+          内輪回転の場合：内輪=回転輪（締まり）、外輪=静止輪（すきま〜中間）<br>
+          外輪回転の場合：外輪=回転輪（締まり）、内輪=静止輪（すきま〜中間）
+        </div>
+      </div>
+      <div class="panel-right">
+        <div class="fit-result-grid">
+          <div class="fit-block">
+            <div class="fit-block-title">内輪側（軸）</div>
+            <div style="text-align:center;margin-bottom:12px;">
+              <span id="bfit-shaft-symbol" class="fit-type-badge" style="font-size:20px;border-color:var(--accent);color:var(--accent);">—</span>
+            </div>
+            <div id="bfit-shaft-rows"></div>
+          </div>
+          <div class="fit-block">
+            <div class="fit-block-title">外輪側（ハウジング穴）</div>
+            <div style="text-align:center;margin-bottom:12px;">
+              <span id="bfit-housing-symbol" class="fit-type-badge" style="font-size:20px;border-color:var(--good);color:var(--good);">—</span>
+            </div>
+            <div id="bfit-housing-rows"></div>
+          </div>
+        </div>
+        <div id="bfit-verdict" class="verdict-banner" style="margin-top:8px;"></div>
+        <div class="data-table-wrap" style="margin-top:8px;">
+          <table>
+            <thead><tr><th>部位</th><th>推奨記号</th><th>はめあい種類</th><th>締め代/すきま</th><th>用途・備考</th></tr></thead>
+            <tbody id="bfit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── サブタブ: スラスト ── -->
+  <div id="stab-bthrust" class="stab-content">
+    <div class="two-panel">
+      <div class="panel-left">
+        <div>
+          <div class="section-title">型式検索（スラスト玉軸受）</div>
+          <div class="field"><label>型式を入力（例: 51205, 51108）</label>
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="thrust-query" placeholder="型式を入力..." oninput="filterThrust()">
+            </div>
+            <div class="bearing-result-info" id="thrust-hit-info"></div>
+          </div>
+          <div class="field"><label>内径で絞り込み（mm）</label>
+            <input type="number" id="thrust-bore" placeholder="例: 25" oninput="filterThrust()">
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="memo">
+          <b>スラスト玉軸受（51xxx系）の特徴</b><br><br>
+          <b style="color:var(--bad)">⚠ ラジアル荷重は受けられない</b><br>
+          純アキシアル荷重専用。ラジアル荷重が作用する場合は別途ラジアル軸受を併用すること。<br><br>
+          <b>取付精度に注意</b><br>
+          軸と軌道面の直角度が低いと片当たりし、著しく寿命が短くなる。<br><br>
+          <b style="color:var(--accent)">Ca</b>：動定格荷重（アキシアル）<br>
+          <b style="color:var(--accent)">C0a</b>：静定格荷重（アキシアル）<br><br>
+          <b>型式の読み方</b><br>
+          51 <b>2</b> <b>05</b> → 系列2（単式平面座）、内径コード05（25mm）<br>
+          511xx：軽系列 / 512xx：中系列 / 513xx：重系列
+        </div>
+      </div>
+      <div class="panel-right">
+        <div class="data-table-wrap">
+          <table>
+            <thead><tr>
+              <th>型式</th>
+              <th>内径 d<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>外径 D<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>高さ H<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>Ca<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+              <th>C0a<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+            </tr></thead>
+            <tbody id="thrust-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -2350,63 +2613,205 @@ calcChain();
 // ════════════════════════════════════════
 // TAB: ベアリング
 // ════════════════════════════════════════
+// BEARING_DB: [型式, d, D, B, Cr, C0r, grease_rpm, oil_rpm, Fmin, mass_kg]
+// grease_rpm / oil_rpm: 参考値（NTN/NSKカタログ準拠）
+// Fmin: 最小荷重 kN（概算）  mass: kg（概算）
 const BEARING_DB = [
-  ['606',6,17,6,1.72,0.71],['607',7,19,6,2.06,0.87],['608',8,22,7,3.25,1.37],['609',9,24,7,3.58,1.53],
-  ['6000',10,26,8,4.58,1.98],['6001',12,28,8,5.09,2.36],['6002',15,32,9,5.59,2.65],['6003',17,35,10,6.00,2.85],
-  ['6004',20,42,12,9.40,4.50],['6005',25,47,12,10.1,4.75],['6006',30,55,13,13.2,6.55],['6007',35,62,14,16.0,8.30],
-  ['6008',40,68,15,17.8,9.30],['6009',45,75,16,21.2,11.2],['6010',50,80,16,22.4,12.2],['6011',55,90,18,28.1,15.3],
-  ['6012',60,95,18,30.7,17.0],['6013',65,100,18,32.5,18.0],['6014',70,110,20,40.0,22.0],['6015',75,115,20,42.5,24.0],
-  ['6016',80,125,22,52.7,29.5],['6017',85,130,22,55.9,31.5],['6018',90,140,24,63.7,37.0],['6020',100,150,24,70.2,41.5],
-  ['6200',10,30,9,5.09,2.36],['6201',12,32,10,6.82,3.05],['6202',15,35,11,7.65,3.45],['6203',17,40,12,9.56,4.50],
-  ['6204',20,47,14,12.8,6.20],['6205',25,52,15,14.8,7.35],['6206',30,62,16,20.3,11.2],['6207',35,72,17,26.5,15.3],
-  ['6208',40,80,18,32.5,18.0],['6209',45,85,19,35.1,19.8],['6210',50,90,20,38.5,22.4],['6211',55,100,21,47.5,28.0],
-  ['6212',60,110,22,57.2,34.0],['6213',65,120,23,70.2,41.5],['6214',70,125,24,76.5,45.5],['6215',75,130,25,83.2,50.0],
-  ['6216',80,140,26,96.5,60.0],['6217',85,150,28,113,69.5],['6218',90,160,30,128,80.0],['6220',100,180,34,162,104],
-  ['6300',10,35,11,7.65,3.40],['6301',12,37,12,9.76,4.50],['6302',15,42,13,11.4,5.40],['6303',17,47,14,13.8,6.65],
-  ['6304',20,52,15,15.9,7.80],['6305',25,62,17,22.5,11.4],['6306',30,72,19,29.1,15.6],['6307',35,80,21,35.1,19.0],
-  ['6308',40,90,23,42.3,24.0],['6309',45,100,25,55.3,31.5],['6310',50,110,27,64.4,38.0],['6311',55,120,29,76.5,46.0],
-  ['6312',60,130,31,88.5,54.0],['6313',65,140,33,104,64.0],['6314',70,150,35,119,74.0],['6315',75,160,37,135,85.5],
-  ['6316',80,170,39,153,98.0],['6317',85,180,41,170,110],['6318',90,190,43,193,125],['6320',100,215,47,255,170],
-  ['6404',20,72,19,31.9,15.3],['6405',25,80,21,38.3,19.3],['6406',30,90,23,47.5,25.0],['6407',35,100,25,60.5,33.5],
-  ['6408',40,110,27,72.8,42.5],['6409',45,120,29,88.5,52.0],['6410',50,130,31,100,61.5],['6412',60,150,35,134,86.5],
-  ['7200',10,30,9,6.24,3.10],['7201',12,32,10,7.02,3.60],['7202',15,35,11,8.32,4.35],['7203',17,40,12,10.1,5.45],
-  ['7204',20,47,14,14.3,7.60],['7205',25,52,15,17.8,9.70],['7206',30,62,16,24.5,13.7],['7207',35,72,17,32.0,18.6],
-  ['7208',40,80,18,38.5,23.0],['7209',45,85,19,42.3,25.5],['7210',50,90,20,47.5,29.0],['7211',55,100,21,56.1,35.5],
-  ['7212',60,110,22,66.3,42.5],['7213',65,120,23,82.4,53.0],['7214',70,125,24,86.5,57.0],['7215',75,130,25,94.4,63.5],
-  ['7216',80,140,26,112,76.5],['7217',85,150,28,128,89.5],['7218',90,160,30,143,103],['7220',100,180,34,181,134],
-  ['7300',10,35,11,10.1,5.20],['7301',12,37,12,12.1,6.40],['7302',15,42,13,14.3,7.80],['7303',17,47,14,17.4,9.85],
-  ['7304',20,52,15,19.5,11.3],['7305',25,62,17,28.0,16.3],['7306',30,72,19,36.4,22.5],['7307',35,80,21,44.5,28.5],
-  ['7308',40,90,23,56.1,37.0],['7309',45,100,25,68.9,46.5],['7310',50,110,27,82.4,57.0],['7311',55,120,29,97.5,69.5],
-  ['7312',60,130,31,113,82.0],['7313',65,140,33,132,97.5],['7314',70,150,35,155,116],['7316',80,170,39,196,153],
-  ['NU204',20,47,14,22.5,15.3],['NU205',25,52,15,27.5,19.5],['NU206',30,62,16,38.5,28.0],['NU207',35,72,17,51.0,37.5],
-  ['NU208',40,80,18,60.5,46.5],['NU209',45,85,19,68.9,52.0],['NU210',50,90,20,75.2,58.5],['NU211',55,100,21,91.3,72.5],
-  ['NU212',60,110,22,108,88.0],['NU213',65,120,23,127,106],['NU214',70,125,24,134,114],['NU215',75,130,25,143,124],
-  ['NU216',80,140,26,168,150],['NU217',85,150,28,196,178],['NU218',90,160,30,224,208],['NU220',100,180,34,285,270],
-  ['N204',20,47,14,22.5,15.3],['N205',25,52,15,27.5,19.5],['N206',30,62,16,38.5,28.0],['N207',35,72,17,51.0,37.5],
-  ['N208',40,80,18,60.5,46.5],['N209',45,85,19,68.9,52.0],['N210',50,90,20,75.2,58.5],['N212',60,110,22,108,88.0],
+  // ── 深溝玉軸受 60xx (極小系列) ──
+  ['606', 6,17, 6,1.72,0.71, 45000,60000,0.02,0.004],
+  ['607', 7,19, 6,2.06,0.87, 40000,55000,0.03,0.006],
+  ['608', 8,22, 7,3.25,1.37, 36000,50000,0.04,0.009],
+  ['609', 9,24, 7,3.58,1.53, 34000,48000,0.04,0.011],
+  // ── 深溝玉軸受 600x ──
+  ['6000',10,26, 8,4.58,1.98, 30000,43000,0.06,0.016],
+  ['6001',12,28, 8,5.09,2.36, 28000,40000,0.06,0.018],
+  ['6002',15,32, 9,5.59,2.65, 26000,36000,0.07,0.024],
+  ['6003',17,35,10,6.00,2.85, 24000,34000,0.08,0.033],
+  ['6004',20,42,12,9.40,4.50, 20000,28000,0.12,0.060],
+  ['6005',25,47,12,10.1,4.75, 18000,26000,0.13,0.072],
+  ['6006',30,55,13,13.2,6.55, 16000,22000,0.16,0.110],
+  ['6007',35,62,14,16.0,8.30, 14000,20000,0.20,0.140],
+  ['6008',40,68,15,17.8,9.30, 12000,18000,0.22,0.175],
+  ['6009',45,75,16,21.2,11.2, 11000,16000,0.26,0.220],
+  ['6010',50,80,16,22.4,12.2, 10000,15000,0.28,0.243],
+  ['6011',55,90,18,28.1,15.3,  9000,13000,0.35,0.340],
+  ['6012',60,95,18,30.7,17.0,  8500,12000,0.38,0.380],
+  ['6013',65,100,18,32.5,18.0, 8000,11000,0.41,0.410],
+  ['6014',70,110,20,40.0,22.0, 7500,10000,0.50,0.560],
+  ['6015',75,115,20,42.5,24.0, 7000, 9500,0.53,0.610],
+  ['6016',80,125,22,52.7,29.5, 6700, 9000,0.66,0.800],
+  ['6017',85,130,22,55.9,31.5, 6300, 8500,0.70,0.860],
+  ['6018',90,140,24,63.7,37.0, 6000, 8000,0.80,1.100],
+  ['6020',100,150,24,70.2,41.5,5300, 7000,0.88,1.250],
+  // ── 深溝玉軸受 62xx ──
+  ['6200',10,30, 9,5.09,2.36, 28000,40000,0.06,0.020],
+  ['6201',12,32,10,6.82,3.05, 26000,36000,0.09,0.027],
+  ['6202',15,35,11,7.65,3.45, 24000,34000,0.10,0.036],
+  ['6203',17,40,12,9.56,4.50, 22000,30000,0.12,0.054],
+  ['6204',20,47,14,12.8,6.20, 18000,26000,0.16,0.093],
+  ['6205',25,52,15,14.8,7.35, 16000,22000,0.19,0.120],
+  ['6206',30,62,16,20.3,11.2, 13000,19000,0.25,0.200],
+  ['6207',35,72,17,26.5,15.3, 11000,16000,0.33,0.290],
+  ['6208',40,80,18,32.5,18.0, 10000,14000,0.41,0.390],
+  ['6209',45,85,19,35.1,19.8,  9000,13000,0.44,0.430],
+  ['6210',50,90,20,38.5,22.4,  8500,12000,0.48,0.500],
+  ['6211',55,100,21,47.5,28.0, 7500,11000,0.59,0.660],
+  ['6212',60,110,22,57.2,34.0, 7000,10000,0.72,0.850],
+  ['6213',65,120,23,70.2,41.5, 6500, 9000,0.88,1.070],
+  ['6214',70,125,24,76.5,45.5, 6000, 8500,0.96,1.170],
+  ['6215',75,130,25,83.2,50.0, 5600, 8000,1.04,1.310],
+  ['6216',80,140,26,96.5,60.0, 5300, 7500,1.21,1.650],
+  ['6217',85,150,28,113, 69.5, 4800, 6700,1.41,2.100],
+  ['6218',90,160,30,128, 80.0, 4500, 6300,1.60,2.590],
+  ['6220',100,180,34,162,104,  4000, 5600,2.03,3.800],
+  // ── 深溝玉軸受 63xx ──
+  ['6300',10,35,11, 7.65,3.40, 24000,34000,0.10,0.030],
+  ['6301',12,37,12, 9.76,4.50, 22000,32000,0.12,0.040],
+  ['6302',15,42,13,11.4, 5.40, 20000,28000,0.14,0.060],
+  ['6303',17,47,14,13.8, 6.65, 18000,26000,0.17,0.083],
+  ['6304',20,52,15,15.9, 7.80, 16000,22000,0.20,0.120],
+  ['6305',25,62,17,22.5,11.4,  13000,19000,0.28,0.200],
+  ['6306',30,72,19,29.1,15.6,  11000,16000,0.36,0.310],
+  ['6307',35,80,21,35.1,19.0,   9500,14000,0.44,0.430],
+  ['6308',40,90,23,42.3,24.0,   8500,12000,0.53,0.600],
+  ['6309',45,100,25,55.3,31.5,  7500,11000,0.69,0.820],
+  ['6310',50,110,27,64.4,38.0,  6700,10000,0.81,1.090],
+  ['6311',55,120,29,76.5,46.0,  6300, 9000,0.96,1.430],
+  ['6312',60,130,31,88.5,54.0,  5600, 8000,1.11,1.830],
+  ['6313',65,140,33,104, 64.0,  5000, 7500,1.30,2.300],
+  ['6314',70,150,35,119, 74.0,  4800, 7000,1.49,2.850],
+  ['6315',75,160,37,135, 85.5,  4500, 6300,1.69,3.500],
+  ['6316',80,170,39,153, 98.0,  4000, 6000,1.92,4.200],
+  ['6317',85,180,41,170,110,    3800, 5600,2.13,5.100],
+  ['6318',90,190,43,193,125,    3600, 5300,2.42,6.100],
+  ['6320',100,215,47,255,170,   3000, 4500,3.19,9.300],
+  // ── 深溝玉軸受 64xx ──
+  ['6404',20,72,19,31.9,15.3, 13000,18000,0.40,0.220],
+  ['6405',25,80,21,38.3,19.3, 11000,16000,0.48,0.320],
+  ['6406',30,90,23,47.5,25.0,  9500,14000,0.59,0.480],
+  ['6407',35,100,25,60.5,33.5, 8500,12000,0.76,0.670],
+  ['6408',40,110,27,72.8,42.5, 7500,11000,0.91,0.930],
+  ['6409',45,120,29,88.5,52.0, 6700,10000,1.11,1.240],
+  ['6410',50,130,31,100, 61.5, 6000, 9000,1.25,1.610],
+  ['6412',60,150,35,134, 86.5, 5000, 7500,1.68,2.580],
+  // ── アンギュラ玉軸受 72xx ──
+  ['7200',10,30, 9, 6.24,3.10, 28000,38000,0.13,0.022],
+  ['7201',12,32,10, 7.02,3.60, 26000,36000,0.14,0.030],
+  ['7202',15,35,11, 8.32,4.35, 22000,32000,0.17,0.042],
+  ['7203',17,40,12,10.1, 5.45, 20000,28000,0.20,0.062],
+  ['7204',20,47,14,14.3, 7.60, 17000,24000,0.29,0.102],
+  ['7205',25,52,15,17.8, 9.70, 15000,20000,0.36,0.133],
+  ['7206',30,62,16,24.5,13.7,  13000,18000,0.49,0.210],
+  ['7207',35,72,17,32.0,18.6,  11000,15000,0.64,0.310],
+  ['7208',40,80,18,38.5,23.0,   9500,13000,0.77,0.410],
+  ['7209',45,85,19,42.3,25.5,   9000,12000,0.85,0.460],
+  ['7210',50,90,20,47.5,29.0,   8500,11000,0.95,0.520],
+  ['7211',55,100,21,56.1,35.5,  7500,10000,1.12,0.700],
+  ['7212',60,110,22,66.3,42.5,  7000, 9500,1.33,0.900],
+  ['7213',65,120,23,82.4,53.0,  6300, 8500,1.65,1.130],
+  ['7214',70,125,24,86.5,57.0,  6000, 8000,1.73,1.250],
+  ['7215',75,130,25,94.4,63.5,  5600, 7500,1.89,1.390],
+  ['7216',80,140,26,112, 76.5,  5300, 7000,2.24,1.800],
+  ['7217',85,150,28,128, 89.5,  4800, 6700,2.56,2.250],
+  ['7218',90,160,30,143,103,    4500, 6000,2.86,2.780],
+  ['7220',100,180,34,181,134,   4000, 5300,3.62,4.100],
+  // ── アンギュラ玉軸受 73xx ──
+  ['7300',10,35,11,10.1, 5.20, 24000,34000,0.20,0.034],
+  ['7301',12,37,12,12.1, 6.40, 22000,30000,0.24,0.047],
+  ['7302',15,42,13,14.3, 7.80, 20000,28000,0.29,0.068],
+  ['7303',17,47,14,17.4, 9.85, 18000,25000,0.35,0.097],
+  ['7304',20,52,15,19.5,11.3,  15000,21000,0.39,0.136],
+  ['7305',25,62,17,28.0,16.3,  13000,18000,0.56,0.220],
+  ['7306',30,72,19,36.4,22.5,  11000,15000,0.73,0.330],
+  ['7307',35,80,21,44.5,28.5,   9500,13000,0.89,0.460],
+  ['7308',40,90,23,56.1,37.0,   8500,12000,1.12,0.650],
+  ['7309',45,100,25,68.9,46.5,  7500,10000,1.38,0.890],
+  ['7310',50,110,27,82.4,57.0,  6700, 9500,1.65,1.170],
+  ['7311',55,120,29,97.5,69.5,  6000, 8500,1.95,1.510],
+  ['7312',60,130,31,113, 82.0,  5600, 8000,2.26,1.930],
+  ['7313',65,140,33,132, 97.5,  5000, 7000,2.64,2.430],
+  ['7314',70,150,35,155,116,    4800, 6700,3.10,3.060],
+  ['7316',80,170,39,196,153,    4200, 6000,3.92,4.600],
+  // ── 円筒ころ軸受 NU2xx ──
+  ['NU204',20,47,14,22.5,15.3, 14000,19000,0.45,0.100],
+  ['NU205',25,52,15,27.5,19.5, 12000,17000,0.55,0.130],
+  ['NU206',30,62,16,38.5,28.0, 10000,14000,0.77,0.210],
+  ['NU207',35,72,17,51.0,37.5,  9000,12000,1.02,0.310],
+  ['NU208',40,80,18,60.5,46.5,  8000,11000,1.21,0.420],
+  ['NU209',45,85,19,68.9,52.0,  7500,10000,1.38,0.470],
+  ['NU210',50,90,20,75.2,58.5,  6700, 9500,1.50,0.540],
+  ['NU211',55,100,21,91.3,72.5, 6000, 8500,1.83,0.720],
+  ['NU212',60,110,22,108, 88.0, 5600, 8000,2.16,0.940],
+  ['NU213',65,120,23,127,106,   5000, 7000,2.54,1.200],
+  ['NU214',70,125,24,134,114,   4800, 6700,2.68,1.320],
+  ['NU215',75,130,25,143,124,   4500, 6300,2.86,1.470],
+  ['NU216',80,140,26,168,150,   4200, 6000,3.36,1.900],
+  ['NU217',85,150,28,196,178,   3800, 5300,3.92,2.400],
+  ['NU218',90,160,30,224,208,   3600, 5000,4.48,3.000],
+  ['NU220',100,180,34,285,270,  3000, 4500,5.70,4.600],
+  // ── 円筒ころ軸受 NU3xx ──
+  ['NU304',20,52,15,28.0,20.0, 12000,17000,0.56,0.140],
+  ['NU305',25,62,17,36.0,27.5, 10000,14000,0.72,0.230],
+  ['NU306',30,72,19,48.0,38.5,  9000,12000,0.96,0.360],
+  ['NU307',35,80,21,60.5,50.0,  8000,11000,1.21,0.500],
+  ['NU308',40,90,23,75.2,63.0,  7000,10000,1.50,0.690],
+  ['NU309',45,100,25,95.0,80.0, 6300, 9000,1.90,0.950],
+  ['NU310',50,110,27,108, 95.0, 5600, 8000,2.16,1.270],
+  ['NU311',55,120,29,127,114,   5000, 7500,2.54,1.660],
+  ['NU312',60,130,31,150,136,   4800, 7000,3.00,2.130],
+  ['NU314',70,150,35,195,185,   4200, 6000,3.90,3.400],
+  ['NU316',80,170,39,242,240,   3800, 5300,4.84,5.100],
+  ['NU318',90,190,43,285,290,   3400, 4800,5.70,7.000],
+  ['NU320',100,215,47,365,385,  3000, 4200,7.30,10.500],
+  // ── 円筒ころ軸受 N2xx ──
+  ['N204',20,47,14,22.5,15.3, 14000,19000,0.45,0.100],
+  ['N205',25,52,15,27.5,19.5, 12000,17000,0.55,0.130],
+  ['N206',30,62,16,38.5,28.0, 10000,14000,0.77,0.210],
+  ['N207',35,72,17,51.0,37.5,  9000,12000,1.02,0.310],
+  ['N208',40,80,18,60.5,46.5,  8000,11000,1.21,0.420],
+  ['N209',45,85,19,68.9,52.0,  7500,10000,1.38,0.470],
+  ['N210',50,90,20,75.2,58.5,  6700, 9500,1.50,0.540],
+  ['N212',60,110,22,108, 88.0, 5600, 8000,2.16,0.940],
+  // ── 円筒ころ軸受 NJ2xx ──
+  ['NJ204',20,47,14,22.5,15.3, 14000,19000,0.45,0.110],
+  ['NJ205',25,52,15,27.5,19.5, 12000,17000,0.55,0.140],
+  ['NJ206',30,62,16,38.5,28.0, 10000,14000,0.77,0.220],
+  ['NJ207',35,72,17,51.0,37.5,  9000,12000,1.02,0.325],
+  ['NJ208',40,80,18,60.5,46.5,  8000,11000,1.21,0.440],
+  ['NJ209',45,85,19,68.9,52.0,  7500,10000,1.38,0.490],
+  ['NJ210',50,90,20,75.2,58.5,  6700, 9500,1.50,0.560],
+  ['NJ211',55,100,21,91.3,72.5, 6000, 8500,1.83,0.750],
+  ['NJ212',60,110,22,108, 88.0, 5600, 8000,2.16,0.980],
+  ['NJ213',65,120,23,127,106,   5000, 7000,2.54,1.250],
+  ['NJ215',75,130,25,143,124,   4500, 6300,2.86,1.520],
+  ['NJ216',80,140,26,168,150,   4200, 6000,3.36,1.980],
+  ['NJ218',90,160,30,224,208,   3600, 5000,4.48,3.100],
+  ['NJ220',100,180,34,285,270,  3000, 4500,5.70,4.800],
 ];
+
 let filteredBearings = [];
-function searchBearing() { filterBearing(); }
-function filterBearingByBore() { filterBearing(); }
+
+function showBearingTab(name, btn) {
+  document.querySelectorAll('#tab-bearing .stab-btn').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('#tab-bearing .stab-content').forEach(e => e.classList.remove('active'));
+  btn.classList.add('active');
+  const el = $('stab-' + name);
+  if (el) el.classList.add('active');
+}
 
 function filterBearing() {
   const q    = $('bearing-query').value.toUpperCase().trim();
   const bore = $('bearing-bore').value !== '' ? +$('bearing-bore').value : null;
   const od   = $('bearing-od').value   !== '' ? +$('bearing-od').value   : null;
-
-  // 何も入力なし
+  const COLS = 10;
   if (!q && bore === null && od === null) {
-    $('bearing-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式・内径・外径を入力してください</td></tr>';
-    $('bearing-hit-info').textContent = '';
-    return;
+    $('bearing-tbody').innerHTML = `<tr><td colspan="${COLS}" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr>`;
+    $('bearing-hit-info').textContent = ''; return;
   }
-  // 型式が1文字だけ（短すぎ）かつ寸法も未入力
   if (q.length === 1 && bore === null && od === null) {
-    $('bearing-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式は2文字以上入力してください</td></tr>';
-    $('bearing-hit-info').textContent = '';
-    return;
+    $('bearing-tbody').innerHTML = `<tr><td colspan="${COLS}" style="text-align:center;color:var(--muted);padding:20px">型式は2文字以上入力してください</td></tr>`;
+    $('bearing-hit-info').textContent = ''; return;
   }
-
   filteredBearings = BEARING_DB.filter(b => {
     const matchQ    = q.length < 2 || b[0].toUpperCase().includes(q);
     const matchBore = bore === null  || b[1] === bore;
@@ -2415,10 +2820,376 @@ function filterBearing() {
   });
   renderBearingTable();
 }
+
 function renderBearingTable() {
   $('bearing-hit-info').textContent = filteredBearings.length ? `${filteredBearings.length} 件ヒット` : '該当なし';
   $('bearing-tbody').innerHTML = filteredBearings.length
-    ? filteredBearings.map(b=>`<tr><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td><td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td><td>${b[4]}</td><td>${b[5]}</td></tr>`).join('')
+    ? filteredBearings.map(b => {
+        const grpm = b[6] ? b[6].toLocaleString() : '—';
+        const orpm = b[7] ? b[7].toLocaleString() : '—';
+        const fmin = b[8] != null ? b[8].toFixed(2) : '—';
+        const mass = b[9] != null ? b[9].toFixed(3) : '—';
+        return `<tr style="cursor:pointer;" onclick="bearingRowClick(${BEARING_DB.indexOf(b)})">
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
+          <td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td>
+          <td style="color:var(--accent);font-weight:600">${b[4]}</td>
+          <td>${b[5]}</td>
+          <td style="color:var(--warn)">${grpm}</td>
+          <td style="color:var(--warn)">${orpm}</td>
+          <td style="color:var(--muted)">${fmin}</td>
+          <td style="color:var(--muted)">${mass}</td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">該当なし</td></tr>`;
+}
+
+function bearingRowClick(idx) {
+  const b = BEARING_DB[idx];
+  if (!b) return;
+  // 型式でころ軸受判定
+  const isRoller = /^(NU|NJ|NF|N[0-9])/.test(b[0]);
+  $('bl-type').value = isRoller ? 'roller' : 'ball';
+  // Cr / C0r
+  $('bl-cr').value  = b[4];
+  $('bl-c0r').value = b[5];
+  // Fr 初期値 = Fmin × 2（最小荷重の2倍）
+  const fmin = b[8] || 0;
+  $('bl-fr').value = (fmin * 2).toFixed(2);
+  // Fa 初期値 = 0
+  $('bl-fa').value = 0;
+  // n 初期値 = グリス限界rpm ÷ 2（切り捨て、10rpm単位）
+  const grppm = b[6] || 0;
+  $('bl-n').value = grppm ? Math.floor(grppm / 2 / 10) * 10 : 1450;
+  // fw は 1.2 固定（プリセット選択状態も更新）
+  $('bl-fw').value = 1.2;
+  document.querySelectorAll('#stab-blife .preset-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.startsWith('1.2'));
+  });
+  // はめあいタブへ d/D をセット
+  $('bfit-d').value = b[1];
+  $('bfit-D').value = b[2];
+  calcBearingLife();
+  calcBearingFit();
+  // フラッシュ通知
+  $('bearing-hit-info').textContent = `✔ ${b[0]}  Fr=${(fmin*2).toFixed(2)}kN / n=${$('bl-n').value}rpm をセットしました`;
+  setTimeout(()=>{ filterBearing(); }, 2500);
+}
+
+// ── 寿命計算 ──
+// 深溝玉のe値テーブル [Fa/C0r, e, X(Fa/Fr>e), Y(Fa/Fr>e)]
+const DGB_EXY = [
+  [0.014,0.19,0.56,2.30],[0.021,0.21,0.56,2.20],[0.028,0.22,0.56,2.00],
+  [0.042,0.24,0.56,1.80],[0.056,0.26,0.56,1.60],[0.070,0.27,0.56,1.50],
+  [0.084,0.28,0.56,1.45],[0.110,0.30,0.56,1.30],[0.170,0.34,0.56,1.10],
+  [0.280,0.38,0.56,1.00],[0.420,0.42,0.56,0.87],[0.560,0.44,0.56,0.80],
+];
+// アンギュラ玉のY係数
+const ANG_Y = {15:1.80, 25:1.40, 40:0.95};
+const ANG_e = {15:0.38, 25:0.57, 40:0.95};
+
+function setBLfw(v, el) {
+  $('bl-fw').value = v;
+  document.querySelectorAll('#stab-blife .preset-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  calcBearingLife();
+}
+
+function calcBearingLife() {
+  const type  = $('bl-type').value;
+  const Cr    = +$('bl-cr').value;
+  const C0r   = +$('bl-c0r').value || Cr * 0.6;
+  const Fr    = +$('bl-fr').value  || 0;
+  const Fa    = +$('bl-fa').value  || 0;
+  const n     = +$('bl-n').value   || 0;
+  const fw    = +$('bl-fw').value  || 1;
+  const angle = +$('bl-angle').value;
+  if (!Cr || !n) { clearBLResult(); return; }
+
+  const p = type === 'ball' ? 3 : 10/3;
+  let Pr, xyInfo = '';
+
+  if (type === 'roller') {
+    // 円筒ころ：アキシアル荷重不可→Pr=Fr
+    Pr = Fr * fw;
+    xyInfo = '円筒ころ軸受：当量荷重 Pr = Fr × fw（アキシアル荷重は受けない）';
+  } else if (angle > 0) {
+    // アンギュラ玉
+    const e = ANG_e[angle] || 0.57;
+    const Y = ANG_Y[angle] || 1.40;
+    let X, Y2;
+    if (Fr === 0 || Fa / Fr > e) { X = 0.35; Y2 = Y; }
+    else { X = 1.0; Y2 = 0; }
+    Pr = Math.max(X * Fr + Y2 * Fa, 0.5 * Fr) * fw;
+    xyInfo = `アンギュラ玉 ${angle}°：e=${e}、Fa/Fr=${Fr ? (Fa/Fr).toFixed(2) : '—'}<br>→ X=${X}, Y=${Y2} / Pr = max(X·Fr+Y·Fa, 0.5·Fr) × fw`;
+  } else {
+    // 深溝玉
+    const c0rRatio = C0r > 0 ? Fa / C0r : 0;
+    let e = 0.24, X = 1.0, Y = 0;
+    for (let i = DGB_EXY.length - 1; i >= 0; i--) {
+      if (c0rRatio >= DGB_EXY[i][0]) { e = DGB_EXY[i][1]; X = DGB_EXY[i][2]; Y = DGB_EXY[i][3]; break; }
+    }
+    if (Fr > 0 && Fa / Fr > e) { Pr = (X * Fr + Y * Fa) * fw; }
+    else { Pr = Fr * fw; X = 1; Y = 0; }
+    Pr = Math.max(Pr, 0.5 * Fr * fw);
+    xyInfo = `深溝玉：Fa/C0r≈${c0rRatio.toFixed(3)}、e=${e}<br>→ X=${X}, Y=${Y} / Pr = max(X·Fr+Y·Fa, 0.5·Fr) × fw`;
+  }
+
+  // Fr=Fa=0（荷重未入力）はガード
+  if (Pr <= 0) { clearBLResult(); return; }
+
+  const L10Mill = Math.pow(Cr / Pr, p);   // ×10⁶ 回転
+  const L10h    = (L10Mill * 1e6) / (60 * n);
+  const crPrRatio = Cr / Pr;
+
+  $('bl-pr').innerHTML      = `${Pr.toFixed(2)}<span class="card-unit"> kN</span>`;
+  $('bl-pr-sub').textContent = `Fr=${Fr} kN / Fa=${Fa} kN / fw=${fw}`;
+  $('bl-l10').innerHTML     = `${L10Mill.toFixed(2)}<span class="card-unit"> ×10⁶回</span>`;
+  $('bl-ratio').innerHTML   = crPrRatio.toFixed(2);
+  $('bl-l10h').innerHTML    = `${Math.round(L10h).toLocaleString()}<span class="card-unit"> h</span>`;
+  $('bl-l10h-year').textContent = `≈ ${(L10h / 8760).toFixed(1)} 年（24h連続稼働換算）`;
+  $('bl-l10h5').innerHTML   = `${Math.round(L10h * 5).toLocaleString()}<span class="card-unit"> h</span>`;
+  $('bl-xy-info').innerHTML = xyInfo;
+
+  // 判定バナー
+  const vc = $('bl-life-card');
+  let icon, main, sub;
+  if (L10h < 5000) {
+    icon='⚠️'; main='寿命不足の可能性'; sub=`L10h = ${Math.round(L10h).toLocaleString()} h（目安 20,000 h以上推奨）`;
+    vc.style.borderColor='var(--bad)'; vc.style.background='var(--bad-dim)';
+  } else if (L10h < 20000) {
+    icon='🔶'; main='寿命やや短め'; sub=`L10h = ${Math.round(L10h).toLocaleString()} h（一般機械の目安 20,000 h）`;
+    vc.style.borderColor='var(--warn)'; vc.style.background='var(--warn-dim)';
+  } else if (L10h < 50000) {
+    icon='✅'; main='標準的な寿命'; sub=`L10h = ${Math.round(L10h).toLocaleString()} h`;
+    vc.style.borderColor='var(--good)'; vc.style.background='var(--good-dim)';
+  } else {
+    icon='🟢'; main='寿命十分'; sub=`L10h = ${Math.round(L10h).toLocaleString()} h（長寿命設計）`;
+    vc.style.borderColor='var(--good)'; vc.style.background='var(--good-dim)';
+  }
+  $('bl-verdict-main').textContent = main;
+  $('bl-verdict-sub').textContent  = sub;
+  vc.querySelector('.verdict-icon').textContent = icon;
+
+  // 詳細テーブル
+  $('bl-detail-tbody').innerHTML = [
+    ['動定格荷重 Cr',    `${Cr} kN`,                          '—'],
+    ['静定格荷重 C0r',   `${C0r.toFixed(1)} kN`,              'e値・Y値の算出基準'],
+    ['当量動荷重 Pr',    `${Pr.toFixed(3)} kN`,               `fw=${fw} 適用済み`],
+    ['Cr/Pr',           crPrRatio.toFixed(3),                 '大きいほど余裕'],
+    ['寿命指数 p',       p === 3 ? '3（玉軸受）' : '10/3（ころ軸受）', '—'],
+    ['基本寿命 L10',     `${L10Mill.toFixed(2)} ×10⁶回転`,   `= ${(L10Mill * 100).toFixed(0)} 万回転`],
+    ['回転数 n',         `${n.toLocaleString()} rpm`,         '—'],
+    ['L10h',             `${Math.round(L10h).toLocaleString()} h`, `${(L10h / 8760).toFixed(1)} 年`],
+    ['L10h × 5（参考）', `${Math.round(L10h * 5).toLocaleString()} h`, '信頼度向上設計の参考値'],
+  ].map(r => `<tr><td>${r[0]}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${r[1]}</td><td style="color:var(--muted);font-size:11px">${r[2]}</td></tr>`).join('');
+}
+
+function clearBLResult() {
+  ['bl-pr','bl-l10','bl-ratio','bl-l10h','bl-l10h5'].forEach(id => {
+    const el = $(id); if (el) el.innerHTML = '—';
+  });
+  const year = $('bl-l10h-year'); if (year) year.textContent = '';
+  const xy   = $('bl-xy-info');   if (xy)   xy.innerHTML = '';
+  const vm   = $('bl-verdict-main'); if (vm) vm.textContent = '—';
+  const vs   = $('bl-verdict-sub');  if (vs) vs.textContent = '';
+  const vc   = $('bl-life-card');
+  if (vc) { vc.style.borderColor = 'var(--border)'; vc.style.background = 'var(--surface)'; }
+  const vi = vc ? vc.querySelector('.verdict-icon') : null;
+  if (vi) vi.textContent = '—';
+  $('bl-detail-tbody').innerHTML = '';
+}
+
+// ── はめあい推奨（テーブルは calcBearingFit 内で定義）──
+
+const FIT_DESC = {
+  'js5':'中間ばめ（わずかすきま〜わずか締まり）',
+  'k5':'締まりばめ（軽圧入）',
+  'm5':'締まりばめ（標準圧入）',
+  'n5':'締まりばめ（重圧入）',
+  'p5':'強圧入',
+  'r5':'強圧入（重荷重）',
+  'h5':'すきまばめ（精密・P6級静止輪用）',
+  'h6':'すきまばめ（軸基準・静止輪用）',
+  'H5':'すきまばめ（P6級精密穴）',
+  'H6':'すきまばめ（精級穴）',
+  'H7':'すきまばめ（一般穴）',
+  'g6':'すきまばめ',
+  'f6':'すきまばめ（大すきま）',
+  'e6':'すきまばめ（極大すきま）',
+  'd6':'すきまばめ',
+  'K5':'中間ばめ（P6級・外輪回転・軽荷重）',
+  'K6':'中間ばめ（外輪回転・軽〜普通荷重）',
+  'M5':'中間〜締まりばめ（P6級・外輪回転・重荷重）',
+  'M6':'中間〜締まりばめ（外輪回転・重荷重）',
+  'M7':'中間〜締まりばめ',
+  'N6':'締まりばめ（P6級）',
+  'N7':'締まりばめ',
+  'P6':'締まりばめ（P6級・重）',
+  'P7':'締まりばめ（重）',
+  'R6':'強圧入（P6級・外輪回転・重荷重）',
+  'R7':'強圧入（外輪回転・重荷重）',
+};
+const FIT_TYPE = {
+  'js5':'中間', 'k5':'締まり', 'm5':'締まり', 'n5':'締まり', 'p5':'締まり', 'r5':'締まり',
+  'h5':'すきま', 'h6':'すきま',
+  'H5':'すきま', 'H6':'すきま', 'H7':'すきま',
+  'g6':'すきま', 'f6':'すきま', 'e6':'すきま', 'd6':'すきま',
+  'K5':'中間', 'K6':'中間',
+  'M5':'中間', 'M6':'中間', 'M7':'中間',
+  'N6':'締まり', 'N7':'締まり',
+  'P6':'締まり', 'P7':'締まり',
+  'R6':'締まり', 'R7':'締まり',
+};
+const FIT_ALLOWANCE = {
+  'js5':'±(2〜4)μm', 'k5':'+5〜+18μm', 'm5':'+9〜+25μm', 'n5':'+14〜+33μm',
+  'p5':'+17〜+42μm', 'r5':'+25〜+55μm',
+  'h5':'0〜−11μm', 'h6':'0〜−19μm',
+  'H5':'0〜+9μm',  'H6':'0〜+13μm', 'H7':'0〜+25μm',
+  'g6':'−6〜−23μm', 'f6':'−13〜−41μm', 'e6':'−20〜−60μm', 'd6':'−30〜−85μm',
+  'K5':'−4〜+5μm',  'K6':'−4〜+9μm',
+  'M5':'−8〜+1μm',  'M6':'−9〜+4μm',  'M7':'−8〜+15μm',
+  'N6':'−13〜−2μm', 'N7':'−16〜+7μm',
+  'P6':'−17〜−6μm', 'P7':'−26〜−5μm',
+  'R6':'−28〜−17μm','R7':'−41〜−20μm',
+};
+
+function calcBearingFit() {
+  const d     = +$('bfit-d').value;
+  const D     = +$('bfit-D').value;
+  const rot   = $('bfit-rot').value;
+  const load  = $('bfit-load').value;
+  const cls   = $('bfit-class').value;   // 'normal' | 'p6'
+  if (!d || !D) return;
+
+  // ── 普通級テーブル（内輪回転）──
+  // [d_min, d_max, shaft_norm, hole_norm, shaft_heavy, hole_heavy]
+  const BFIT_NORMAL = [
+    [  0, 18,  'js5','H6', 'k5', 'H6'],
+    [ 18,100,  'k5', 'H7', 'm5', 'H7'],
+    [100,140,  'm5', 'H7', 'n5', 'H7'],
+    [140,200,  'n5', 'H7', 'p5', 'H7'],
+    [200,999,  'p5', 'H7', 'r5', 'H7'],
+  ];
+  // ── P6級テーブル（内輪回転・精密）──
+  // 軸：一段精密（js5→h5、k5→js5、m5→k5 等）、穴：H7→H6
+  const BFIT_P6 = [
+    [  0, 18,  'h5', 'H5', 'js5','H5'],
+    [ 18,100,  'js5','H6', 'k5', 'H6'],
+    [100,140,  'k5', 'H6', 'm5', 'H6'],
+    [140,200,  'm5', 'H6', 'n5', 'H6'],
+    [200,999,  'n5', 'H6', 'p5', 'H6'],
+  ];
+  // ── 外輪回転テーブル（普通級）──
+  // [D_min, D_max, hole_norm, hole_heavy]
+  const BFIT_OUTER_NORMAL = [
+    [  0,  80, 'K6','M6'],
+    [ 80, 140, 'M7','N7'],
+    [140, 200, 'N7','P7'],
+    [200, 999, 'P7','R7'],
+  ];
+  // ── 外輪回転テーブル（P6級）──
+  const BFIT_OUTER_P6 = [
+    [  0,  80, 'K5','M5'],
+    [ 80, 140, 'M6','N6'],
+    [140, 200, 'N6','P6'],
+    [200, 999, 'P6','R6'],
+  ];
+
+  let shaftSym, holeSym;
+  if (rot === 'inner') {
+    const tbl = cls === 'p6' ? BFIT_P6 : BFIT_NORMAL;
+    const row = tbl.find(r => d >= r[0] && d < r[1]) || tbl[tbl.length - 1];
+    shaftSym = load === 'heavy' ? row[4] : row[2];
+    holeSym  = load === 'heavy' ? row[5] : row[3];
+  } else {
+    const tbl = cls === 'p6' ? BFIT_OUTER_P6 : BFIT_OUTER_NORMAL;
+    const row = tbl.find(r => D >= r[0] && D < r[1]) || tbl[tbl.length - 1];
+    shaftSym = cls === 'p6' ? 'h5' : 'h6';   // P6級は軸もh5に
+    holeSym  = load === 'heavy' ? row[3] : row[2];
+  }
+
+  $('bfit-shaft-symbol').textContent   = shaftSym;
+  $('bfit-housing-symbol').textContent = holeSym;
+
+  const clsLabel  = cls === 'p6' ? '【P6級】' : '【普通級】';
+  const rotLabel  = rot === 'inner' ? '内輪回転' : '外輪回転';
+  const loadLabel = load === 'heavy' ? '重荷重' : '普通荷重';
+
+  const makeRows = (sym, label) => {
+    const desc = FIT_DESC[sym]      || '—';
+    const type = FIT_TYPE[sym]      || '—';
+    const all  = FIT_ALLOWANCE[sym] || '—';
+    return `<div class="fit-dim-row"><span class="fit-dim-label">${label}</span><span class="fit-dim-val" style="color:var(--accent)">${sym}</span></div>
+      <div class="fit-dim-row"><span class="fit-dim-label">はめあい種類</span><span class="fit-dim-val" style="font-size:12px">${type}</span></div>
+      <div class="fit-dim-row"><span class="fit-dim-label">概算締め代/すきま</span><span class="fit-dim-val" style="font-size:12px">${all}</span></div>
+      <div class="fit-dim-row"><span class="fit-dim-label">説明</span><span class="fit-dim-val" style="font-size:11px;color:var(--muted)">${desc}</span></div>`;
+  };
+  $('bfit-shaft-rows').innerHTML   = makeRows(shaftSym, '軸公差記号');
+  $('bfit-housing-rows').innerHTML = makeRows(holeSym,  '穴公差記号');
+
+  const vc = $('bfit-verdict');
+  vc.innerHTML = `<div class="verdict-icon">📋</div><div>
+    <div class="verdict-main">${clsLabel} ${rotLabel} / ${loadLabel} — 推奨はめあい</div>
+    <div class="verdict-sub">内径 d=${d}mm / 外径 D=${D}mm　軸：<b>${shaftSym}</b>　穴：<b>${holeSym}</b></div>
+  </div>`;
+  vc.style.borderColor = cls === 'p6' ? 'var(--warn)' : 'var(--accent)';
+  vc.style.background  = cls === 'p6' ? 'var(--warn-dim)' : 'var(--accent-dim)';
+
+  $('bfit-tbody').innerHTML = [
+    ['内輪側（軸）', shaftSym, FIT_TYPE[shaftSym]||'—', FIT_ALLOWANCE[shaftSym]||'—', FIT_DESC[shaftSym]||'—'],
+    ['外輪側（穴）', holeSym,  FIT_TYPE[holeSym] ||'—', FIT_ALLOWANCE[holeSym] ||'—', FIT_DESC[holeSym] ||'—'],
+  ].map(r => `<tr><td>${r[0]}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700">${r[1]}</td><td>${r[2]}</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${r[3]}</td><td style="color:var(--muted);font-size:11px">${r[4]}</td></tr>`).join('');
+}
+
+// ── スラスト軸受DB ──
+// [型式, d, D, H, Ca(kN), C0a(kN)]
+const THRUST_DB = [
+  // 51100系（極軽系列）
+  ['51100', 10,24, 9,  6.6, 9.5],['51101',12,26, 9, 6.9,10.0],['51102',15,28, 9, 7.1,10.5],
+  ['51103',17,30,10, 9.0,13.8],  ['51104',20,35,10,11.2,17.0],['51105',25,42,11,14.3,22.5],
+  ['51106',30,47,11,16.6,27.0],  ['51107',35,52,12,19.3,32.5],['51108',40,60,13,25.5,43.0],
+  ['51109',45,65,14,28.5,50.0],  ['51110',50,70,14,30.0,53.0],['51111',55,78,16,39.5,70.0],
+  ['51112',60,85,17,45.0,80.0],  ['51113',65,90,18,48.0,86.0],['51114',70,95,18,50.0,91.5],
+  ['51115',75,100,19,52.0,100.0],['51116',80,105,19,56.0,108],['51117',85,110,19,58.0,115],
+  ['51118',90,120,22,71.5,140],  ['51120',100,135,25,88.0,178],
+  // 51200系（軽系列）
+  ['51200',10,26,11,  9.3,13.8],['51201',12,28,11,10.0,15.3],['51202',15,32,12,11.5,18.0],
+  ['51203',17,35,12,13.5,21.2],  ['51204',20,40,14,17.1,28.5],['51205',25,47,15,22.0,36.5],
+  ['51206',30,52,16,25.5,43.0],  ['51207',35,62,18,35.5,62.0],['51208',40,68,19,40.0,72.0],
+  ['51209',45,73,20,44.0,82.0],  ['51210',50,78,22,47.5,91.5],['51211',55,90,25,64.0,122],
+  ['51212',60,95,26,70.0,132],   ['51213',65,100,27,75.0,143],['51214',70,105,27,78.0,153],
+  ['51215',75,110,27,80.0,160],  ['51216',80,115,28,85.0,172],['51217',85,125,31,104,212],
+  ['51218',90,135,35,122,255],   ['51220',100,150,38,148,315],
+  // 51300系（中系列）
+  ['51305',25,52,18,28.5,51.0],  ['51306',30,60,21,40.0,75.0],['51307',35,68,24,51.0,97.5],
+  ['51308',40,78,26,61.5,120],   ['51309',45,85,28,71.5,143], ['51310',50,95,31,88.0,178],
+  ['51311',55,105,35,108,220],   ['51312',60,110,35,114,235], ['51313',65,115,36,119,250],
+  ['51314',70,125,40,143,300],   ['51315',75,135,44,168,355], ['51316',80,140,44,176,375],
+  ['51317',85,150,49,207,450],   ['51318',90,155,50,216,475], ['51320',100,170,55,255,560],
+];
+
+let filteredThrust = [];
+
+function filterThrust() {
+  const q    = $('thrust-query').value.toUpperCase().trim();
+  const bore = $('thrust-bore').value !== '' ? +$('thrust-bore').value : null;
+  if (!q && bore === null) {
+    $('thrust-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr>';
+    $('thrust-hit-info').textContent = ''; return;
+  }
+  filteredThrust = THRUST_DB.filter(b => {
+    const matchQ    = q.length < 2 || b[0].toUpperCase().includes(q);
+    const matchBore = bore === null  || b[1] === bore;
+    return matchQ && matchBore;
+  });
+  $('thrust-hit-info').textContent = filteredThrust.length ? `${filteredThrust.length} 件ヒット` : '該当なし';
+  $('thrust-tbody').innerHTML = filteredThrust.length
+    ? filteredThrust.map(b=>`<tr>
+        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
+        <td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td>
+        <td style="color:var(--accent);font-weight:600">${b[4]}</td>
+        <td>${b[5]}</td>
+      </tr>`).join('')
     : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">該当なし</td></tr>';
 }
 
@@ -4145,6 +4916,8 @@ window.addEventListener('DOMContentLoaded', () => {
   init(); // 梁計算初期化
   initKeyway();
   initOil();
+  calcBearingLife();
+  calcBearingFit();
   for (const n of document.head.childNodes) {
     if (n.nodeType === Node.COMMENT_NODE && n.nodeValue.includes('build:')) {
       // "冒頭のコメント欄からパース
