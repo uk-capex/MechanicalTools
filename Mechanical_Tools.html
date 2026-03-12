@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- build: 1.33 | 20260309 | Mechanical Tools | uk |-->
+    <!-- build: 1.35 | 20260312 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -2305,6 +2305,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
   <div class="subtabbar">
     <button class="stab-btn active" id="ptab-ploss" onclick="showPumpTab('ploss',this)">📉 配管損失</button>
     <button class="stab-btn"        id="ptab-palt"  onclick="showPumpTab('palt',this)">🔄 代替判定</button>
+    <button class="stab-btn"        id="ptab-ppow"  onclick="showPumpTab('ppow',this)">⚙️ ポンプ動力</button>
+    <button class="stab-btn"        id="ptab-psiz"  onclick="showPumpTab('psiz',this)">📊 管径探索</button>
   </div>
 
   <!-- ══ サブタブ: 配管損失 ══ -->
@@ -2612,6 +2614,283 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
       </div>
     </div>
   </div><!-- /stab-palt -->
+
+  <!-- ══ サブタブ: ポンプ動力 ══ -->
+  <div id="stab-ppow" class="stab-content">
+    <div class="two-panel">
+      <!-- 左: 入力 -->
+      <div class="panel-left">
+
+        <div class="section-title">流体</div>
+        <div class="field"><label>流体種別</label>
+          <select id="pp-fluid" onchange="calcPumpPow()">
+            <option value="1000">水（20°C）— 1000 kg/m³</option>
+            <option value="958">熱水（100°C）— 958 kg/m³</option>
+            <option value="870">軽油（40°C）— 870 kg/m³</option>
+            <option value="850">作動油 VG46 — 850 kg/m³</option>
+            <option value="1025">海水（20°C）— 1025 kg/m³</option>
+            <option value="custom">カスタム</option>
+          </select>
+        </div>
+        <div class="field" id="pp-rho-field" style="display:none">
+          <label>密度 ρ（kg/m³）</label>
+          <input type="number" id="pp-rho-custom" value="1000" step="10" min="1" oninput="calcPumpPow()">
+        </div>
+
+        <hr class="divider">
+        <div class="section-title">運転条件</div>
+        <div class="field"><label>流量 Q（m³/h）</label>
+          <input type="number" id="pp-Q" value="10" step="0.1" min="0.001" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>全揚程 H（m）</label>
+          <input type="number" id="pp-H" value="20" step="0.5" min="0" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>ポンプ効率 η_p（%）</label>
+          <input type="number" id="pp-eta-p" value="70" step="1" min="1" max="99" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>モータ効率 η_m（%）</label>
+          <input type="number" id="pp-eta-m" value="90" step="1" min="1" max="99" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>回転数 N（rpm）</label>
+          <input type="number" id="pp-N" value="1450" step="50" min="1" oninput="calcPumpPow()">
+        </div>
+
+        <hr class="divider">
+        <div class="section-title">NPSH（キャビテーション確認）</div>
+        <div class="field"><label>大気圧 P_atm（kPa）</label>
+          <input type="number" id="pp-patm" value="101.325" step="1" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>飽和蒸気圧 P_v（kPa）<span style="font-size:11px;color:var(--muted)"> 水20°C≈2.34</span></label>
+          <input type="number" id="pp-pv" value="2.338" step="0.1" min="0" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>吸込揚程 Hs（m）<span style="font-size:11px;color:var(--muted)"> ポンプより上:+, 下:−</span></label>
+          <input type="number" id="pp-hs" value="-2" step="0.5" oninput="calcPumpPow()">
+        </div>
+        <div class="field"><label>吸込配管 摩擦損失 h_f（m）</label>
+          <input type="number" id="pp-hf" value="0.5" step="0.1" min="0" oninput="calcPumpPow()">
+        </div>
+
+        <hr class="divider">
+        <div class="memo">
+          <b>軸動力：</b>P = ρgQH / (η_p × η_m)<br>
+          <b>比速度：</b>Ns = N√Q / H^0.75<br>
+          <b>Ns目安：</b>遠心100〜300、斜流300〜700、軸流700〜1500<br>
+          <b>NPSHa：</b>(P_atm − P_v)/(ρg) − Hs − h_f
+        </div>
+      </div>
+
+      <!-- 右: 結果 -->
+      <div class="panel-right">
+
+        <div class="result-cards">
+          <div class="card accent">
+            <div class="card-label">軸動力（モータ入力）</div>
+            <div class="card-value" id="pp-r-shaft">—</div>
+            <div class="card-unit">kW</div>
+          </div>
+          <div class="card">
+            <div class="card-label">水力動力（理論）</div>
+            <div class="card-value" id="pp-r-hydro">—</div>
+            <div class="card-unit">kW</div>
+          </div>
+          <div class="card">
+            <div class="card-label">総合効率</div>
+            <div class="card-value" id="pp-r-eta">—</div>
+            <div class="card-unit">%</div>
+          </div>
+        </div>
+
+        <div class="result-cards" style="margin-top:8px">
+          <div class="card">
+            <div class="card-label">比速度 Ns</div>
+            <div class="card-value" id="pp-r-ns">—</div>
+            <div class="card-unit">—</div>
+            <div class="card-sub" id="pp-r-ns-type">—</div>
+          </div>
+          <div class="card">
+            <div class="card-label">流量 Q</div>
+            <div class="card-value" id="pp-r-Qlps">—</div>
+            <div class="card-unit">L/s</div>
+          </div>
+          <div class="card">
+            <div class="card-label">軸トルク</div>
+            <div class="card-value" id="pp-r-torque">—</div>
+            <div class="card-unit">N·m</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="section-title">モータ選定ガイド</div>
+          <div id="pp-motor-guide" style="font-size:13px;color:var(--muted);line-height:1.9;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px"></div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="section-title">NPSHa（有効吸込ヘッド）</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="card accent">
+              <div class="card-label">NPSHa</div>
+              <div class="card-value" id="pp-r-npsh">—</div>
+              <div class="card-unit">m</div>
+            </div>
+            <div id="pp-npsh-warn" style="display:none;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.7;align-self:center"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /stab-ppow -->
+
+  <!-- ══ サブタブ: 管径探索 ══ -->
+  <div id="stab-psiz" class="stab-content">
+    <div class="two-panel">
+
+      <!-- 左: 入力 -->
+      <div class="panel-left">
+        <div class="section-title">流体</div>
+        <div class="field"><label>流体種別</label>
+          <select id="ps-fluid" onchange="calcPipeSiz()">
+            <option value="water20">水（20°C）— ρ=1000, μ=1.004×10⁻³</option>
+            <option value="water60">水（60°C）— ρ=983, μ=0.467×10⁻³</option>
+            <option value="water100">熱水（100°C）— ρ=958, μ=0.282×10⁻³</option>
+            <option value="oil22">鉱物油 VG22 — ρ=860, μ=22×10⁻³</option>
+            <option value="oil46">鉱物油 VG46 — ρ=870, μ=46×10⁻³</option>
+            <option value="oil68">鉱物油 VG68 — ρ=875, μ=68×10⁻³</option>
+            <option value="seawater">海水（20°C）— ρ=1025, μ=1.08×10⁻³</option>
+            <option value="air6">エア（0.6 MPa·g）— ρ≈8.2</option>
+            <option value="air7">エア（0.7 MPa·g）— ρ≈9.3</option>
+            <option value="custom">カスタム</option>
+          </select>
+        </div>
+        <div id="ps-custom-wrap" style="display:none">
+          <div class="field"><label>密度 ρ（kg/m³）</label>
+            <input type="number" id="ps-rho" value="1000" step="10" min="0.1" oninput="calcPipeSiz()">
+          </div>
+          <div class="field"><label>動粘性係数 μ（Pa·s）<span style="font-size:11px;color:var(--muted)"> 例: 水=1e-3, VG46=46e-3</span></label>
+            <input type="number" id="ps-mu" value="1.004e-3" step="1e-5" min="1e-7" oninput="calcPipeSiz()">
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div class="section-title">運転条件</div>
+        <div class="field"><label id="ps-q-label">流量 Q（L/min）</label>
+          <input type="number" id="ps-Q" value="30" step="1" min="0.001" oninput="calcPipeSiz()">
+        </div>
+        <div class="field"><label>配管長さ L（m）</label>
+          <input type="number" id="ps-L" value="10" step="1" min="0.01" oninput="calcPipeSiz()">
+        </div>
+
+        <hr class="divider">
+        <div class="section-title">配管種別</div>
+        <div class="field"><label>材質</label>
+          <select id="ps-pipetype" onchange="calcPipeSiz()">
+            <option value="sgp">SGP（JIS G 3452）</option>
+            <option value="sus">SUS（JIS G 3459）</option>
+            <option value="cu">銅管（JIS H 3300 K）</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+        <div class="section-title">単管計算（特定管径）</div>
+        <div class="field"><label>呼び径</label>
+          <select id="ps-single-size" onchange="calcPipeSiz()">
+            <option value="15" selected>15A</option>
+            <option value="20">20A</option>
+            <option value="25">25A</option>
+            <option value="32">32A</option>
+            <option value="40">40A</option>
+            <option value="50">50A</option>
+            <option value="65">65A</option>
+            <option value="80">80A</option>
+            <option value="100">100A</option>
+            <option value="125">125A</option>
+            <option value="150">150A</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+        <div class="memo" id="ps-memo">
+          <b>Darcy-Weisbach：</b>hf = f·(L/D)·v²/2g<br>
+          <b>摩擦係数：</b>Colebrook-White 式（反復計算）<br>
+          <b>推奨流速目安：</b><br>
+          　水：0.5〜3.0 m/s<br>
+          　油：0.5〜2.0 m/s（吸込側 0.5〜1.0）<br>
+          　エア：6〜15 m/s（主管）
+        </div>
+      </div>
+
+      <!-- 右: 結果 -->
+      <div class="panel-right">
+
+        <!-- 単管計算結果カード -->
+        <div class="section-title" id="ps-single-title">— A の計算結果</div>
+        <div class="result-cards" style="margin-bottom:8px">
+          <div class="card accent">
+            <div class="card-label">圧力損失 ΔP</div>
+            <div class="card-value" id="ps-r-dp">—</div>
+            <div class="card-unit" id="ps-r-dp-u">kPa</div>
+          </div>
+          <div class="card">
+            <div class="card-label" id="ps-r-hf-label">損失水頭 hf</div>
+            <div class="card-value" id="ps-r-hf">—</div>
+            <div class="card-unit" id="ps-r-hf-u">m</div>
+          </div>
+          <div class="card">
+            <div class="card-label">流速 v</div>
+            <div class="card-value" id="ps-r-v">—</div>
+            <div class="card-unit">m/s</div>
+          </div>
+        </div>
+        <div class="result-cards" style="margin-bottom:14px">
+          <div class="card" id="ps-re-card">
+            <div class="card-label">レイノルズ数 Re</div>
+            <div class="card-value" id="ps-r-re">—</div>
+            <div class="card-sub" id="ps-r-regime">—</div>
+          </div>
+          <div class="card">
+            <div class="card-label">摩擦係数 f（Darcy）</div>
+            <div class="card-value" id="ps-r-f">—</div>
+          </div>
+          <div class="card">
+            <div class="card-label">内径</div>
+            <div class="card-value" id="ps-r-id">—</div>
+            <div class="card-unit">mm</div>
+          </div>
+        </div>
+        <div id="ps-v-assess" style="font-size:13px;padding:9px 13px;border-radius:7px;margin-bottom:14px;border:1px solid var(--border)"></div>
+
+        <!-- 継手等価長テーブル -->
+        <div class="section-title">主要継手の等価長（この管径の場合）</div>
+        <div style="overflow-x:auto;margin-bottom:14px">
+          <table style="width:100%;font-size:12px;border-collapse:collapse">
+            <thead><tr>
+              <th style="text-align:left;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">継手</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">Le/D</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">等価長 (m)</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">圧損 (kPa)</th>
+            </tr></thead>
+            <tbody id="ps-fitting-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- 管径一覧比較 -->
+        <div class="section-title">管径別 一覧比較</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;font-size:12px;border-collapse:collapse">
+            <thead><tr>
+              <th style="text-align:left;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">呼び径</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">内径 (mm)</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">流速 (m/s)</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">Re</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">ΔP (kPa)</th>
+              <th style="text-align:center;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">判定</th>
+            </tr></thead>
+            <tbody id="ps-size-tbody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /stab-psiz -->
 
 </div><!-- /tab-pump -->
 
@@ -5724,6 +6003,247 @@ function showPumpTab(name, btn) {
   if (btn) btn.classList.add('active');
 }
 
+// ════════════════════════════════════════
+// TAB: 管径探索
+// ════════════════════════════════════════
+const PS_FLUID_DB = {
+  water20:  { rho: 1000,  mu: 1.004e-3, label: '水（20°C）',      isAir: false, vMin: 0.5, vMax: 3.0 },
+  water60:  { rho: 983,   mu: 0.467e-3, label: '水（60°C）',      isAir: false, vMin: 0.5, vMax: 3.0 },
+  water100: { rho: 958,   mu: 0.282e-3, label: '熱水（100°C）',   isAir: false, vMin: 0.5, vMax: 3.0 },
+  oil22:    { rho: 860,   mu: 22e-3,    label: '鉱物油 VG22',     isAir: false, vMin: 0.5, vMax: 2.0 },
+  oil46:    { rho: 870,   mu: 46e-3,    label: '鉱物油 VG46',     isAir: false, vMin: 0.5, vMax: 2.0 },
+  oil68:    { rho: 875,   mu: 68e-3,    label: '鉱物油 VG68',     isAir: false, vMin: 0.5, vMax: 2.0 },
+  seawater: { rho: 1025,  mu: 1.08e-3,  label: '海水（20°C）',    isAir: false, vMin: 0.5, vMax: 3.0 },
+  air6:     { rho: 8.2,   mu: 1.81e-5,  label: 'エア（0.6MPa·g）',isAir: true,  vMin: 6,   vMax: 15  },
+  air7:     { rho: 9.3,   mu: 1.81e-5,  label: 'エア（0.7MPa·g）',isAir: true,  vMin: 6,   vMax: 15  },
+  custom:   { rho: 1000,  mu: 1.004e-3, label: 'カスタム',         isAir: false, vMin: 0.5, vMax: 3.0 },
+};
+
+const PS_FITTINGS = [
+  { label: 'エルボ 90°（標準）',  LeD: 30  },
+  { label: 'エルボ 90°（ロング）',LeD: 20  },
+  { label: 'エルボ 45°',          LeD: 16  },
+  { label: 'チーズ（直流）',      LeD: 20  },
+  { label: 'チーズ（分岐）',      LeD: 60  },
+  { label: 'ゲートバルブ（全開）',LeD:  7  },
+  { label: 'ボールバルブ（全開）', LeD:  3  },
+  { label: 'グローブバルブ（全開）',LeD: 350 },
+  { label: 'チェックバルブ',      LeD: 100 },
+  { label: 'ストレーナ',          LeD: 150 },
+  { label: 'レデューサ（急縮小）',LeD:  20 },
+];
+
+function psColebrook(Re, epsRel) {
+  if (Re < 2300) return 64 / Re;
+  return 0.25 / Math.pow(Math.log10(epsRel / 3.7 + 5.74 / Math.pow(Re, 0.9)), 2);
+}
+
+function psGetID(sizeA, ptype) {
+  const d = PIPE_DB[sizeA];
+  if (!d) return null;
+  if (ptype === 'sgp') return d.sgp_od - 2 * d.sgp_t;
+  if (ptype === 'sus') return d.sus_od - 2 * d.sus_t;
+  return d.cu_od - 2 * d.cu_t;
+}
+
+function psCalcOne(id_mm, Q_m3s, rho, mu, L_m) {
+  const D   = id_mm / 1000;
+  const A   = Math.PI * D * D / 4;
+  const v   = Q_m3s / A;
+  const Re  = rho * v * D / mu;
+  const eps = 0.046e-3; // 炭素鋼 mm→m
+  const f   = psColebrook(Re, eps / D);
+  const g   = 9.80665;
+  const hf  = f * (L_m / D) * v * v / (2 * g);
+  const dP  = rho * g * hf / 1000; // kPa
+  return { v, Re, f, hf, dP };
+}
+
+function calcPipeSiz() {
+  const fluidKey = $('ps-fluid').value;
+  const isCustom = fluidKey === 'custom';
+  $('ps-custom-wrap').style.display = isCustom ? '' : 'none';
+
+  const fd = PS_FLUID_DB[fluidKey] || PS_FLUID_DB.water20;
+  const rho = isCustom ? (parseFloat($('ps-rho').value) || 1000) : fd.rho;
+  const mu  = isCustom ? (parseFloat($('ps-mu').value)  || 1e-3) : fd.mu;
+  const isAir = fd.isAir;
+  const vMin  = fd.vMin, vMax = fd.vMax;
+
+  // 流量 (m³/s)
+  const Q_raw = parseFloat($('ps-Q').value) || 0;
+  const Q_m3s = isAir
+    ? Q_raw / 60                    // Nm³/min → m³/s（密度補正済み扱い：ρ=実密度で計算）
+    : Q_raw / 1000 / 60;            // L/min → m³/s
+  $('ps-q-label').textContent = isAir ? '流量 Q（Nm³/min）' : '流量 Q（L/min）';
+
+  const L_m    = parseFloat($('ps-L').value) || 10;
+  const ptype  = $('ps-pipetype').value;
+  const singleA = parseInt($('ps-single-size').value);
+
+  // ── 単管計算 ──
+  const id_single = psGetID(singleA, ptype);
+  $('ps-single-title').textContent = `${singleA}A の計算結果`;
+  $('ps-r-id').textContent = id_single ? id_single.toFixed(1) : '—';
+
+  if (id_single && Q_m3s > 0) {
+    const r = psCalcOne(id_single, Q_m3s, rho, mu, L_m);
+    $('ps-r-dp').textContent = r.dP.toFixed(2);
+    $('ps-r-dp-u').textContent = 'kPa';
+    if (isAir) {
+      $('ps-r-hf-label').textContent = '圧損（参考）';
+      $('ps-r-hf').textContent = r.dP.toFixed(2);
+      $('ps-r-hf-u').textContent = 'kPa';
+    } else {
+      $('ps-r-hf-label').textContent = '損失水頭 hf';
+      $('ps-r-hf').textContent = r.hf.toFixed(2);
+      $('ps-r-hf-u').textContent = 'm';
+    }
+    $('ps-r-v').textContent  = r.v.toFixed(2);
+    $('ps-r-re').textContent = r.Re.toLocaleString('ja',{maximumFractionDigits:0});
+    $('ps-r-f').textContent  = r.f.toFixed(4);
+
+    let regime, reColor;
+    if      (r.Re < 2300) { regime = '層流';   reColor = 'var(--good)'; }
+    else if (r.Re < 4000) { regime = '遷移域'; reColor = 'var(--warn)'; }
+    else                  { regime = '乱流';   reColor = 'var(--accent)'; }
+    $('ps-r-regime').textContent = regime;
+    $('ps-re-card').style.borderColor = reColor;
+
+    // 流速評価
+    const assess = $('ps-v-assess');
+    let aText, bg, bc;
+    if (r.v < vMin * 0.5) {
+      aText = `⚠ ${r.v.toFixed(2)} m/s — 低すぎ。スラッジ堆積・腐食のリスク。`;
+      bg = 'var(--warn-dim)'; bc = 'var(--warn)';
+    } else if (r.v < vMin) {
+      aText = `⚡ ${r.v.toFixed(2)} m/s — やや低め（推奨: ${vMin}〜${vMax} m/s）`;
+      bg = 'var(--warn-dim)'; bc = 'var(--warn)';
+    } else if (r.v <= vMax) {
+      aText = `✅ ${r.v.toFixed(2)} m/s — 適正範囲（${vMin}〜${vMax} m/s）`;
+      bg = 'var(--good-dim)'; bc = 'var(--good)';
+    } else if (r.v <= vMax * 1.5) {
+      aText = `⚡ ${r.v.toFixed(2)} m/s — やや高め。エロージョン・騒音に注意。`;
+      bg = 'var(--warn-dim)'; bc = 'var(--warn)';
+    } else {
+      aText = `❌ ${r.v.toFixed(2)} m/s — 高すぎ。管径を大きくしてください。`;
+      bg = 'rgba(248,81,73,0.1)'; bc = '#f85149';
+    }
+    assess.textContent = aText;
+    assess.style.background = bg;
+    assess.style.borderColor = bc;
+    assess.style.color = 'var(--ink)';
+
+    // 継手テーブル
+    const D_m = id_single / 1000;
+    $('ps-fitting-tbody').innerHTML = PS_FITTINGS.map(ft => {
+      const Le  = ft.LeD * D_m;
+      const dPf = r.f * ft.LeD * rho * r.v * r.v / 2 / 1000; // kPa (f * Le/D * ρv²/2 / 1000)
+      const hilight = ft.label.includes('レデューサ') || ft.label.includes('グローブ')
+        ? `style="background:rgba(210,153,34,0.07)"` : '';
+      return `<tr ${hilight}>
+        <td style="padding:4px 8px;color:var(--ink)">${ft.label}</td>
+        <td style="padding:4px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${ft.LeD}</td>
+        <td style="padding:4px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${Le.toFixed(2)}</td>
+        <td style="padding:4px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${dPf > r.dP * 0.3 ? 'var(--warn)' : 'var(--ink)'}">${dPf.toFixed(3)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── 管径一覧比較 ──
+  const SIZES = [10, 15, 20, 25, 32, 40, 50, 65, 80, 100, 125, 150];
+  $('ps-size-tbody').innerHTML = SIZES.map(sz => {
+    const id_mm = psGetID(sz, ptype);
+    if (!id_mm || Q_m3s <= 0) return '';
+    const r = psCalcOne(id_mm, Q_m3s, rho, mu, L_m);
+    const ok  = r.v >= vMin && r.v <= vMax;
+    const low = r.v < vMin;
+    const hi  = r.v > vMax;
+    const isSelected = sz === singleA;
+    const badge = ok  ? `<span style="color:var(--good);font-weight:700">✅ 適正</span>`
+                : low ? `<span style="color:var(--muted)">⬇ 低め</span>`
+                :       `<span style="color:#f85149;font-weight:700">⬆ 速すぎ</span>`;
+    const vColor = ok ? 'var(--good)' : hi ? '#f85149' : 'var(--muted)';
+    const rowBg  = isSelected ? 'background:var(--accent-dim);' : ok ? 'background:var(--good-dim);' : '';
+    return `<tr style="${rowBg}${isSelected ? 'outline:1px solid var(--accent);' : ''}">
+      <td style="padding:5px 8px;font-weight:${isSelected?'700':'400'};color:${isSelected?'var(--accent)':'var(--ink)'}">${sz}A</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${id_mm.toFixed(1)}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${vColor};font-weight:${ok?'700':'400'}">${r.v.toFixed(2)}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${r.Re.toLocaleString('ja',{maximumFractionDigits:0})}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${r.dP.toFixed(2)}</td>
+      <td style="padding:5px 8px;text-align:center">${badge}</td>
+    </tr>`;
+  }).join('');
+}
+function calcPumpPow() {
+  const fluidSel = $('pp-fluid');
+  const isCustom = fluidSel.value === 'custom';
+  $('pp-rho-field').style.display = isCustom ? '' : 'none';
+  const rho = isCustom ? (parseFloat($('pp-rho-custom').value) || 1000) : parseFloat(fluidSel.value);
+
+  const Q_m3h = parseFloat($('pp-Q').value) || 0;
+  const H_m   = parseFloat($('pp-H').value) || 0;
+  const etaP  = (parseFloat($('pp-eta-p').value) || 70) / 100;
+  const etaM  = (parseFloat($('pp-eta-m').value) || 90) / 100;
+  const N_rpm = parseFloat($('pp-N').value) || 1450;
+  const g = 9.80665;
+  const Q_m3s = Q_m3h / 3600;
+
+  const P_hydro = rho * g * Q_m3s * H_m;
+  const P_shaft = P_hydro / (etaP * etaM);
+  const eta_ovr = (P_hydro / P_shaft) * 100;
+  const torque  = (P_shaft / etaM) / (2 * Math.PI * N_rpm / 60);
+  const Ns      = N_rpm * Math.sqrt(Q_m3s) / Math.pow(H_m, 0.75);
+
+  const fmt = (n, d) => isFinite(n) ? n.toFixed(d) : '—';
+  const setText = (id, v) => { const e=$(id); if(e) e.textContent=v; };
+
+  setText('pp-r-shaft',  fmt(P_shaft / 1000, 2));
+  setText('pp-r-hydro',  fmt(P_hydro / 1000, 2));
+  setText('pp-r-eta',    fmt(eta_ovr, 1));
+  setText('pp-r-Qlps',   fmt(Q_m3s * 1000, 2));
+  setText('pp-r-torque', fmt(torque, 1));
+
+  let nsType = '—';
+  if      (Ns < 100) nsType = '高揚程遠心ポンプ';
+  else if (Ns < 300) nsType = '遠心ポンプ';
+  else if (Ns < 700) nsType = '斜流ポンプ';
+  else               nsType = '軸流ポンプ';
+  setText('pp-r-ns',      isFinite(Ns) ? Math.round(Ns).toString() : '—');
+  setText('pp-r-ns-type', nsType);
+
+  // モータ選定
+  const kW = P_shaft / 1000;
+  const STD = [0.1,0.2,0.37,0.55,0.75,1.1,1.5,2.2,3.7,5.5,7.5,11,15,18.5,22,30,37,45,55,75,90,110,132,160,200];
+  const rec = STD.find(v => v >= kW * 1.1) || STD[STD.length-1];
+  const nearby = STD.filter(v => v >= kW * 0.9 && v <= kW * 3).join(', ');
+  $('pp-motor-guide').innerHTML =
+    `<b>計算軸動力：</b>${kW.toFixed(2)} kW<br>` +
+    `<b>推奨モータ（×1.1 余裕）：</b>≥ ${(kW*1.1).toFixed(2)} kW → <b style="color:var(--accent)">${rec} kW</b> 標準モータ<br>` +
+    `<span style="font-size:12px">IEC標準出力近傍: ${nearby} kW</span>`;
+
+  // NPSHa
+  const P_atm = (parseFloat($('pp-patm').value) || 101.325) * 1000;
+  const P_v   = (parseFloat($('pp-pv').value) || 2.338) * 1000;
+  const Hs    = parseFloat($('pp-hs').value) || 0;
+  const hf    = parseFloat($('pp-hf').value) || 0;
+  const NPSHa = (P_atm - P_v) / (rho * g) - Hs - hf;
+  setText('pp-r-npsh', fmt(NPSHa, 2));
+
+  const warn = $('pp-npsh-warn');
+  if (NPSHa < 2) {
+    warn.style.display = '';
+    warn.style.cssText += ';background:var(--warn-dim);border:1px solid var(--warn);color:var(--warn)';
+    warn.textContent = `⚠ NPSHa低 (${NPSHa.toFixed(2)} m)。キャビテーション発生の危険あり。ポンプの必要NPSHrを確認してください。`;
+  } else if (NPSHa < 4) {
+    warn.style.display = '';
+    warn.style.cssText += ';background:rgba(210,153,34,0.1);border:1px solid var(--warn);color:var(--warn)';
+    warn.textContent = `⚡ NPSHa やや低め (${NPSHa.toFixed(2)} m)。ポンプカーブのNPSHrと要確認。`;
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
 // ── 継手 相当長さ係数テーブル (Le/d) ──
 // 代表値（スケジュール40相当）
 const FITTING_LED = {
@@ -6374,6 +6894,8 @@ function calcPumpAlt() {
 // 初期化
 onFluidChange();
 addSegment(); // 最初の区間Aを追加
+calcPumpPow();
+calcPipeSiz();
 
 </script>
 </body>
