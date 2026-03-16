@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- build: 1.36 | 20260313 | Mechanical Tools | uk |-->
+    <!-- build: 1.39 | 20260316 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,33 +38,25 @@ body {
 }
 header {
   border-bottom: 1px solid var(--border);
-  padding: 8px 16px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   background: var(--surface);
   flex-shrink: 0;
-  flex-wrap: nowrap;
-  overflow: hidden;
-  min-height: 0;
 }
-header h1 { font-size: 13px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; flex-shrink: 0; }
-.badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
+header h1 { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
 .badge-green { border-color: var(--good); color: var(--good); }
 .badge-blue  { border-color: var(--accent); color: var(--accent); }
-#verBadge { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .tabbar {
   display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  flex-wrap: wrap;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.tabbar::-webkit-scrollbar { display: none; }
 .tab-btn {
   padding: 8px 14px;
   font-size: 13px;
@@ -555,11 +547,14 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
 </head>
 <body>
 
-<header>
-  <h1>🔧 機械保全 便利ツール集</h1>
-  <span class="badge badge-green">オフライン</span>
-  <span class="badge badge-blue">自動計算</span>
-  <span id="verBadge">ver.--</span>
+<header style="justify-content:space-between;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <h1>🔧 機械保全 便利ツール集</h1>
+    <span class="badge badge-green">オンライン</span>
+    <span class="badge badge-blue">自動計算</span>
+    <span id="verBadge">ver.--</span>
+  </div>
+  <a href="/how-to-use-mechanical.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">使い方 →</a>
 </header>
 
 <div class="tabbar">
@@ -839,6 +834,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <option value="100">100A（4"）</option>
             <option value="125">125A（5"）</option>
             <option value="150">150A（6"）</option>
+            <option value="200">200A（8"）</option>
+            <option value="250">250A（10"）</option>
           </select>
         </div>
       </div>
@@ -1046,6 +1043,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
     <button class="stab-btn" id="btab-blife"   onclick="showBearingTab('blife',this)">📈 寿命計算</button>
     <button class="stab-btn" id="btab-bfit"    onclick="showBearingTab('bfit',this)">📐 はめあい</button>
     <button class="stab-btn" id="btab-bthrust" onclick="showBearingTab('bthrust',this)">⬆️ スラスト</button>
+    <button class="stab-btn" id="btab-tpdb"    onclick="showBearingTab('btpdb',this)">📋 テーパーころ型式</button>
+    <button class="stab-btn" id="btab-tplife"  onclick="showBearingTab('btplife',this)">⚙️ テーパーころ寿命</button>
   </div>
 
   <!-- ── サブタブ: 検索 ── -->
@@ -1341,9 +1340,197 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
       </div>
     </div>
   </div>
-</div>
 
-<!-- ══════ TAB: スナップリング ══════ -->
+  <!-- ── サブタブ: テーパーころ型式 ── -->
+  <div id="stab-btpdb" class="stab-content">
+    <div class="two-panel">
+      <div class="panel-left">
+        <div class="section-title">型式検索</div>
+        <div class="field"><label>型式（例: 32007, 30205, 30307）</label>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="tp-query" placeholder="型式を入力..." oninput="filterTaper()" style="text-transform:uppercase">
+          </div>
+          <div class="bearing-result-info" id="tp-hit-info"></div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>内径で絞り込み（mm）</label>
+            <input type="number" id="tp-bore" placeholder="例: 35" oninput="filterTaper()">
+          </div>
+          <div class="field"><label>外径で絞り込み（mm）</label>
+            <input type="number" id="tp-od" placeholder="例: 72" oninput="filterTaper()">
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="memo">
+          <b>型式の読み方</b><br>
+          <b>320xx</b>：幅広系列（重荷重） / <b>302xx</b>：中幅系列 / <b>303xx</b>：中幅・大接触角<br><br>
+          <b style="color:var(--accent)">Cr</b>：動定格荷重（kN）<br>
+          <b style="color:var(--accent)">e</b>：アキシャル荷重係数。Fa/Fr &gt; e のとき Fa の影響を考慮<br>
+          <b style="color:var(--accent)">Y</b>：動等価荷重係数。P = 0.4Fr + Y·Fa に使用<br><br>
+          <b style="color:var(--warn)">限界rpm</b>：グリス潤滑での最大回転数<br><br>
+          クリックで寿命計算タブに初期値をセット
+        </div>
+      </div>
+      <div class="panel-right">
+        <div class="data-table-wrap" style="overflow-x:auto">
+          <table style="min-width:620px">
+            <thead><tr>
+              <th>型式</th>
+              <th>d<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>D<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>T<br><span style="font-weight:400;font-size:10px">(mm)</span></th>
+              <th>Cr<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+              <th>C0r<br><span style="font-weight:400;font-size:10px">(kN)</span></th>
+              <th>e</th><th>Y</th>
+              <th>限界<br><span style="font-weight:400;font-size:10px">(rpm)</span></th>
+              <th>質量<br><span style="font-weight:400;font-size:10px">(kg)</span></th>
+            </tr></thead>
+            <tbody id="tp-tbody"><tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr></tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;padding:10px;background:var(--surface);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.8">
+          <b>組み合わせ方式</b><br>
+          <b>DB（背面合わせ）</b>：剛性が高い・モーメント荷重に強い<br>
+          <b>DF（正面合わせ）</b>：調心性あり・軸の熱膨張を吸収しやすい<br>
+          <b>DT（直列）</b>：一方向の大アキシャル荷重に対応<br>
+          ラジアル荷重により<b>内部アキシャル力</b>が発生するため、必ず対向配置で使用する
+        </div>
+      </div>
+    </div>
+  </div><!-- /stab-btpdb -->
+
+  <!-- ── サブタブ: テーパーころ寿命計算 ── -->
+  <div id="stab-btplife" class="stab-content">
+    <div class="two-panel">
+      <div class="panel-left">
+        <div class="section-title">軸受選択</div>
+        <div class="memo" style="font-size:11px;margin-bottom:8px">型式DBタブで型式をクリックすると自動セットされます</div>
+        <div class="two-col">
+          <div class="field"><label>型式</label>
+            <input type="text" id="tl-model" placeholder="例: 32007" oninput="onTaperModelInput()" style="text-transform:uppercase">
+          </div>
+          <div class="field"><label>組み合わせ方式</label>
+            <select id="tl-config" onchange="calcTaperLife()">
+              <option value="DB">DB（背面合わせ）</option>
+              <option value="DF">DF（正面合わせ）</option>
+              <option value="DT">DT（直列）</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px">
+          <div class="field" style="margin:0"><label style="font-size:11px">Cr（kN）</label>
+            <input type="number" id="tl-cr" step="0.1" oninput="calcTaperLife()"></div>
+          <div class="field" style="margin:0"><label style="font-size:11px">C0r（kN）</label>
+            <input type="number" id="tl-c0r" step="0.1" oninput="calcTaperLife()"></div>
+          <div class="field" style="margin:0"><label style="font-size:11px">e係数</label>
+            <input type="number" id="tl-e" step="0.01" oninput="calcTaperLife()"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+          <div class="field" style="margin:0"><label style="font-size:11px">Y係数（動荷重）</label>
+            <input type="number" id="tl-Y" step="0.01" oninput="calcTaperLife()"></div>
+          <div class="field" style="margin:0"><label style="font-size:11px">Y0係数（静荷重）</label>
+            <input type="number" id="tl-Y0" step="0.01" oninput="calcTaperLife()"></div>
+        </div>
+        <hr class="divider">
+        <div class="section-title">荷重・運転条件</div>
+        <div class="two-col">
+          <div class="field"><label>ラジアル荷重 Fr（kN）</label>
+            <input type="number" id="tl-fr" placeholder="例: 5.0" step="0.1" oninput="calcTaperLife()">
+          </div>
+          <div class="field"><label>外部アキシャル荷重 Fa（kN）</label>
+            <input type="number" id="tl-fa" value="0" step="0.1" oninput="calcTaperLife()">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>回転速度 n（rpm）</label>
+            <input type="number" id="tl-n" placeholder="例: 1000" step="10" oninput="calcTaperLife()">
+          </div>
+          <div class="field"><label>荷重係数 fw</label>
+            <input type="number" id="tl-fw" step="0.1" value="1.2" oninput="calcTaperLife()">
+          </div>
+        </div>
+        <div class="field"><label>fw プリセット</label>
+          <div class="preset-grid">
+            <button class="preset-btn" onclick="setTLfw(1.0,this)">1.0 静荷重</button>
+            <button class="preset-btn selected" onclick="setTLfw(1.2,this)">1.2 軽衝撃</button>
+            <button class="preset-btn" onclick="setTLfw(1.5,this)">1.5 中衝撃</button>
+            <button class="preset-btn" onclick="setTLfw(2.0,this)">2.0 重衝撃</button>
+            <button class="preset-btn" onclick="setTLfw(3.0,this)">3.0 激衝撃</button>
+          </div>
+        </div>
+        <div class="field"><label>Fa方向</label>
+          <select id="tl-fa-dir" onchange="calcTaperLife()">
+            <option value="pos">正方向（軸受①側を押す）</option>
+            <option value="neg">逆方向（軸受②側を押す）</option>
+          </select>
+        </div>
+        <div class="field"><label>目標寿命時間（h）</label>
+          <input type="number" id="tl-lh-target" value="20000" step="1000" oninput="calcTaperLife()">
+        </div>
+      </div>
+
+      <div class="panel-right">
+        <div class="section-title">計算結果</div>
+        <div style="background:var(--surface);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px">
+          <div style="font-weight:600;margin-bottom:6px;color:var(--muted)">内部アキシャル力</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div>軸受①: Fai₁ = <span id="tl-fai1" style="color:var(--accent);font-family:'JetBrains Mono',monospace">—</span> kN</div>
+            <div>軸受②: Fai₂ = <span id="tl-fai2" style="color:var(--accent);font-family:'JetBrains Mono',monospace">—</span> kN</div>
+          </div>
+        </div>
+        <div style="background:var(--surface);border-radius:6px;padding:10px;margin-bottom:10px;font-size:12px">
+          <div style="font-weight:600;margin-bottom:6px;color:var(--muted)">等価動荷重</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div>軸受①: P₁ = <span id="tl-p1" style="color:var(--accent);font-weight:600;font-family:'JetBrains Mono',monospace">—</span> kN</div>
+            <div>軸受②: P₂ = <span id="tl-p2" style="color:var(--accent);font-weight:600;font-family:'JetBrains Mono',monospace">—</span> kN</div>
+          </div>
+          <div id="tl-p-note" style="color:var(--muted);font-size:11px;margin-top:4px"></div>
+        </div>
+        <div class="result-cards-2" style="margin-bottom:10px">
+          <div class="card"><div class="card-label">軸受① L10</div>
+            <div class="card-value" id="tl-l10-1">—</div>
+            <div class="card-sub" id="tl-l10h-1"></div>
+            <div class="card-sub" id="tl-l10y-1" style="color:var(--accent)"></div></div>
+          <div class="card"><div class="card-label">軸受② L10</div>
+            <div class="card-value" id="tl-l10-2">—</div>
+            <div class="card-sub" id="tl-l10h-2"></div>
+            <div class="card-sub" id="tl-l10y-2" style="color:var(--accent)"></div></div>
+        </div>
+        <div class="result-cards-2" style="margin-bottom:10px">
+          <div class="card" style="border-color:var(--accent)"><div class="card-label">制限側 L10h</div>
+            <div class="card-value" id="tl-l10h-min" style="color:var(--accent)">—</div>
+            <div class="card-sub" id="tl-l10y-min"></div>
+            <div class="card-sub">①②のうち短い方</div></div>
+          <div class="card"><div class="card-label">限界回転速度</div>
+            <div class="card-value" id="tl-rpm-limit">—</div></div>
+        </div>
+        <div class="verdict-card" id="tl-verdict-card" style="margin-bottom:10px">
+          <div class="verdict-icon" id="tl-verdict-icon">—</div>
+          <div>
+            <div class="verdict-main" id="tl-verdict-main">—</div>
+            <div class="verdict-sub"  id="tl-verdict-sub"></div>
+          </div>
+        </div>
+        <div class="section-title">計算詳細</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--surface)">
+            <th style="text-align:left;padding:5px;border-bottom:1px solid var(--border)">項目</th>
+            <th style="text-align:right;padding:5px;border-bottom:1px solid var(--border)">軸受①</th>
+            <th style="text-align:right;padding:5px;border-bottom:1px solid var(--border)">軸受②</th>
+          </tr></thead>
+          <tbody id="tl-detail-tbody"></tbody>
+        </table>
+        <div style="margin-top:10px;padding:10px;background:var(--surface);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.8">
+          <b>計算式：</b>内部アキシャル力 Fai = Fr / (2Y)<br>
+          等価動荷重 P = 0.4Fr + Y·Fa（負荷側）/ P = Fr（非負荷側）<br>
+          L10 = (Cr/P)^(10/3) × 10⁶ / (60n) [h]
+        </div>
+      </div>
+    </div>
+  </div><!-- /stab-btplife -->
+
+</div><!-- /tab-bearing -->
 <div id="tab-snap" class="tab-content">
   <div class="two-panel">
     <div class="panel-left">
@@ -2812,6 +2999,8 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <option value="100">100A</option>
             <option value="125">125A</option>
             <option value="150">150A</option>
+            <option value="200">200A</option>
+            <option value="250">250A</option>
           </select>
         </div>
 
@@ -2843,9 +3032,25 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <div class="card-unit" id="ps-r-hf-u">m</div>
           </div>
           <div class="card">
-            <div class="card-label">流速 v</div>
+            <div class="card-label">流速 v（Nm³基準）</div>
             <div class="card-value" id="ps-r-v">—</div>
             <div class="card-unit">m/s</div>
+          </div>
+        </div>
+        <!-- エア時：実効流速カード -->
+        <div id="ps-eff-cards" style="display:none;margin-bottom:8px">
+          <div class="result-cards">
+            <div class="card" style="border-color:var(--accent)">
+              <div class="card-label">実効流速（配管内実体積）</div>
+              <div class="card-value" id="ps-r-veff" style="color:var(--accent)">—</div>
+              <div class="card-unit">m/s</div>
+              <div class="card-sub" id="ps-r-veff-sub"></div>
+            </div>
+            <div class="card">
+              <div class="card-label">体積圧縮比</div>
+              <div class="card-value" id="ps-r-vratio">—</div>
+              <div class="card-sub">P_atm / P₁</div>
+            </div>
           </div>
         </div>
         <div class="result-cards" style="margin-bottom:14px">
@@ -2864,7 +3069,10 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <div class="card-unit">mm</div>
           </div>
         </div>
-        <div id="ps-v-assess" style="font-size:13px;padding:9px 13px;border-radius:7px;margin-bottom:14px;border:1px solid var(--border)"></div>
+        <!-- Nm³基準 流速判定バナー -->
+        <div id="ps-v-assess" style="font-size:13px;padding:9px 13px;border-radius:7px;margin-bottom:6px;border:1px solid var(--border)"></div>
+        <!-- エア時：実効流速判定バナー -->
+        <div id="ps-veff-assess" style="display:none;font-size:13px;padding:9px 13px;border-radius:7px;margin-bottom:14px;border:1px solid var(--border)"></div>
 
         <!-- 継手等価長テーブル -->
         <div class="section-title">主要継手の等価長（この管径の場合）</div>
@@ -2887,10 +3095,12 @@ tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--mut
             <thead><tr>
               <th style="text-align:left;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">呼び径</th>
               <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">内径 (mm)</th>
-              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">流速 (m/s)</th>
+              <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">流速 (m/s)<br><span style="font-weight:400;font-size:10px">Nm³基準</span></th>
+              <th id="ps-th-veff" style="display:none;text-align:right;padding:5px 8px;color:var(--accent);border-bottom:1px solid var(--border)">実効流速<br><span style="font-weight:400;font-size:10px">(m/s)</span></th>
               <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">Re</th>
               <th style="text-align:right;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">ΔP (kPa)</th>
               <th style="text-align:center;padding:5px 8px;color:var(--muted);border-bottom:1px solid var(--border)">判定</th>
+              <th id="ps-th-veff-judge" style="display:none;text-align:center;padding:5px 8px;color:var(--accent);border-bottom:1px solid var(--border)">実効判定</th>
             </tr></thead>
             <tbody id="ps-size-tbody"></tbody>
           </table>
@@ -3390,6 +3600,61 @@ const BEARING_DB = [
   ['NJ216',80,140,26,168,150,   4200, 6000,3.36,1.980],
   ['NJ218',90,160,30,224,208,   3600, 5000,4.48,3.100],
   ['NJ220',100,180,34,285,270,  3000, 4500,5.70,4.800],
+  // ── 自動調心玉軸受 12xx ──
+  ['1204',20,47,14, 9.36, 3.05, 11000,15000,0.00,0.110],
+  ['1205',25,52,15,10.8,  3.75, 10000,14000,0.00,0.130],
+  ['1206',30,62,16,14.0,  5.00,  8500,12000,0.00,0.210],
+  ['1207',35,72,17,17.8,  6.55,  7500,10000,0.00,0.300],
+  ['1208',40,80,18,21.2,  8.15,  7000, 9500,0.00,0.410],
+  ['1209',45,85,19,22.4,  8.80,  6300, 9000,0.00,0.450],
+  ['1210',50,90,20,23.6,  9.50,  6000, 8500,0.00,0.510],
+  ['1211',55,100,21,28.1,11.8,   5300, 7500,0.00,0.680],
+  ['1212',60,110,22,33.8,14.6,   5000, 7000,0.00,0.900],
+  ['1213',65,120,23,38.1,17.0,   4500, 6300,0.00,1.150],
+  ['1215',75,130,25,41.6,19.3,   4000, 5600,0.00,1.380],
+  ['1216',80,140,26,47.8,22.8,   3800, 5300,0.00,1.750],
+  ['1218',90,160,30,60.5,30.0,   3400, 4800,0.00,2.800],
+  ['1220',100,180,34,74.0,38.5,  3000, 4300,0.00,4.300],
+  // ── 自動調心玉軸受 13xx ──
+  ['1304',20,52,15,11.4, 3.75, 10000,14000,0.00,0.140],
+  ['1305',25,62,17,15.9, 5.50,  8500,12000,0.00,0.230],
+  ['1306',30,72,19,19.5, 7.10,  7500,10000,0.00,0.340],
+  ['1307',35,80,21,24.5, 9.30,  6700, 9000,0.00,0.470],
+  ['1308',40,90,23,31.2,12.5,   6000, 8000,0.00,0.660],
+  ['1309',45,100,25,38.5,16.0,  5300, 7000,0.00,0.910],
+  ['1310',50,110,27,46.8,20.4,  5000, 6700,0.00,1.200],
+  ['1311',55,120,29,55.3,25.0,  4500, 6000,0.00,1.550],
+  ['1312',60,130,31,63.7,29.5,  4300, 5600,0.00,1.950],
+  ['1313',65,140,33,72.8,34.5,  3800, 5000,0.00,2.400],
+  ['1315',75,160,37,90.4,45.5,  3400, 4500,0.00,3.600],
+  ['1316',80,170,39,103, 53.0,  3200, 4300,0.00,4.400],
+  ['1318',90,190,43,124, 67.5,  2800, 3800,0.00,6.200],
+  ['1320',100,215,47,153, 88.5, 2400, 3400,0.00,9.500],
+  // ── 針状ころ軸受 NA49xx ──
+  ['NA4900',10,22,13, 6.55, 5.20, 22000,28000,0.00,0.022],
+  ['NA4901',12,24,13, 7.10, 5.85, 19000,24000,0.00,0.024],
+  ['NA4902',15,28,13, 8.06, 6.95, 17000,22000,0.00,0.029],
+  ['NA4903',17,30,13, 8.51, 7.35, 15000,19000,0.00,0.031],
+  ['NA4904',20,37,17,13.2, 12.2, 13000,17000,0.00,0.068],
+  ['NA4905',25,42,17,14.3, 13.7, 11000,15000,0.00,0.079],
+  ['NA4906',30,47,17,15.3, 15.3,  9500,13000,0.00,0.088],
+  ['NA4907',35,55,20,21.2, 21.6,  8500,11000,0.00,0.150],
+  ['NA4908',40,62,22,26.5, 27.5,  7500,10000,0.00,0.200],
+  ['NA4909',45,68,22,28.1, 30.0,  7000, 9500,0.00,0.225],
+  ['NA4910',50,72,22,28.6, 31.5,  6300, 8500,0.00,0.240],
+  ['NA4911',55,80,25,37.7, 42.5,  5600, 7500,0.00,0.350],
+  ['NA4912',60,85,25,38.5, 44.5,  5300, 7000,0.00,0.375],
+  ['NA4914',70,100,30,55.5, 67.0, 4500, 6000,0.00,0.620],
+  ['NA4916',80,110,30,57.2, 72.5, 4000, 5300,0.00,0.680],
+  ['NA4920',100,140,40,97.5,137,  3000, 4000,0.00,1.600],
+  // ── 針状ころ軸受 RNA49xx（内輪なし）──
+  ['RNA4904',null,37,17,13.2, 12.2, 13000,17000,0.00,0.055],
+  ['RNA4906',null,47,17,15.3, 15.3,  9500,13000,0.00,0.070],
+  ['RNA4908',null,62,22,26.5, 27.5,  7500,10000,0.00,0.160],
+  ['RNA4910',null,72,22,28.6, 31.5,  6300, 8500,0.00,0.190],
+  ['RNA4912',null,85,25,38.5, 44.5,  5300, 7000,0.00,0.295],
+  ['RNA4916',null,110,30,57.2, 72.5, 4000, 5300,0.00,0.535],
+  ['RNA4920',null,140,40,97.5,137,   3000, 4000,0.00,1.260],
 ];
 
 let filteredBearings = [];
@@ -3434,7 +3699,7 @@ function renderBearingTable() {
         const mass = b[9] != null ? b[9].toFixed(3) : '—';
         return `<tr style="cursor:pointer;" onclick="bearingRowClick(${BEARING_DB.indexOf(b)})">
           <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
-          <td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td>
+          <td>${b[1] != null ? b[1] : '—'}</td><td>${b[2]}</td><td>${b[3]}</td>
           <td style="color:var(--accent);font-weight:600">${b[4]}</td>
           <td>${b[5]}</td>
           <td style="color:var(--warn)">${grpm}</td>
@@ -3450,7 +3715,7 @@ function bearingRowClick(idx) {
   const b = BEARING_DB[idx];
   if (!b) return;
   // 型式でころ軸受判定
-  const isRoller = /^(NU|NJ|NF|N[0-9])/.test(b[0]);
+  const isRoller = /^(NU|NJ|NF|N[0-9]|NA|RNA)/.test(b[0]);
   $('bl-type').value = isRoller ? 'roller' : 'ball';
   // Cr / C0r
   $('bl-cr').value  = b[4];
@@ -3470,7 +3735,7 @@ function bearingRowClick(idx) {
     btn.classList.toggle('selected', btn.textContent.startsWith('1.2'));
   });
   // はめあいタブへ d/D をセット
-  $('bfit-d').value = b[1];
+  if (b[1] != null) $('bfit-d').value = b[1];
   $('bfit-D').value = b[2];
   calcBearingLife();
   calcBearingFit();
@@ -4197,6 +4462,8 @@ const PIPE_DB = {
   100: { inch:'4"',     sgp_od:114.3, sgp_t:4.5, sus_od:114.3, sus_t:2.0, cu_od:104.78,cu_t:2.79, rc:'Rc 4',    pitch:2.309, tpi:11, eff_d:113.030,tap_d:112.0, ref_d:113.030},
   125: { inch:'5"',     sgp_od:139.8, sgp_t:4.5, sus_od:139.8, sus_t:2.0, cu_od:130.18,cu_t:3.05, rc:'Rc 5',    pitch:2.309, tpi:11, eff_d:138.435,tap_d:137.4, ref_d:138.435},
   150: { inch:'6"',     sgp_od:165.2, sgp_t:5.0, sus_od:165.2, sus_t:2.0, cu_od:155.58,cu_t:3.40, rc:'Rc 6',    pitch:2.309, tpi:11, eff_d:163.830,tap_d:162.8, ref_d:163.830},
+  200: { inch:'8"',     sgp_od:216.3, sgp_t:5.8, sus_od:216.3, sus_t:2.0, cu_od:null,  cu_t:null, rc:null, pitch:null, tpi:null, eff_d:null, tap_d:null, ref_d:null },
+  250: { inch:'10"',    sgp_od:267.4, sgp_t:6.0, sus_od:267.4, sus_t:2.0, cu_od:null,  cu_t:null, rc:null, pitch:null, tpi:null, eff_d:null, tap_d:null, ref_d:null },
 };
 
 function calcPipe() {
@@ -6078,12 +6345,30 @@ function calcPipeSiz() {
   const isAir = fd.isAir;
   const vMin  = fd.vMin, vMax = fd.vMax;
 
+  // エア時: 実効流速用の体積圧縮比（P_atm / P₁）
+  // P_atm=0.1013 MPa, P₁はfluidKeyから推定
+  const P_atm = 0.101325;
+  const P1_abs = fluidKey === 'air6' ? (0.6 + P_atm) : fluidKey === 'air7' ? (0.7 + P_atm) : P_atm;
+  const vRatio = isAir ? P_atm / P1_abs : 1.0;  // 実体積 / Nm³体積
+
+  // 実効流速用の推奨範囲（エア: 液体換算で 1〜3 m/s 程度が妥協範囲）
+  const vEffMin = 1.0, vEffMax = 5.0;
+
   // 流量 (m³/s)
   const Q_raw = parseFloat($('ps-Q').value) || 0;
   const Q_m3s = isAir
-    ? Q_raw / 60                    // Nm³/min → m³/s（密度補正済み扱い：ρ=実密度で計算）
+    ? Q_raw / 60                    // Nm³/min → m³/s
     : Q_raw / 1000 / 60;            // L/min → m³/s
+  const Q_eff = isAir ? Q_m3s * vRatio : Q_m3s;  // 実体積流量
   $('ps-q-label').textContent = isAir ? '流量 Q（Nm³/min）' : '流量 Q（L/min）';
+
+  // エア用UI表示切替
+  $('ps-eff-cards').style.display   = isAir ? '' : 'none';
+  $('ps-veff-assess').style.display = isAir ? '' : 'none';
+  const thVeff      = $('ps-th-veff');
+  const thVeffJudge = $('ps-th-veff-judge');
+  if (thVeff)      thVeff.style.display      = isAir ? '' : 'none';
+  if (thVeffJudge) thVeffJudge.style.display = isAir ? '' : 'none';
 
   const L_m    = parseFloat($('ps-L').value) || 10;
   const ptype  = $('ps-pipetype').value;
@@ -6102,6 +6387,31 @@ function calcPipeSiz() {
       $('ps-r-hf-label').textContent = '圧損（参考）';
       $('ps-r-hf').textContent = r.dP.toFixed(2);
       $('ps-r-hf-u').textContent = 'kPa';
+
+      // 実効流速
+      const A_m2 = Math.PI * (id_single/1000) ** 2 / 4;
+      const vEff = Q_eff / A_m2;
+      $('ps-r-veff').textContent = vEff.toFixed(2);
+      $('ps-r-veff-sub').textContent = `Nm³基準 ${r.v.toFixed(2)} m/s の ${vRatio.toFixed(3)} 倍`;
+      $('ps-r-vratio').textContent = vRatio.toFixed(3);
+
+      // 実効流速判定バナー
+      const effAssess = $('ps-veff-assess');
+      let eText, eBg, eBc;
+      if (vEff <= vEffMax) {
+        eText = `✅ 実効流速 ${vEff.toFixed(2)} m/s — 配管設計上は適正範囲内（〜${vEffMax} m/s）`;
+        eBg = 'var(--good-dim)'; eBc = 'var(--good)';
+      } else if (vEff <= vEffMax * 1.5) {
+        eText = `🔶 実効流速 ${vEff.toFixed(2)} m/s — やや高め。工事費との妥協点として許容範囲内の場合も。`;
+        eBg = 'var(--warn-dim)'; eBc = 'var(--warn)';
+      } else {
+        eText = `❌ 実効流速 ${vEff.toFixed(2)} m/s — 高すぎ。エロージョン・騒音リスクあり。`;
+        eBg = 'rgba(248,81,73,0.1)'; eBc = '#f85149';
+      }
+      effAssess.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:3px">💡 実効流速（配管内実体積換算）</div>${eText}`;
+      effAssess.style.background = eBg;
+      effAssess.style.borderColor = eBc;
+      effAssess.style.color = 'var(--ink)';
     } else {
       $('ps-r-hf-label').textContent = '損失水頭 hf';
       $('ps-r-hf').textContent = r.hf.toFixed(2);
@@ -6118,7 +6428,7 @@ function calcPipeSiz() {
     $('ps-r-regime').textContent = regime;
     $('ps-re-card').style.borderColor = reColor;
 
-    // 流速評価
+    // Nm³基準 流速評価
     const assess = $('ps-v-assess');
     let aText, bg, bc;
     if (r.v < vMin * 0.5) {
@@ -6137,7 +6447,8 @@ function calcPipeSiz() {
       aText = `❌ ${r.v.toFixed(2)} m/s — 高すぎ。管径を大きくしてください。`;
       bg = 'rgba(248,81,73,0.1)'; bc = '#f85149';
     }
-    assess.textContent = aText;
+    const prefix = isAir ? '<span style="font-size:11px;color:var(--muted)">Nm³基準　</span>' : '';
+    assess.innerHTML = prefix + aText;
     assess.style.background = bg;
     assess.style.borderColor = bc;
     assess.style.color = 'var(--ink)';
@@ -6146,7 +6457,7 @@ function calcPipeSiz() {
     const D_m = id_single / 1000;
     $('ps-fitting-tbody').innerHTML = PS_FITTINGS.map(ft => {
       const Le  = ft.LeD * D_m;
-      const dPf = r.f * ft.LeD * rho * r.v * r.v / 2 / 1000; // kPa (f * Le/D * ρv²/2 / 1000)
+      const dPf = r.f * ft.LeD * rho * r.v * r.v / 2 / 1000;
       const hilight = ft.label.includes('レデューサ') || ft.label.includes('グローブ')
         ? `style="background:rgba(210,153,34,0.07)"` : '';
       return `<tr ${hilight}>
@@ -6159,7 +6470,7 @@ function calcPipeSiz() {
   }
 
   // ── 管径一覧比較 ──
-  const SIZES = [10, 15, 20, 25, 32, 40, 50, 65, 80, 100, 125, 150];
+  const SIZES = [10, 15, 20, 25, 32, 40, 50, 65, 80, 100, 125, 150, 200, 250];
   $('ps-size-tbody').innerHTML = SIZES.map(sz => {
     const id_mm = psGetID(sz, ptype);
     if (!id_mm || Q_m3s <= 0) return '';
@@ -6173,13 +6484,31 @@ function calcPipeSiz() {
                 :       `<span style="color:#f85149;font-weight:700">⬆ 速すぎ</span>`;
     const vColor = ok ? 'var(--good)' : hi ? '#f85149' : 'var(--muted)';
     const rowBg  = isSelected ? 'background:var(--accent-dim);' : ok ? 'background:var(--good-dim);' : '';
+
+    // エア時: 実効流速列
+    let vEffCell = '', vEffBadgeCell = '';
+    if (isAir) {
+      const A_m2 = Math.PI * (id_mm/1000) ** 2 / 4;
+      const vEff = Q_eff / A_m2;
+      const effOk  = vEff <= vEffMax;
+      const effHi  = vEff > vEffMax * 1.5;
+      const effBadge = effOk  ? `<span style="color:var(--good)">✅ OK</span>`
+                     : effHi  ? `<span style="color:#f85149">❌ 高すぎ</span>`
+                     :          `<span style="color:var(--warn)">🔶 やや高</span>`;
+      const effColor = effOk ? 'var(--accent)' : effHi ? '#f85149' : 'var(--warn)';
+      vEffCell = `<td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${effColor}">${vEff.toFixed(2)}</td>`;
+      vEffBadgeCell = `<td style="padding:5px 8px;text-align:center">${effBadge}</td>`;
+    }
+
     return `<tr style="${rowBg}${isSelected ? 'outline:1px solid var(--accent);' : ''}">
       <td style="padding:5px 8px;font-weight:${isSelected?'700':'400'};color:${isSelected?'var(--accent)':'var(--ink)'}">${sz}A</td>
       <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${id_mm.toFixed(1)}</td>
       <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${vColor};font-weight:${ok?'700':'400'}">${r.v.toFixed(2)}</td>
+      ${vEffCell}
       <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${r.Re.toLocaleString('ja',{maximumFractionDigits:0})}</td>
       <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${r.dP.toFixed(2)}</td>
       <td style="padding:5px 8px;text-align:center">${badge}</td>
+      ${vEffBadgeCell}
     </tr>`;
   }).join('');
 }
@@ -6904,6 +7233,255 @@ onFluidChange();
 addSegment(); // 最初の区間Aを追加
 calcPumpPow();
 calcPipeSiz();
+
+// ════════════════════════════════════════════
+// 🎡 テーパーころ軸受 JS
+// ════════════════════════════════════════════
+const TAPER_DB = [
+  // ── 320xx 幅広系列 ──
+  ['32004', 20, 42, 15, 20.8, 22.0, 0.40, 1.50, 0.80,  14000, 0.090],
+  ['32005', 25, 47, 15, 23.0, 25.5, 0.40, 1.50, 0.80,  12000, 0.105],
+  ['32006', 30, 55, 17, 32.0, 36.5, 0.40, 1.50, 0.80,  10000, 0.175],
+  ['32007', 35, 62, 18, 38.0, 44.0, 0.40, 1.50, 0.80,   9000, 0.225],
+  ['32008', 40, 68, 19, 44.5, 52.0, 0.40, 1.50, 0.80,   8000, 0.275],
+  ['32009', 45, 75, 20, 52.0, 62.5, 0.40, 1.50, 0.80,   7500, 0.355],
+  ['32010', 50, 80, 20, 56.0, 69.5, 0.40, 1.50, 0.80,   7000, 0.385],
+  ['32011', 55, 90, 23, 72.0, 90.5, 0.40, 1.50, 0.80,   6300, 0.560],
+  ['32012', 60, 95, 23, 77.5,100,   0.40, 1.50, 0.80,   6000, 0.600],
+  ['32013', 65,100, 23, 80.5,107,   0.40, 1.50, 0.80,   5600, 0.640],
+  ['32014', 70,110, 25, 98.0,132,   0.40, 1.50, 0.80,   5300, 0.840],
+  ['32015', 75,115, 25,102,  140,   0.40, 1.50, 0.80,   5000, 0.880],
+  ['32016', 80,125, 29,125,  172,   0.40, 1.50, 0.80,   4500, 1.200],
+  ['32017', 85,130, 29,130,  182,   0.40, 1.50, 0.80,   4300, 1.280],
+  ['32018', 90,140, 32,153,  218,   0.40, 1.50, 0.80,   4000, 1.650],
+  ['32020',100,150, 32,163,  240,   0.40, 1.50, 0.80,   3600, 1.800],
+  ['32022',110,170, 38,218,  330,   0.40, 1.50, 0.80,   3200, 3.000],
+  ['32024',120,180, 38,228,  355,   0.40, 1.50, 0.80,   3000, 3.250],
+  ['32026',130,200, 45,298,  480,   0.40, 1.50, 0.80,   2800, 5.000],
+  ['32030',150,225, 48,358,  605,   0.40, 1.50, 0.80,   2400, 6.800],
+  ['32034',170,260, 57,465,  820,   0.40, 1.50, 0.80,   2000,11.500],
+  ['32038',190,290, 64,560, 1020,   0.40, 1.50, 0.80,   1800,16.000],
+  // ── 302xx 中幅系列 ──
+  ['30202', 15, 35, 11, 12.0, 11.7, 0.35, 1.72, 0.92,  18000, 0.045],
+  ['30203', 17, 40, 13, 16.4, 16.8, 0.35, 1.72, 0.92,  16000, 0.075],
+  ['30204', 20, 47, 15, 22.5, 23.5, 0.35, 1.72, 0.92,  14000, 0.115],
+  ['30205', 25, 52, 16, 26.5, 28.5, 0.35, 1.72, 0.92,  12000, 0.140],
+  ['30206', 30, 62, 17, 36.5, 40.5, 0.35, 1.72, 0.92,  10000, 0.225],
+  ['30207', 35, 72, 18, 47.5, 54.0, 0.35, 1.72, 0.92,   8500, 0.330],
+  ['30208', 40, 80, 19, 57.5, 67.5, 0.35, 1.72, 0.92,   7500, 0.440],
+  ['30209', 45, 85, 20, 63.5, 76.5, 0.35, 1.72, 0.92,   7000, 0.495],
+  ['30210', 50, 90, 21, 69.5, 85.5, 0.35, 1.72, 0.92,   6700, 0.550],
+  ['30211', 55,100, 22, 87.0,109,   0.35, 1.72, 0.92,   6000, 0.740],
+  ['30212', 60,110, 23,105,  136,   0.35, 1.72, 0.92,   5600, 0.975],
+  ['30213', 65,120, 24,123,  163,   0.35, 1.72, 0.92,   5000, 1.250],
+  ['30215', 75,130, 25,133,  183,   0.35, 1.72, 0.92,   4500, 1.400],
+  ['30216', 80,140, 26,158,  224,   0.35, 1.72, 0.92,   4300, 1.850],
+  ['30218', 90,160, 30,215,  320,   0.35, 1.72, 0.92,   3800, 3.000],
+  ['30220',100,180, 34,283,  445,   0.35, 1.72, 0.92,   3400, 4.600],
+  ['30222',110,200, 38,355,  580,   0.35, 1.72, 0.92,   3000, 6.600],
+  ['30224',120,215, 40,400,  675,   0.35, 1.72, 0.92,   2800, 8.200],
+  // ── 303xx 中幅・大接触角系列 ──
+  ['30303', 17, 47, 15, 22.0, 21.0, 0.29, 2.07, 1.10,  15000, 0.105],
+  ['30304', 20, 52, 16, 27.5, 27.5, 0.29, 2.07, 1.10,  13000, 0.140],
+  ['30305', 25, 62, 18, 38.5, 40.5, 0.29, 2.07, 1.10,  11000, 0.235],
+  ['30306', 30, 72, 20, 52.5, 57.5, 0.29, 2.07, 1.10,   9500, 0.380],
+  ['30307', 35, 80, 22, 65.0, 73.5, 0.29, 2.07, 1.10,   8000, 0.530],
+  ['30308', 40, 90, 25, 82.5, 97.5, 0.29, 2.07, 1.10,   7000, 0.760],
+  ['30309', 45,100, 27,100,  123,   0.29, 2.07, 1.10,   6300, 1.050],
+  ['30310', 50,110, 29,120,  153,   0.29, 2.07, 1.10,   5600, 1.380],
+  ['30311', 55,120, 31,143,  190,   0.29, 2.07, 1.10,   5300, 1.800],
+  ['30312', 60,130, 33,170,  232,   0.29, 2.07, 1.10,   5000, 2.300],
+  ['30314', 70,150, 38,228,  325,   0.29, 2.07, 1.10,   4300, 3.700],
+  ['30315', 75,160, 40,258,  380,   0.29, 2.07, 1.10,   4000, 4.550],
+  ['30316', 80,170, 42,292,  440,   0.29, 2.07, 1.10,   3800, 5.600],
+  ['30318', 90,190, 46,365,  580,   0.29, 2.07, 1.10,   3400, 8.000],
+  ['30320',100,215, 51,468,  790,   0.29, 2.07, 1.10,   3000,12.500],
+];
+
+let filteredTapers = [];
+let selectedTaper  = null;
+
+function filterTaper() {
+  const q    = ($('tp-query').value || '').toUpperCase().trim();
+  const bore = $('tp-bore').value !== '' ? +$('tp-bore').value : null;
+  const od   = $('tp-od').value   !== '' ? +$('tp-od').value   : null;
+  if (!q && bore === null && od === null) {
+    $('tp-tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">型式または内径を入力してください</td></tr>`;
+    $('tp-hit-info').textContent = ''; return;
+  }
+  filteredTapers = TAPER_DB.filter(b => {
+    const mQ = q.length < 2 || b[0].includes(q);
+    const mB = bore === null || b[1] === bore;
+    const mO = od   === null || b[2] === od;
+    return mQ && mB && mO;
+  });
+  $('tp-hit-info').textContent = filteredTapers.length ? `${filteredTapers.length} 件ヒット` : '該当なし';
+  $('tp-tbody').innerHTML = filteredTapers.length
+    ? filteredTapers.map(b => `<tr style="cursor:pointer" onclick="taperRowClick(${TAPER_DB.indexOf(b)})">
+        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
+        <td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td>
+        <td style="color:var(--accent);font-weight:600">${b[4]}</td>
+        <td>${b[5]}</td><td>${b[6]}</td><td>${b[7]}</td>
+        <td style="color:var(--warn)">${b[9].toLocaleString()}</td>
+        <td style="color:var(--muted)">${b[10]}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">該当なし</td></tr>`;
+}
+
+function taperRowClick(idx) {
+  const b = TAPER_DB[idx];
+  if (!b) return;
+  selectedTaper = b;
+  $('tl-model').value = b[0];
+  $('tl-cr').value    = b[4];
+  $('tl-c0r').value   = b[5];
+  $('tl-e').value     = b[6];
+  $('tl-Y').value     = b[7];
+  $('tl-Y0').value    = b[8];
+  // Fr = Cr/10、n = 限界rpm÷2
+  const frInit = parseFloat((b[4] / 10).toFixed(2));
+  $('tl-fr').value = frInit;
+  $('tl-fa').value = 0;
+  $('tl-n').value  = Math.floor(b[9] / 2 / 10) * 10;
+  $('tl-fw').value = 1.2;
+  document.querySelectorAll('#stab-btplife .preset-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.startsWith('1.2'));
+  });
+  calcTaperLife();
+  // テーパーころ寿命タブへ切り替え
+  showBearingTab('btplife', $('btab-tplife'));
+  // フラッシュ通知
+  $('tp-hit-info').textContent = `✔ ${b[0]}  Fr=${frInit} kN / n=${$('tl-n').value} rpm をセットしました`;
+  setTimeout(() => { filterTaper(); }, 2500);
+}
+
+function onTaperModelInput() {
+  const q = ($('tl-model').value || '').toUpperCase();
+  const b = TAPER_DB.find(r => r[0] === q);
+  if (b) taperRowClick(TAPER_DB.indexOf(b));
+  else calcTaperLife();
+}
+
+function setTLfw(v, el) {
+  $('tl-fw').value = v;
+  document.querySelectorAll('#stab-btplife .preset-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  calcTaperLife();
+}
+
+function calcTaperLife() {
+  const Cr  = +$('tl-cr').value  || 0;
+  const Fr  = +$('tl-fr').value  || 0;
+  const Fa  = +$('tl-fa').value  || 0;
+  const n   = +$('tl-n').value   || 0;
+  const fw  = +$('tl-fw').value  || 1.2;
+  const Y   = +$('tl-Y').value   || 0;
+  const e   = +$('tl-e').value   || 0;
+  const cfg = $('tl-config').value;
+  const faDir = $('tl-fa-dir').value;
+  const Lh_target = +$('tl-lh-target').value || 20000;
+  const fmt = (v, d=2) => isFinite(v) && v > 0 ? v.toFixed(d) : '—';
+
+  if (!Cr || !Fr || !n || !Y) {
+    ['tl-fai1','tl-fai2','tl-p1','tl-p2',
+     'tl-l10-1','tl-l10-2','tl-l10h-min','tl-rpm-limit'].forEach(id => {
+      const el = $(id); if (el) el.textContent = '—';
+    });
+    return;
+  }
+
+  const Fai1 = Fr / (2 * Y);
+  const Fai2 = Fr / (2 * Y);
+  const Fa_signed = faDir === 'pos' ? Fa : -Fa;
+
+  let P1, P2, note;
+  if (cfg === 'DT') {
+    const Fr2 = Fr / 2, Fa2 = Math.abs(Fa) / 2;
+    P1 = Fa2 / Fr2 > e ? 0.4 * Fr2 + Y * Fa2 : Fr2;
+    P2 = P1;
+    note = '直列(DT)：各軸受に荷重を均等分担';
+  } else {
+    const Fa_total_1 = Fai2 + Fa_signed;
+    const Fa_total_2 = Fai1 - Fa_signed;
+    if (Fa_total_1 > 0 && Fa_total_1 / Fr > e) {
+      P1 = 0.4 * Fr + Y * Fa_total_1; P2 = Fr;
+      note = '軸受①が負荷側';
+    } else if (Fa_total_2 > 0 && Fa_total_2 / Fr > e) {
+      P1 = Fr; P2 = 0.4 * Fr + Y * Fa_total_2;
+      note = '軸受②が負荷側';
+    } else {
+      P1 = Fr; P2 = Fr;
+      note = 'Fa/Fr ≤ e → 両軸受 P = Fr';
+    }
+  }
+  P1 *= fw; P2 *= fw;
+
+  const p = 10 / 3;
+  const L10_1 = Math.pow(Cr / P1, p);
+  const L10_2 = Math.pow(Cr / P2, p);
+  const Lh1   = L10_1 * 1e6 / (60 * n);
+  const Lh2   = L10_2 * 1e6 / (60 * n);
+  const Lh_min = Math.min(Lh1, Lh2);
+  const rpmLimit = selectedTaper ? selectedTaper[9] : null;
+
+  const hPerYear = 365.25 * 24;
+  const fmtYear  = h => h >= 8760 ? `≈ ${(h/hPerYear).toFixed(1)} 年` : `≈ ${(h/730).toFixed(1)} ヶ月`;
+
+  $('tl-fai1').textContent  = fmt(Fai1, 3);
+  $('tl-fai2').textContent  = fmt(Fai2, 3);
+  $('tl-p1').textContent    = fmt(P1, 3);
+  $('tl-p2').textContent    = fmt(P2, 3);
+  $('tl-p-note').textContent = note || '';
+  $('tl-l10-1').innerHTML   = `${fmt(L10_1,2)}<span class="card-unit"> ×10⁶回</span>`;
+  $('tl-l10h-1').textContent = `≈ ${Math.round(Lh1).toLocaleString()} h`;
+  $('tl-l10y-1').textContent = fmtYear(Lh1);
+  $('tl-l10-2').innerHTML   = `${fmt(L10_2,2)}<span class="card-unit"> ×10⁶回</span>`;
+  $('tl-l10h-2').textContent = `≈ ${Math.round(Lh2).toLocaleString()} h`;
+  $('tl-l10y-2').textContent = fmtYear(Lh2);
+  $('tl-l10h-min').innerHTML = `${Math.round(Lh_min).toLocaleString()}<span class="card-unit"> h</span>`;
+  $('tl-l10y-min').textContent = fmtYear(Lh_min);
+  $('tl-rpm-limit').innerHTML = rpmLimit
+    ? `${rpmLimit.toLocaleString()}<span class="card-unit"> rpm</span>` : '—';
+
+  const ratio = Lh_min / Lh_target;
+  const vc = $('tl-verdict-card');
+  let icon, main, sub, color;
+  if (rpmLimit && n > rpmLimit) {
+    icon='⚠️'; main='回転速度が限界を超えています';
+    sub=`n=${n} rpm > 限界 ${rpmLimit.toLocaleString()} rpm`; color='var(--bad)';
+  } else if (ratio >= 2.0) {
+    icon='🟢'; main='寿命は十分余裕があります';
+    sub=`L10h ${Math.round(Lh_min).toLocaleString()} h（目標の ${ratio.toFixed(1)}倍）`; color='var(--good)';
+  } else if (ratio >= 1.2) {
+    icon='✅'; main='寿命は目標を満たしています';
+    sub=`L10h ${Math.round(Lh_min).toLocaleString()} h（目標の ${ratio.toFixed(1)}倍）`; color='var(--good)';
+  } else if (ratio >= 1.0) {
+    icon='🔶'; main='寿命はギリギリ目標を達成';
+    sub=`L10h ${Math.round(Lh_min).toLocaleString()} h — より大きな軸受を検討してください`; color='var(--warn)';
+  } else {
+    icon='❌'; main='寿命不足 — 軸受の見直しが必要です';
+    sub=`L10h ${Math.round(Lh_min).toLocaleString()} h（目標の ${(ratio*100).toFixed(0)}%）`; color='var(--bad)';
+  }
+  $('tl-verdict-icon').textContent = icon;
+  $('tl-verdict-main').textContent = main;
+  $('tl-verdict-sub').textContent  = sub;
+  vc.style.borderColor = color;
+  vc.style.background  = 'var(--surface)';
+
+  $('tl-detail-tbody').innerHTML = [
+    ['ラジアル荷重 Fr',   `${Fr} kN`,          `${Fr} kN`],
+    ['外部アキシャル Fa', `${Fa} kN`,           '—'],
+    ['内部アキシャル Fai',`${fmt(Fai1,3)} kN`,  `${fmt(Fai2,3)} kN`],
+    ['荷重係数 fw',       `×${fw}`,             `×${fw}`],
+    ['等価動荷重 P',      `${fmt(P1,3)} kN`,    `${fmt(P2,3)} kN`],
+    ['L10（×10⁶回）',    fmt(L10_1,3),         fmt(L10_2,3)],
+    ['L10h（h）',         `${Math.round(Lh1).toLocaleString()} h`, `${Math.round(Lh2).toLocaleString()} h`],
+  ].map(r => `<tr>
+    <td style="padding:4px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
+    <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[1]}</td>
+    <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[2]}</td>
+  </tr>`).join('');
+}
 
 </script>
 </body>
