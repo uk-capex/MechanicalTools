@@ -3,36 +3,453 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>uk-capex Tools</title>
+
+  <title>uk-capex | 機械保全・経営指標 Webツール集</title>
+  <meta name="description" content="製造現場のエンジニアから経営管理まで対応するブラウザ完結型Webツール集。機械保全（焼き嵌め・歯車・ベアリングなど14種）と全社経営指標（ランウェイ・DSCR・ROIC）をカバー。インストール不要。">
+
+  <!-- OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://uk-capex.com/">
+  <meta property="og:title" content="uk-capex | 機械保全・経営指標 Webツール集">
+  <meta property="og:description" content="製造現場のエンジニアから経営管理まで対応するブラウザ完結型Webツール集。機械保全・経営指標をカバー。インストール不要。">
+  <meta property="og:image" content="https://uk-capex.com/uk-capex-logo-half.png">
+  <meta property="og:image:width" content="1101">
+  <meta property="og:image:height" content="240">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://uk-capex.com/uk-capex-logo-half.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- 構造化データ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "uk-capex",
+    "url": "https://uk-capex.com/",
+    "description": "製造現場のエンジニアから経営管理まで対応するブラウザ完結型Webツール集",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://uk-capex.com/"
+    }
+  }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --bg: #0c1117;
+      --surface: #161b22;
+      --surface2: #1c2230;
+      --border: #2a3444;
+      --ink: #cdd9e5;
+      --muted: #768390;
+      --accent: #388bfd;
+      --good: #3fb950;
+      --free: #bc8cff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: 'Noto Sans JP', sans-serif;
-      background: #0c1117;
-      color: #cdd9e5;
-      padding: 40px;
-      text-align: center;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    h1 { font-size: 24px; margin-bottom: 40px; }
-    a {
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(56,139,253,0.02) 2px, rgba(56,139,253,0.02) 4px
+      );
+      pointer-events: none; z-index: 0;
+    }
+
+    .accent-bar {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), #58a6ff, var(--accent), transparent);
+      position: relative; z-index: 10;
+    }
+
+    header {
+      position: relative; z-index: 10;
+      padding: 20px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px; font-weight: 600;
+      color: var(--ink); letter-spacing: 2px;
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+
+    .header-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+    }
+
+    /* ── ヒーロー ── */
+    .hero {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 64px 24px 52px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 3px;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: ''; width: 32px; height: 1px;
+      background: var(--accent); opacity: 0.4;
+    }
+
+    .hero h1 {
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 700; line-height: 1.45;
+      margin-bottom: 16px; color: var(--ink);
+    }
+
+    .hero h1 .highlight-mech { color: var(--accent); }
+    .hero h1 .highlight-mgmt { color: var(--good); }
+
+    .hero-desc {
+      font-size: 14px; color: var(--muted);
+      font-weight: 300; line-height: 1.9;
+      max-width: 480px; margin: 0 auto 28px;
+    }
+
+    .hero-badges {
+      display: flex; justify-content: center;
+      gap: 10px; flex-wrap: wrap;
+    }
+    .hero-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    .badge-blue { background: rgba(56,139,253,0.1); color: var(--accent); border: 1px solid rgba(56,139,253,0.2); }
+    .badge-green { background: rgba(63,185,80,0.1); color: var(--good); border: 1px solid rgba(63,185,80,0.2); }
+    .badge-gray { background: rgba(118,131,144,0.1); color: var(--muted); border: 1px solid rgba(118,131,144,0.2); }
+
+    /* ── セクション共通 ── */
+    .section-wrap {
+      position: relative; z-index: 1;
+      max-width: 900px; margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section-label {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 16px;
+    }
+    .section-label-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-label-line {
+      flex: 1; height: 1px;
+      background: var(--border);
+    }
+    .label-blue { color: var(--accent); }
+    .label-green { color: var(--good); }
+    .label-free { color: var(--free); }
+
+    /* ── メインカードグリッド（2本柱） ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .main-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex; flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .main-card:hover {
+      background: var(--surface2);
+      transform: translateY(-3px);
+    }
+    .main-card.card-mech { border-top: 3px solid var(--accent); }
+    .main-card.card-mech:hover { border-color: var(--accent); }
+    .main-card.card-mgmt { border-top: 3px solid var(--good); }
+    .main-card.card-mgmt:hover { border-color: var(--good); }
+
+    .main-card-body {
+      padding: 28px 26px 20px;
+      flex: 1; display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .main-card-icon { font-size: 32px; }
+
+    .main-card-title {
+      font-size: 17px; font-weight: 700;
+      color: var(--ink); line-height: 1.3;
+    }
+
+    .main-card-desc {
+      font-size: 13px; color: var(--muted);
+      line-height: 1.8; font-weight: 300;
+      flex: 1;
+    }
+
+    .main-card-tags {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .card-tag {
       display: inline-block;
-      margin: 10px;
-      padding: 15px 30px;
-      background: #161b22;
-      border: 1px solid #2a3444;
-      border-radius: 8px;
-      color: #388bfd;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 4px;
+      letter-spacing: 1px;
+    }
+    .tag-mech { background: rgba(56,139,253,0.12); color: var(--accent); border: 1px solid rgba(56,139,253,0.25); }
+    .tag-mgmt { background: rgba(63,185,80,0.12); color: var(--good); border: 1px solid rgba(63,185,80,0.25); }
+    .tag-free { background: rgba(188,140,255,0.12); color: var(--free); border: 1px solid rgba(188,140,255,0.25); }
+
+    .main-card-footer {
+      padding: 14px 26px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .main-card-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: var(--muted);
+    }
+    .main-card-price strong {
+      font-size: 15px; color: var(--ink);
+    }
+    .main-card-cta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      padding: 6px 14px; border-radius: 5px;
       text-decoration: none;
       transition: all 0.2s;
     }
-    a:hover {
-      background: #1c2230;
-      border-color: #388bfd;
+    .cta-mech {
+      background: rgba(56,139,253,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56,139,253,0.3);
+    }
+    .cta-mech:hover { background: rgba(56,139,253,0.25); }
+    .cta-mgmt {
+      background: rgba(63,185,80,0.15);
+      color: var(--good);
+      border: 1px solid rgba(63,185,80,0.3);
+    }
+    .cta-mgmt:hover { background: rgba(63,185,80,0.25); }
+
+    /* ── 契約者リンク ── */
+    .subscriber-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+    .subscriber-link {
+      display: block;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 10px 12px;
+      border: 1px solid rgba(56,139,253,0.2);
+      border-radius: 6px;
+      background: rgba(56,139,253,0.05);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .subscriber-link:hover {
+      background: rgba(56,139,253,0.12);
+      border-color: rgba(56,139,253,0.4);
+    }
+    .subscriber-link-mgmt {
+      color: var(--good);
+      border-color: rgba(63,185,80,0.2);
+      background: rgba(63,185,80,0.05);
+    }
+    .subscriber-link-mgmt:hover {
+      background: rgba(63,185,80,0.12);
+      border-color: rgba(63,185,80,0.4);
+    }
+
+    @media (max-width: 640px) {
+      .subscriber-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── 無料ツールセクション ── */
+    .free-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 80px;
+    }
+
+    .free-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 18px 18px;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex; flex-direction: column; gap: 8px;
+      opacity: 0.8;
+      transition: opacity 0.2s, background 0.2s, transform 0.15s;
+    }
+    .free-card:hover {
+      opacity: 1;
+      background: var(--surface2);
+      transform: translateY(-2px);
+    }
+
+    .free-card-icon { font-size: 22px; }
+    .free-card-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--ink); line-height: 1.3;
+    }
+    .free-card-desc {
+      font-size: 11px; color: var(--muted);
+      line-height: 1.6; font-weight: 300;
+      flex: 1;
+    }
+
+    .free-card-point {
+      font-size: 11px; color: var(--free);
+      line-height: 1.6; font-weight: 500;
+    }
+    footer {
+      position: relative; z-index: 1;
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding: 20px 32px; text-align: center;
+      background: var(--surface);
+    }
+    .footer-links {
+      display: flex; justify-content: center;
+      gap: 24px; margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-size: 11px; color: var(--muted);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-copy {
+      font-size: 11px; color: #3a4a5a;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* アニメーション */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero { animation: fadeUp 0.4s ease 0.1s both; }
+    .main-section { animation: fadeUp 0.4s ease 0.2s both; }
+    .free-section { animation: fadeUp 0.4s ease 0.3s both; }
+
+    /* レスポンシブ */
+    @media (max-width: 640px) {
+      header { padding: 14px 16px; }
+      .header-sub { display: none; }
+      .hero { padding: 44px 16px 36px; }
+      .hero h1 { font-size: 22px; }
+      .hero-desc { font-size: 13px; }
+      .section-wrap { padding: 0 12px; }
+      .main-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .main-card-body { padding: 22px 20px 16px; }
+      .main-card-footer { padding: 12px 20px; }
+      .main-card-title { font-size: 16px; }
+      .free-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 60px;
+      }
+      .free-card { padding: 14px 14px; }
+      .footer-links { gap: 16px; }
+    }
+
+    @media (max-width: 400px) {
+      .free-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <h1> 🔧-保全/設計に役立つあれこれ-📐</h1>
-  <a href="Mechanical_Tools.html">機械保全 便利ツール</a>
-  <a href="Lathe_Milling Tools.html">旋盤 & フライス 計算ツール</a>
+
+  <div class="accent-bar"></div>
+
+  <header>
+    <a class="logo" href="index.html">uk<span>-</span>capex</a>
+  </header>
+
+  <!-- メインツール -->
+  <div class="main-section" style="padding-top:48px;">
+    <div class="section-wrap">
+      <div class="main-grid">
+
+        <!-- 機械保全ツール -->
+        <a href="Mechanical_Tools.html" class="main-card card-mech">
+          <div class="main-card-body">
+            <div class="main-card-icon">🔧</div>
+            <h2 class="main-card-title">機械保全 便利ツール集</h2>
+            <p class="main-card-desc">焼き嵌め・ネジ・歯車・ベアリングなど14ツール</p>
+          </div>
+          <div class="main-card-footer">
+            <span class="main-card-cta cta-mech">開く →</span>
+          </div>
+        </a>
+
+        <!-- 旋盤・フライスツール -->
+        <a href="Lathe_Milling_Tools.html" class="main-card card-mgmt">
+          <div class="main-card-body">
+            <div class="main-card-icon">🔵</div>
+            <h2 class="main-card-title">旋盤 &amp; フライス 計算ツール</h2>
+            <p class="main-card-desc">切削条件・回転数・送り速度・材料別早見表</p>
+          </div>
+          <div class="main-card-footer">
+            <span class="main-card-cta cta-mgmt">開く →</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-copy">© 2026 uk-capex. All rights reserved.</div>
+  </footer>
+
 </body>
 </html>
