@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>使い方ガイド｜機械保全 便利ツール集 | uk-capex</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="description" content="機械保全 便利ツール集の使い方。焼き嵌め・ネジ・歯車・梁計算など14ツールの操作ガイドとFAQ。">
+<meta property="og:title" content="使い方ガイド｜機械保全 便利ツール集 | uk-capex">
+<meta property="og:description" content="機械保全 便利ツール集の使い方。焼き嵌め・ネジ・歯車・梁計算など14ツールの操作ガイドとFAQ。">
+<meta property="og:url" content="https://uk-capex.com/how-to-use-mechanical.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://uk-capex.com/uk-capex-logo-half.png">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --bg:#0c1117;--surface:#161b22;--surface2:#1c2230;
+  --border:#2a3444;--ink:#cdd9e5;--muted:#768390;
+  --accent:#388bfd;--good:#3fb950;--warn:#d29922;
+  --text-dim:#484f58;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.7;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(56,139,253,.02) 2px,rgba(56,139,253,.02) 4px);pointer-events:none;z-index:0;}
+
+/* HEADER */
+.site-header{position:sticky;top:0;z-index:100;background:rgba(12,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 0;}
+.header-inner{max-width:800px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--ink);text-decoration:none;}
+.logo span{color:var(--accent);}
+.header-nav{display:flex;gap:20px;align-items:center;}
+.header-nav a{color:var(--muted);font-size:12px;text-decoration:none;transition:color .2s;}
+.header-nav a:hover{color:var(--ink);}
+.header-nav .nav-btn{padding:6px 14px;background:var(--accent);color:#fff;border-radius:5px;font-size:12px;font-weight:700;}
+@media(max-width:600px){.header-nav a:not(.nav-btn){display:none;}}
+
+.main{position:relative;z-index:1;max-width:800px;margin:0 auto;padding:48px 24px 80px;}
+
+/* HERO */
+.page-hero{text-align:center;margin-bottom:48px;}
+.eyebrow{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;}
+.page-hero h1{font-size:26px;font-weight:700;margin-bottom:10px;}
+.page-hero p{font-size:14px;color:var(--muted);line-height:1.8;}
+
+/* SECTION */
+.section-title{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.section-title h2{font-size:16px;font-weight:700;color:var(--ink);}
+.section-title .line{flex:1;height:1px;background:var(--border);}
+
+/* STEPS */
+.steps{margin-bottom:48px;}
+.step-row{display:flex;gap:16px;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border);}
+.step-row:last-child{border-bottom:none;}
+.step-num{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.step-content strong{font-size:13px;color:var(--ink);display:block;margin-bottom:4px;}
+.step-content p{font-size:13px;color:var(--muted);line-height:1.7;}
+
+/* TOOLS */
+.tools-section{margin-bottom:48px;}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px;background:var(--border);border:1px solid var(--border);}
+.tool-item{background:var(--surface);padding:16px;border-top:2px solid transparent;transition:all .2s;}
+.tool-item:hover{background:var(--surface2);border-top-color:var(--accent);}
+.tool-icon{font-size:20px;margin-bottom:8px;display:block;}
+.tool-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.tool-desc{font-size:11px;color:var(--muted);line-height:1.6;}
+
+/* FAQ */
+.faq-section{margin-bottom:48px;}
+.faq-item{border-bottom:1px solid var(--border);}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 4px;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);user-select:none;gap:12px;}
+.faq-q:hover{color:var(--accent);}
+.faq-arrow{color:var(--text-dim);font-size:11px;transition:transform .25s;flex-shrink:0;}
+.faq-item.open .faq-arrow{transform:rotate(180deg);color:var(--accent);}
+.faq-a{display:none;padding:0 4px 16px;font-size:13px;color:var(--muted);line-height:1.8;}
+.faq-item.open .faq-a{display:block;}
+
+/* CTA */
+.cta-box{background:linear-gradient(135deg,#1a3c6e,#1c2330);border:1px solid var(--accent);border-radius:10px;padding:32px;text-align:center;margin-bottom:48px;}
+.cta-box h2{font-size:18px;font-weight:700;margin-bottom:8px;}
+.cta-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.8;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;border-radius:6px;text-decoration:none;transition:all .2s;}
+.btn-primary:hover{background:#4d9bff;transform:translateY(-1px);}
+
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:24px;text-align:center;}
+footer p{font-size:11px;color:var(--text-dim);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="https://uk-capex.com/">uk<span>-</span>capex</a>
+    <nav class="header-nav">
+      <a href="https://uk-capex.com/">ホーム</a>
+      <a href="https://uk-capex.com/pricing_mechanical.html">料金</a>
+      <a href="https://uk-capex.com/contact.html">お問い合わせ</a>
+      <a href="https://uk-capex.com/Mechanical_Tools.html" class="nav-btn">ツールを開く</a>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="page-hero">
+    <div class="eyebrow">How to use</div>
+    <h1>🔧 機械保全ツールの使い方</h1>
+    <p>月額¥300（税込）。1日間の無料トライアルあり。<br>製造現場のエンジニア向けWebツール集 uk-capex。</p>
+  </div>
+
+  <!-- クイックスタート -->
+  <div class="section-title"><h2>クイックスタート</h2><div class="line"></div></div>
+  <div class="steps">
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>ツールを開く</strong>
+        <p>ログイン後、<a href="https://uk-capex.com/Mechanical_Tools.html" style="color:var(--accent);">Mechanical_Tools.html</a> にアクセスします。上部のタブから使いたいツールを選んでください。</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>数値を入力する</strong>
+        <p>各ツールの入力欄に数値を入れると、リアルタイムで結果が表示されます。Enterキーや計算ボタンは不要です。</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>結果を確認する</strong>
+        <p>計算結果・参照表・グラフが即座に表示されます。スマホでも見やすいレイアウトになっています。</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>印刷・スクリーンショット</strong>
+        <p>結果はそのまま印刷またはスクリーンショットで保存できます。データはブラウザ上で処理されサーバーには送信されません。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ツール一覧 -->
+  <div class="tools-section">
+    <div class="section-title"><h2>収録ツール一覧</h2><div class="line"></div></div>
+    <div class="tools-grid">
+      <div class="tool-item"><span class="tool-icon">🔥</span><div class="tool-name">焼き嵌め計算</div><div class="tool-desc">加熱温度・締め代を自動算出</div></div>
+      <div class="tool-item"><span class="tool-icon">⚙️</span><div class="tool-name">ネジ計算</div><div class="tool-desc">締付け軸力・ピッチ一覧</div></div>
+      <div class="tool-item"><span class="tool-icon">🚿</span><div class="tool-name">管用ネジ</div><div class="tool-desc">配管種別・呼び径・テーパネジ参照</div></div>
+      <div class="tool-item"><span class="tool-icon">🔩</span><div class="tool-name">座グリ寸法</div><div class="tool-desc">種別ごとの寸法を即参照</div></div>
+      <div class="tool-item"><span class="tool-icon">⚙️</span><div class="tool-name">歯車諸元</div><div class="tool-desc">中心距離・歯先円径を計算</div></div>
+      <div class="tool-item"><span class="tool-icon">⛓️</span><div class="tool-name">チェーン・スプロケット</div><div class="tool-desc">規格・ピッチ円径を確認</div></div>
+      <div class="tool-item"><span class="tool-icon">🎡</span><div class="tool-name">ベアリング</div><div class="tool-desc">検索・寿命計算・はめあい・スラスト</div></div>
+      <div class="tool-item"><span class="tool-icon">🔗</span><div class="tool-name">スナップリング</div><div class="tool-desc">軸径・溝寸法を早見</div></div>
+      <div class="tool-item"><span class="tool-icon">📏</span><div class="tool-name">はめあい公差</div><div class="tool-desc">締め代・すき間を自動算出</div></div>
+      <div class="tool-item"><span class="tool-icon">📐</span><div class="tool-name">単位変換</div><div class="tool-desc">荷重・圧力・トルク・温度など</div></div>
+      <div class="tool-item"><span class="tool-icon">🏗️</span><div class="tool-name">梁計算</div><div class="tool-desc">曲げ応力・たわみ・断面計算</div></div>
+      <div class="tool-item"><span class="tool-icon">🗝️</span><div class="tool-name">キー溝寸法</div><div class="tool-desc">軸径からキー溝規格を即参照</div></div>
+      <div class="tool-item"><span class="tool-icon">🛢️</span><div class="tool-name">油脂類</div><div class="tool-desc">潤滑油・グリスの規格早見</div></div>
+      <div class="tool-item"><span class="tool-icon">🔧</span><div class="tool-name">ポンプ/エア配管</div><div class="tool-desc">配管損失・代替ポンプ判定</div></div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section">
+    <div class="section-title"><h2>よくある質問</h2><div class="line"></div></div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">どんな端末で使えますか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a">スマートフォン・タブレット・PCのブラウザで動作します。Chrome・Safari・Firefox・Edgeの最新版に対応しています。アプリのインストールは不要です。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">入力データはサーバーに送られますか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a">送られません。入力した数値はすべてお使いの端末上で処理されます。社内の設備データも安心してご利用いただけます。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">ログインできない場合は？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a">ご登録時のメールアドレスを入力すると認証コードが届きます。迷惑メールフォルダもご確認ください。それでも届かない場合は info@uk-capex.com までご連絡ください。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">解約はどうすればいいですか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a"><a href="https://uk-capex.com/cancel.html" style="color:var(--accent);">解約ページ</a>のカスタマーポータルから、いつでもキャンセルできます。次の請求日より前に解約すれば、それ以降の請求は発生しません。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">今後ツールは追加されますか？<span class="faq-arrow">▼</span></div>
+      <div class="faq-a">はい。ご要望に応じてツールを随時追加予定です。サブスク中はすべて追加費用なしでご利用いただけます。</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h2>まずは1日間、無料で試してみる</h2>
+    <p>クレジットカード登録後、1日間は無料でご利用いただけます。<br>トライアル期間中に解約すれば費用は一切かかりません。</p>
+    <a href="https://uk-capex.com/pricing_mechanical.html" class="btn-primary">🚀 無料トライアルを始める</a>
+  </div>
+
+</main>
+
+<footer>
+  <p>
+    © 2026 <a href="https://uk-capex.com/">uk-capex</a>　｜　
+    <a href="https://uk-capex.com/terms.html">利用規約</a>　
+    <a href="https://uk-capex.com/privacy.html">プライバシーポリシー</a>　
+    <a href="https://uk-capex.com/cancel.html">解約</a>　
+    <a href="https://uk-capex.com/contact.html">お問い合わせ</a>
+  </p>
+</footer>
+
+<script>
+function toggleFaq(qEl){
+  qEl.closest('.faq-item').classList.toggle('open');
+}
+</script>
+</body>
+</html>
