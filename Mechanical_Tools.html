@@ -986,34 +986,14 @@
     </style>
   </head>
   <body>
-    <header style="justify-content: space-between">
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        "
-      >
-        <h1>🔧 機械保全 便利ツール集</h1>
-        <span class="badge badge-green">online</span>
-        <span class="badge badge-blue">Auto</span>
-        <span id="verBadge">ver.--</span>
-      </div>
-      <a
-        href="index.html"
-        style="
-          font-family:
-            &quot;JetBrains Mono&quot;, monospace;
-          font-size: 11px;
-          color: var(--muted);
-          text-decoration: none;
-          white-space: nowrap;
-          transition: color 0.2s;
-        "
-        onmouseover="this.style.color = 'var(--accent)'"
-        onmouseout="this.style.color = 'var(--muted)'"
-        >← HOME</a
-      >
+    <div style="background:var(--bg);border-bottom:1px solid var(--border);padding:4px 16px;display:flex;align-items:center;flex-shrink:0;">
+      <a href="index.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← HOME</a>
+    </div>
+    <header>
+      <h1>🔧 機械保全 便利ツール集</h1>
+      <span class="badge badge-green">online</span>
+      <span class="badge badge-blue">Auto</span>
+      <span id="verBadge">ver.--</span>
     </header>
 
     <div class="tabbar">
