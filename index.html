@@ -177,7 +177,7 @@
     /* ── メインカードグリッド（2本柱） ── */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-bottom: 48px;
     }
@@ -368,6 +368,16 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    /* ── 電気保全カード ── */
+    .main-card.card-elec { border-top: 3px solid #e3b341; }
+    .main-card.card-elec:hover { border-color: #e3b341; }
+    .cta-elec {
+      background: rgba(227,179,65,0.15);
+      color: #e3b341;
+      border: 1px solid rgba(227,179,65,0.3);
+    }
+    .cta-elec:hover { background: rgba(227,179,65,0.25); }
+
     /* アニメーション */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(16px); }
@@ -435,6 +445,18 @@
           </div>
           <div class="main-card-footer">
             <span class="main-card-cta cta-mgmt">開く →</span>
+          </div>
+        </a>
+
+        <!-- 電気保全ツール -->
+        <a href="Electrical_Tools.html" class="main-card card-elec">
+          <div class="main-card-body">
+            <div class="main-card-icon">⚡</div>
+            <h2 class="main-card-title">電気保全 便利ツール集</h2>
+            <p class="main-card-desc">電線サイズ・アース線・電線管・フレキ・電線種類ガイド</p>
+          </div>
+          <div class="main-card-footer">
+            <span class="main-card-cta cta-elec">開く →</span>
           </div>
         </a>
 
