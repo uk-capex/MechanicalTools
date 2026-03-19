@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.41 | 20260319 | Mechanical Tools | uk |-->
+    <!-- build: 1.42 | 20260319 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -48,24 +48,34 @@
       }
       header {
         border-bottom: 1px solid var(--border);
-        padding: 12px 24px;
+        padding: 8px 14px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         background: var(--surface);
         flex-shrink: 0;
+        flex-wrap: nowrap;
+        overflow: hidden;
+        min-height: 44px;
       }
       header h1 {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
         letter-spacing: 0.02em;
+        white-space: nowrap;
+        flex-shrink: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .badge {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 600;
-        padding: 2px 8px;
+        padding: 2px 6px;
         border-radius: 999px;
         border: 1px solid;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
       .badge-green {
         border-color: var(--good);
@@ -78,10 +88,19 @@
 
       .tabbar {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
         background: var(--surface);
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tabbar::-webkit-scrollbar {
+        height: 3px;
+      }
+      .tabbar::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
       }
       .tab-btn {
         padding: 8px 14px;
