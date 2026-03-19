@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-  <!-- build: 1.09 | 20260316 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.10 | 20260319 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -608,6 +608,7 @@
   <div class="tabbar">
     <button class="tab-btn active" data-tab="lathe">🔵 旋盤</button>
     <button class="tab-btn" data-tab="mill">🟢 フライス</button>
+    <button class="tab-btn" data-tab="drill">🟡 ボール盤</button>
     <button class="tab-btn" data-tab="material">📋 材料別早見</button>
     <button class="tab-btn" data-tab="taper">📐 テーパ・角度</button>
   </div>
@@ -897,6 +898,145 @@
       </div>
     </div>
   </div>
+
+  <!-- ══════ TAB: ボール盤 ══════ -->
+  <div id="tab-drill" class="tab-content">
+    <div class="two-panel">
+
+      <!-- ── 左パネル：入力 ── -->
+      <div class="panel-left">
+        <p class="section-title">ボール盤 推奨回転数</p>
+
+        <div class="field">
+          <label>被削材</label>
+          <select id="dr-mat" onchange="drCalc()">
+            <option value="alum">アルミ合金（A5052 等）</option>
+            <option value="brass">真鍮（C3604 等）</option>
+            <option value="mc_nylon">MCナイロン / ジュラコン</option>
+            <option value="steel_soft" selected>軟鋼・SS400</option>
+            <option value="steel_mid">中硬鋼・S45C</option>
+            <option value="steel_hard">硬鋼・SCM440</option>
+            <option value="cast_iron">ねずみ鋳鉄</option>
+            <option value="sus">ステンレス（SUS304）</option>
+            <option value="cast_alum">アルミダイカスト（ADC12）</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>工具材質</label>
+          <select id="dr-tool" onchange="drCalc()">
+            <option value="hss" selected>ハイス（HSS）</option>
+            <option value="carbide">超硬（コーティング含む）</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>ドリル径（mm）</label>
+          <input type="number" id="dr-dia" value="6" min="0.5" max="100" step="0.5" oninput="drCalc()">
+        </div>
+
+        <div class="field">
+          <label>加工種別</label>
+          <select id="dr-mode" onchange="drCalc()">
+            <option value="thru">貫通穴</option>
+            <option value="blind">止まり穴</option>
+            <option value="step">下穴（リーマ前）</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+
+        <div class="field">
+          <label>機械の最高回転数（rpm）— 任意</label>
+          <input type="number" id="dr-maxrpm" value="1500" min="100" max="20000" step="100" oninput="drCalc()">
+        </div>
+
+        <hr class="divider">
+
+        <!-- 推奨Vcメモ -->
+        <div class="memo" id="dr-vc-memo">—</div>
+
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;margin-top:4px;">
+          ※ 推奨Vcは各メーカーカタログ・切削条件表を基にした目安値です。<br>
+          実加工では切削油・剛性・摩耗状態に応じて調整してください。
+        </div>
+      </div>
+
+      <!-- ── 右パネル：結果 ── -->
+      <div class="panel-right">
+
+        <!-- メイン結果カード -->
+        <div class="result-cards-2">
+          <div class="card accent">
+            <div class="card-label">推奨回転数（中央値）</div>
+            <div class="card-value" id="dr-rpm-mid">—<span class="card-unit">rpm</span></div>
+            <div class="card-sub" id="dr-rpm-range">—</div>
+          </div>
+          <div class="card good">
+            <div class="card-label">推奨切削速度 Vc</div>
+            <div class="card-value" id="dr-vc-mid">—<span class="card-unit">m/min</span></div>
+            <div class="card-sub" id="dr-vc-range">—</div>
+          </div>
+        </div>
+
+        <!-- 機械限界チェック -->
+        <div class="card" id="dr-limit-card" style="display:none;">
+          <div class="card-label">⚠️ 機械限界チェック</div>
+          <div class="card-value" id="dr-limit-val" style="font-size:16px;">—</div>
+          <div class="card-sub" id="dr-limit-sub">—</div>
+        </div>
+
+        <!-- 送り速度目安 -->
+        <div class="result-cards-2">
+          <div class="card">
+            <div class="card-label">送り速度（荒）</div>
+            <div class="card-value" id="dr-feed-rough">—<span class="card-unit">mm/rev</span></div>
+          </div>
+          <div class="card">
+            <div class="card-label">送り速度（仕上）</div>
+            <div class="card-value" id="dr-feed-fine">—<span class="card-unit">mm/rev</span></div>
+          </div>
+        </div>
+
+        <!-- ダイヤルスケール -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;">SPEED GAUGE</div>
+          <div style="position:relative;height:20px;background:var(--bg);border-radius:10px;overflow:hidden;margin-bottom:8px;">
+            <!-- グラデーションバー -->
+            <div style="position:absolute;inset:0;background:linear-gradient(to right,var(--good),var(--warn),var(--bad));border-radius:10px;opacity:.35;"></div>
+            <!-- 推奨レンジ -->
+            <div id="dr-gauge-range" style="position:absolute;top:3px;bottom:3px;background:var(--accent);border-radius:6px;opacity:.7;transition:left .3s,width .3s;"></div>
+            <!-- カーソル -->
+            <div id="dr-gauge-cursor" style="position:absolute;top:2px;bottom:2px;width:3px;background:#fff;border-radius:2px;transition:left .3s;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+            <span>0</span>
+            <span id="dr-gauge-max-label">3000 rpm</span>
+          </div>
+        </div>
+
+        <!-- ドリル径別早見テーブル -->
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;">DRILL SIZE QUICK REFERENCE（同材質・同工具）</div>
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Φ (mm)</th>
+                  <th>rpm（下限）</th>
+                  <th>rpm（中央）</th>
+                  <th>rpm（上限）</th>
+                  <th>Vc（m/min）</th>
+                </tr>
+              </thead>
+              <tbody id="dr-quick-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /tab-drill -->
 
   <!-- ══════ TAB: 材料別早見 ══════ -->
   <div id="tab-material" class="tab-content">
@@ -1838,11 +1978,134 @@
       return `${d}° ${m}' ${s.toFixed(1)}"`;
     }
 
+    // ══════ ボール盤 推奨回転数 ══════
+    // [vcMin, vcMax] (m/min) — 材質 × 工具材質
+    const DR_VC = {
+      //              HSS           超硬
+      alum:       { hss:[60,120],  carbide:[120,300] },
+      brass:      { hss:[40,80],   carbide:[80,200]  },
+      mc_nylon:   { hss:[30,80],   carbide:[60,150]  },
+      steel_soft: { hss:[15,30],   carbide:[50,90]   },
+      steel_mid:  { hss:[10,22],   carbide:[40,70]   },
+      steel_hard: { hss:[6,14],    carbide:[25,50]   },
+      cast_iron:  { hss:[15,28],   carbide:[40,80]   },
+      sus:        { hss:[5,12],    carbide:[20,40]   },
+      cast_alum:  { hss:[50,100],  carbide:[100,250] },
+    };
+    // 送り目安 [荒, 仕上] mm/rev — 径φ10基準、実際は径補正あり
+    const DR_FEED = {
+      alum:       [0.15, 0.06], brass:      [0.12, 0.05],
+      mc_nylon:   [0.10, 0.05], steel_soft: [0.15, 0.06],
+      steel_mid:  [0.12, 0.05], steel_hard: [0.08, 0.03],
+      cast_iron:  [0.15, 0.06], sus:        [0.05, 0.02],
+      cast_alum:  [0.15, 0.06],
+    };
+    const DR_MAT_LABEL = {
+      alum:'アルミ合金', brass:'真鍮', mc_nylon:'MCナイロン/ジュラコン',
+      steel_soft:'軟鋼・SS400', steel_mid:'中硬鋼・S45C', steel_hard:'硬鋼・SCM440',
+      cast_iron:'ねずみ鋳鉄', sus:'SUS304', cast_alum:'アルミダイカスト',
+    };
+    const DR_VC_MEMO = {
+      alum:      'アルミは高速切削が得意。<b>切りくず溶着</b>に注意し、クーラントまたはエアブローを使用。',
+      brass:     '真鍮は被削性良好。乾式でも加工可能だが、切りくずが鋭いので注意。',
+      mc_nylon:  '樹脂は<b>摩擦熱</b>に弱い。高速すぎると溶ける。エアブロー推奨。',
+      steel_soft:'軟鋼は水溶性切削油を使用。HSS でも対応可能。',
+      steel_mid: 'S45C は標準的な鋼材。切削油必須。摩耗に注意。',
+      steel_hard:'硬鋼は低速・少送り。工具寿命が短いためこまめに確認。切削油必須。',
+      cast_iron: '鋳鉄はドライ加工が基本（水で割れる場合あり）。チップ形状に注意。',
+      sus:       'SUS は<b>加工硬化</b>しやすい。低速・大送りで一気に切る。切削油必須。',
+      cast_alum: 'ダイカストはADC12 等で被削性良好。高速対応可。',
+    };
+    const DR_QUICK_SIZES = [1, 2, 3, 5, 6, 8, 10, 12, 15, 16, 20, 25, 30];
+
+    function drRpm(vc, dia) {
+      return (vc * 1000) / (Math.PI * dia);
+    }
+
+    function drCalc() {
+      const mat     = $('dr-mat').value;
+      const tool    = $('dr-tool').value;
+      const dia     = parseFloat($('dr-dia').value) || 10;
+      const maxRpm  = parseFloat($('dr-maxrpm').value) || 3000;
+
+      const [vcMin, vcMax] = DR_VC[mat][tool];
+      const vcMid  = (vcMin + vcMax) / 2;
+      const rpmMin = drRpm(vcMin, dia);
+      const rpmMid = drRpm(vcMid, dia);
+      const rpmMax = drRpm(vcMax, dia);
+
+      // 表示
+      $('dr-rpm-mid').innerHTML   = `${Math.round(rpmMid).toLocaleString()}<span class="card-unit"> rpm</span>`;
+      $('dr-rpm-range').textContent = `範囲：${Math.round(rpmMin).toLocaleString()} 〜 ${Math.round(rpmMax).toLocaleString()} rpm`;
+      $('dr-vc-mid').innerHTML    = `${vcMid.toFixed(0)}<span class="card-unit"> m/min</span>`;
+      $('dr-vc-range').textContent  = `推奨：${vcMin} 〜 ${vcMax} m/min`;
+
+      // 送り（径補正：径10比で √(10/d) 係数）
+      const feedCorr = Math.sqrt(10 / dia);
+      const [fRough, fFine] = DR_FEED[mat];
+      $('dr-feed-rough').innerHTML = `${(fRough * feedCorr).toFixed(3)}<span class="card-unit"> mm/rev</span>`;
+      $('dr-feed-fine').innerHTML  = `${(fFine  * feedCorr).toFixed(3)}<span class="card-unit"> mm/rev</span>`;
+
+      // メモ
+      const toolLabel = tool === 'hss' ? 'ハイス（HSS）' : '超硬';
+      $('dr-vc-memo').innerHTML =
+        `<b>${DR_MAT_LABEL[mat]} × ${toolLabel}</b><br>` +
+        `推奨Vc：<span style="color:var(--accent);font-family:'JetBrains Mono',monospace">${vcMin}〜${vcMax} m/min</span><br>` +
+        DR_VC_MEMO[mat];
+
+      // 機械限界チェック
+      const limitCard = $('dr-limit-card');
+      if (rpmMid > maxRpm) {
+        limitCard.style.display = 'block';
+        limitCard.style.borderColor = 'var(--bad)';
+        limitCard.style.background  = 'var(--bad-dim)';
+        const safeVc = (maxRpm * Math.PI * dia) / 1000;
+        $('dr-limit-val').innerHTML = `<span style="color:var(--bad)">推奨rpm ${Math.round(rpmMid).toLocaleString()} > 機械限界 ${maxRpm.toLocaleString()} rpm</span>`;
+        $('dr-limit-sub').textContent = `機械最高回転数でのVc：${safeVc.toFixed(1)} m/min（推奨下限 ${vcMin} m/min ${safeVc >= vcMin ? '✅ OK' : '⚠ 不足'}）`;
+      } else if (rpmMax > maxRpm && rpmMin <= maxRpm) {
+        limitCard.style.display = 'block';
+        limitCard.style.borderColor = 'var(--warn)';
+        limitCard.style.background  = 'var(--warn-dim)';
+        const safeVc = (maxRpm * Math.PI * dia) / 1000;
+        $('dr-limit-val').innerHTML = `<span style="color:var(--warn)">上限rpm ${Math.round(rpmMax).toLocaleString()} が機械限界を超過</span>`;
+        $('dr-limit-sub').textContent = `機械最高回転数 ${maxRpm.toLocaleString()} rpm で使用（Vc：${safeVc.toFixed(1)} m/min）`;
+      } else {
+        limitCard.style.display = 'none';
+      }
+
+      // ゲージ
+      const gaugeMax = Math.max(maxRpm, rpmMax * 1.1);
+      $('dr-gauge-max-label').textContent = `${Math.round(gaugeMax).toLocaleString()} rpm`;
+      const pMin = Math.min(rpmMin / gaugeMax * 100, 100);
+      const pMid = Math.min(rpmMid / gaugeMax * 100, 100);
+      const pMax = Math.min(rpmMax / gaugeMax * 100, 100);
+      $('dr-gauge-range').style.left  = pMin + '%';
+      $('dr-gauge-range').style.width = (pMax - pMin) + '%';
+      $('dr-gauge-cursor').style.left = `calc(${pMid}% - 1.5px)`;
+
+      // 早見テーブル
+      $('dr-quick-tbody').innerHTML = DR_QUICK_SIZES.map(d => {
+        const rMin = drRpm(vcMin, d);
+        const rMid = drRpm(vcMid, d);
+        const rMax = drRpm(vcMax, d);
+        const isCurrent = Math.abs(d - dia) < 0.1;
+        const hl = isCurrent ? ' style="background:var(--accent-dim);font-weight:700;"' : '';
+        return `<tr${hl}>
+          <td>Φ ${d}</td>
+          <td>${Math.round(rMin).toLocaleString()}</td>
+          <td class="hl">${Math.round(rMid).toLocaleString()}</td>
+          <td>${Math.round(rMax).toLocaleString()}</td>
+          <td>${vcMin}〜${vcMax}</td>
+        </tr>`;
+      }).join('');
+    }
+
     // ══════ 初期計算 ══════
     updateLatheMemo();
     calcLathe();
     calcMill();
     calcTaper();
+    drCalc();
 
     // ══════ バージョン情報をコメントから読み込み ══════
     window.addEventListener('DOMContentLoaded', function () {
