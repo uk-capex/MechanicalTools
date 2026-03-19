@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.39 | 20260316 | Mechanical Tools | uk |-->
+    <!-- build: 1.41 | 20260319 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -48,20 +48,17 @@
       }
       header {
         border-bottom: 1px solid var(--border);
-        padding: 12px 16px;
+        padding: 12px 24px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
         background: var(--surface);
         flex-shrink: 0;
-        flex-wrap: nowrap;
-        overflow: hidden;
       }
       header h1 {
         font-size: 15px;
         font-weight: 700;
         letter-spacing: 0.02em;
-        white-space: nowrap;
       }
       .badge {
         font-size: 11px;
@@ -986,14 +983,34 @@
     </style>
   </head>
   <body>
-    <div style="background:var(--bg);border-bottom:1px solid var(--border);padding:4px 16px;display:flex;align-items:center;flex-shrink:0;">
-      <a href="index.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← HOME</a>
-    </div>
-    <header>
-      <h1>🔧 機械保全 便利ツール集</h1>
-      <span class="badge badge-green">online</span>
-      <span class="badge badge-blue">Auto</span>
-      <span id="verBadge">ver.--</span>
+    <header style="justify-content: space-between">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        "
+      >
+        <h1>🔧 機械保全 便利ツール集</h1>
+        <span class="badge badge-green">online</span>
+        <span class="badge badge-blue">Auto</span>
+        <span id="verBadge">ver.--</span>
+      </div>
+      <a
+        href="index.html"
+        style="
+          font-family:
+            &quot;JetBrains Mono&quot;, monospace;
+          font-size: 11px;
+          color: var(--muted);
+          text-decoration: none;
+          white-space: nowrap;
+          transition: color 0.2s;
+        "
+        onmouseover="this.style.color = 'var(--accent)'"
+        onmouseout="this.style.color = 'var(--muted)'"
+        >← HOME</a
+      >
     </header>
 
     <div class="tabbar">
@@ -1008,6 +1025,12 @@
         onclick="showTab('screw', event.currentTarget)"
       >
         ⚙️ ネジ
+      </button>
+      <button
+        class="tab-btn"
+        onclick="showTab('insert', event.currentTarget)"
+      >
+        🪛 インサート下穴
       </button>
       <button
         class="tab-btn"
@@ -18970,6 +18993,174 @@
           )
           .join("");
       }
+    </script>
+
+    <!-- ══════ TAB: インサート下穴 ══════ -->
+    <div id="tab-insert" class="tab-content">
+      <div class="two-panel">
+        <!-- ── 左パネル：入力 ── -->
+        <div class="panel-left">
+          <p class="section-title">インサート下穴径 参照</p>
+          <p style="font-size:12px;color:var(--muted);line-height:1.6;">
+            ヘリサート・スプリュー等のコイル型インサートを挿入するための<br>
+            専用タップ（STIタップ）の下穴径一覧です。<br>
+            通常タップとは下穴径が異なるため注意してください。
+          </p>
+
+          <div class="field">
+            <label>ねじの種類</label>
+            <select id="ins-type" onchange="insRender()">
+              <option value="coarse">メートル並目（標準）</option>
+              <option value="fine">メートル細目</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>ねじの呼び（クイックジャンプ）</label>
+            <select id="ins-jump" onchange="insJump()">
+              <option value="">— 選択してジャンプ —</option>
+            </select>
+          </div>
+
+          <hr class="divider">
+
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);line-height:1.8;">
+            <div style="font-weight:700;color:var(--ink);margin-bottom:6px;">📌 注意事項</div>
+            <div>・必ず<strong style="color:var(--warn);">STI専用タップ</strong>を使用すること</div>
+            <div>・下穴はできるだけ<strong style="color:var(--warn);">垂直</strong>に加工する</div>
+            <div>・面取りは<strong style="color:var(--warn);">糸面取り程度</strong>に留める（大きすぎると挿入不良）</div>
+            <div>・止まり穴の深さ：<span style="font-family:'JetBrains Mono',monospace;color:var(--accent);">S = Lb + 2.5P</span></div>
+            <div style="color:var(--muted);font-size:11px;padding-left:8px;">Lb：インサート呼び長さ、P：ピッチ</div>
+          </div>
+
+          <div style="background:var(--good-dim);border:1px solid var(--good);border-radius:8px;padding:12px;font-size:12px;line-height:1.8;">
+            <div style="font-weight:700;color:var(--good);margin-bottom:6px;">💡 通常タップとの違い（例：M6）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <div style="color:var(--muted);">通常タップ下穴</div>
+              <div style="font-family:'JetBrains Mono',monospace;color:var(--ink);">Φ 5.0 mm</div>
+              <div style="color:var(--muted);">インサート下穴</div>
+              <div style="font-family:'JetBrains Mono',monospace;color:var(--good);">Φ 6.3 mm</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 右パネル：テーブル ── -->
+        <div class="panel-right">
+          <div id="ins-table-wrap"></div>
+        </div>
+      </div>
+    </div><!-- /tab-insert -->
+
+    <script>
+      /* ══════════════════════════════════════════
+         インサート下穴データ
+         出典：ねじのオンラインショップ山崎 / 各タップメーカー規格
+      ══════════════════════════════════════════ */
+      const INS_DATA = {
+        coarse: [
+          // [呼び, ピッチ, インサート下穴(drill), 通常下穴]
+          ["M2.5",  0.45, 2.6,  2.1],
+          ["M2.6",  0.45, 2.7,  null],
+          ["M3",    0.5,  3.1,  2.5],
+          ["M4",    0.7,  4.2,  3.3],
+          ["M5",    0.8,  5.2,  4.2],
+          ["M6",    1.0,  6.3,  5.0],
+          ["M8",    1.25, 8.4,  6.8],
+          ["M10",   1.5,  10.5, 8.5],
+          ["M12",   1.75, 12.5, 10.3],
+          ["M14",   2.0,  14.5, 12.0],
+          ["M16",   2.0,  16.5, 14.0],
+          ["M18",   2.5,  19.0, 15.5],
+          ["M20",   2.5,  21.0, 17.5],
+        ],
+        fine: [
+          // [呼び, ピッチ, インサート下穴, 通常下穴]
+          ["M10",  1.0,  10.3, 9.0],
+          ["M10",  1.25, 10.4, 8.8],
+          ["M12",  1.25, 12.5, 10.8],
+          ["M12",  1.5,  12.5, 10.5],
+          ["M14",  1.5,  14.5, 12.5],
+          ["M16",  1.5,  16.5, 14.5],
+          ["M18",  1.5,  18.5, 16.5],
+          ["M20",  1.5,  20.5, 18.5],
+          ["M20",  2.0,  20.5, 18.0],
+        ],
+      };
+
+      function insRender() {
+        const type  = document.getElementById("ins-type").value;
+        const rows  = INS_DATA[type];
+        const jump  = document.getElementById("ins-jump");
+
+        /* ジャンプセレクト更新 */
+        const seen  = new Set();
+        jump.innerHTML = '<option value="">— 選択してジャンプ —</option>';
+        rows.forEach((r, i) => {
+          if (!seen.has(r[0])) {
+            seen.add(r[0]);
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = r[0];
+            jump.appendChild(opt);
+          }
+        });
+
+        /* テーブル描画 */
+        const tbody = rows.map((r, i) => {
+          const [name, pitch, insDrill, normDrill] = r;
+          const diff = normDrill !== null
+            ? `+${(insDrill - normDrill).toFixed(2)}`
+            : "—";
+          const rowId = `ins-row-${i}`;
+          return `
+  <tr id="${rowId}" style="border-bottom:1px solid var(--border);">
+    <td style="padding:9px 10px;font-weight:700;color:var(--ink);font-size:14px;">${name}</td>
+    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-align:center;">${pitch}</td>
+    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--accent);text-align:center;font-size:15px;font-weight:700;">Φ ${insDrill.toFixed(1)}</td>
+    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-align:center;">${normDrill !== null ? "Φ " + normDrill.toFixed(1) : "—"}</td>
+    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--good);text-align:center;">${diff}</td>
+  </tr>`;
+        }).join("");
+
+        const html = `
+<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">
+  ${type === 'coarse' ? 'メートル並目（STIタップ）下穴径一覧' : 'メートル細目（STIタップ）下穴径一覧'}
+</div>
+<div style="overflow-x:auto;">
+<table style="width:100%;border-collapse:collapse;font-size:13px;">
+  <thead>
+    <tr style="border-bottom:2px solid var(--border);">
+      <th style="padding:8px 10px;text-align:left;color:var(--muted);font-weight:600;">ねじ呼び</th>
+      <th style="padding:8px 10px;text-align:center;color:var(--muted);font-weight:600;">ピッチ<br><span style="font-size:10px;">(mm)</span></th>
+      <th style="padding:8px 10px;text-align:center;color:var(--accent);font-weight:700;">インサート<br>下穴径 (mm)</th>
+      <th style="padding:8px 10px;text-align:center;color:var(--muted);font-weight:600;">通常タップ<br>下穴径 (mm)</th>
+      <th style="padding:8px 10px;text-align:center;color:var(--good);font-weight:600;">差分<br>(mm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${tbody}
+  </tbody>
+</table>
+</div>
+<p style="font-size:11px;color:var(--muted);margin-top:12px;">
+  ※ 出典：ねじのオンラインショップ山崎・各タップメーカー規格値。被削材・タップ種類により最適値は異なる場合があります。
+</p>`;
+        document.getElementById("ins-table-wrap").innerHTML = html;
+      }
+
+      function insJump() {
+        const idx = document.getElementById("ins-jump").value;
+        if (idx === "") return;
+        const el = document.getElementById(`ins-row-${idx}`);
+        if (el) {
+          el.style.background = "var(--accent-dim)";
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setTimeout(() => { el.style.background = ""; }, 1500);
+        }
+      }
+
+      /* 初回描画 */
+      insRender();
     </script>
   </body>
 </html>
