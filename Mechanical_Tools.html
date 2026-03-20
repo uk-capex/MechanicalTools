@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.44 | 20260319 | Mechanical Tools | uk |-->
+    <!-- build: 1.47 | 20260319 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -96,11 +96,17 @@
         -webkit-overflow-scrolling: touch;
       }
       .tabbar::-webkit-scrollbar {
-        height: 3px;
+        height: 6px;
+      }
+      .tabbar::-webkit-scrollbar-track {
+        background: var(--surface2);
       }
       .tabbar::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: 2px;
+        background: var(--good);
+        border-radius: 3px;
+      }
+      .tabbar::-webkit-scrollbar-thumb:hover {
+        background: var(--ink);
       }
       .tab-btn {
         padding: 8px 14px;
@@ -1103,6 +1109,12 @@
         onclick="showTab('pump', event.currentTarget)"
       >
         🔧 ポンプ/エア配管
+      </button>
+      <button
+        class="tab-btn"
+        onclick="showTab('weight', event.currentTarget)"
+      >
+        ⚖️ 重量計算
       </button>
     </div>
 
@@ -19161,6 +19173,393 @@
 
       /* 初回描画 */
       insRender();
+    </script>
+
+    <!-- ══════ TAB: 重量計算 ══════ -->
+    <div id="tab-weight" class="tab-content">
+      <div class="two-panel">
+
+        <!-- ── 左パネル：入力 ── -->
+        <div class="panel-left">
+          <p class="section-title">簡易重量計算</p>
+
+          <div class="field">
+            <label>材質</label>
+            <select id="wt-mat" onchange="wtCalc()">
+              <optgroup label="鉄鋼">
+                <option value="7.85">軟鋼・SS400 / S45C（7.85）</option>
+                <option value="7.85">SCM440 / 構造用鋼（7.85）</option>
+                <option value="7.20">ねずみ鋳鉄 FC200（7.20）</option>
+              </optgroup>
+              <optgroup label="ステンレス">
+                <option value="7.93">SUS304（7.93）</option>
+                <option value="7.70">SUS430（7.70）</option>
+              </optgroup>
+              <optgroup label="アルミ">
+                <option value="2.70">A5052 / A6061（2.70）</option>
+                <option value="2.68">ADC12 アルミダイカスト（2.68）</option>
+              </optgroup>
+              <optgroup label="銅・真鍮">
+                <option value="8.96">純銅 C1100（8.96）</option>
+                <option value="8.50">真鍮 C3604（8.50）</option>
+                <option value="8.90">砲金 BC6（8.90）</option>
+              </optgroup>
+              <optgroup label="樹脂">
+                <option value="1.15">MCナイロン（1.15）</option>
+                <option value="1.42">ジュラコン POM（1.42）</option>
+                <option value="0.95">ポリプロピレン PP（0.95）</option>
+                <option value="1.20">塩化ビニル PVC（1.20）</option>
+              </optgroup>
+              <optgroup label="その他">
+                <option value="11.34">鉛（11.34）</option>
+                <option value="19.30">タングステン（19.30）</option>
+                <option value="custom">カスタム密度…</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="field" id="wt-custom-field" style="display:none;">
+            <label>カスタム密度（g/cm³）</label>
+            <input type="number" id="wt-custom-rho" value="7.85" min="0.1" max="25" step="0.01" oninput="wtCalc()">
+          </div>
+
+          <div class="field">
+            <label>形状</label>
+            <select id="wt-shape" onchange="wtShapeChange()">
+              <optgroup label="棒材・板材">
+                <option value="round_bar">丸棒</option>
+                <option value="pipe">パイプ（円管）</option>
+                <option value="square_bar">角棒</option>
+                <option value="flat_bar">フラットバー（平鋼）</option>
+                <option value="plate">板材</option>
+              </optgroup>
+              <optgroup label="形鋼">
+                <option value="h_steel">H形鋼</option>
+                <option value="c_steel">C形鋼（溝形鋼）</option>
+                <option value="angle">等辺山形鋼（アングル）</option>
+                <option value="unequal_angle">不等辺山形鋼</option>
+                <option value="i_beam">I形鋼</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- 寸法入力（形状により表示切替） -->
+          <div id="wt-dims"></div>
+
+          <div class="field">
+            <label>長さ L（mm）</label>
+            <input type="number" id="wt-len" value="1000" min="1" step="1" oninput="wtCalc()">
+          </div>
+
+          <div class="field">
+            <label>本数／枚数</label>
+            <input type="number" id="wt-qty" value="1" min="1" step="1" oninput="wtCalc()">
+          </div>
+
+          <hr class="divider">
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;">
+            ※ 密度は代表値です。メーカー・グレードにより多少異なります。<br>
+            ※ 形鋼の断面積は公称寸法から計算した近似値です。
+          </div>
+        </div>
+
+        <!-- ── 右パネル：結果 ── -->
+        <div class="panel-right">
+
+          <!-- メイン結果 -->
+          <div class="result-cards" style="grid-template-columns:1fr 1fr 1fr;">
+            <div class="card accent">
+              <div class="card-label">1本あたり重量</div>
+              <div class="card-value" id="wt-one">—<span class="card-unit"> kg</span></div>
+              <div class="card-sub" id="wt-one-g">—</div>
+            </div>
+            <div class="card good">
+              <div class="card-label">合計重量</div>
+              <div class="card-value" id="wt-total">—<span class="card-unit"> kg</span></div>
+              <div class="card-sub" id="wt-total-sub">—</div>
+            </div>
+            <div class="card">
+              <div class="card-label">断面積</div>
+              <div class="card-value" id="wt-area">—<span class="card-unit"> mm²</span></div>
+              <div class="card-sub" id="wt-len-show">—</div>
+            </div>
+          </div>
+
+          <!-- 単位重量 -->
+          <div class="result-cards-2">
+            <div class="card">
+              <div class="card-label">単位重量（kg/m）</div>
+              <div class="card-value" id="wt-kgm">—</div>
+            </div>
+            <div class="card">
+              <div class="card-label">密度</div>
+              <div class="card-value" id="wt-rho-show">—<span class="card-unit"> g/cm³</span></div>
+            </div>
+          </div>
+
+          <!-- 形状図 -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;">SECTION VIEW</div>
+            <div id="wt-svg-wrap" style="display:flex;justify-content:center;align-items:center;min-height:120px;"></div>
+            <div id="wt-formula" style="font-size:11px;color:var(--muted);margin-top:10px;font-family:'JetBrains Mono',monospace;text-align:center;"></div>
+          </div>
+
+          <!-- 比較バー -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;">材質別重量比較（同形状・同寸法）</div>
+            <div id="wt-compare"></div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /tab-weight -->
+
+    <script>
+    /* ══════════════════════════════════════════
+       重量計算
+    ══════════════════════════════════════════ */
+    const WT_MAT_LIST = [
+      { label:'軟鋼・SS400',    rho:7.85, color:'var(--accent)' },
+      { label:'SUS304',         rho:7.93, color:'#a0c4ff' },
+      { label:'アルミ A5052',   rho:2.70, color:'var(--good)' },
+      { label:'真鍮 C3604',     rho:8.50, color:'var(--warn)' },
+      { label:'MCナイロン',     rho:1.15, color:'#c9a0ff' },
+      { label:'純銅 C1100',     rho:8.96, color:'#ff9966' },
+    ];
+
+    const WT_SHAPE_DIMS = {
+      round_bar:      [['外径 D','wt-d1',50]],
+      pipe:           [['外径 D','wt-d1',60],['内径 d','wt-d2',50]],
+      square_bar:     [['一辺 A','wt-d1',50]],
+      flat_bar:       [['幅 W','wt-d1',50],['厚さ t','wt-d2',9]],
+      plate:          [['幅 W','wt-d1',200],['厚さ t','wt-d2',9]],
+      h_steel:        [['全高 H','wt-d1',200],['フランジ幅 B','wt-d2',100],['ウェブ厚 tw','wt-d3',5.5],['フランジ厚 tf','wt-d4',8]],
+      c_steel:        [['全高 H','wt-d1',150],['フランジ幅 B','wt-d2',65],['ウェブ厚 tw','wt-d3',5.5],['フランジ厚 tf','wt-d4',8]],
+      angle:          [['辺長 A','wt-d1',75],['板厚 t','wt-d2',6]],
+      unequal_angle:  [['長辺 A','wt-d1',100],['短辺 B','wt-d2',75],['板厚 t','wt-d3',7]],
+      i_beam:         [['全高 H','wt-d1',200],['フランジ幅 B','wt-d2',100],['ウェブ厚 tw','wt-d3',7],['フランジ厚 tf','wt-d4',11]],
+    };
+
+    const WT_DIM_LABELS = [
+      ['wt-d1',''],['wt-d2',''],['wt-d3',''],['wt-d4','']
+    ];
+
+    function wtShapeChange() {
+      const shape = document.getElementById('wt-shape').value;
+      const defs   = WT_SHAPE_DIMS[shape];
+      const wrap   = document.getElementById('wt-dims');
+      wrap.innerHTML = defs.map(([lbl,id,def]) => `
+        <div class="field">
+          <label>${lbl}（mm）</label>
+          <input type="number" id="${id}" value="${def}" min="0.1" step="0.1" oninput="wtCalc()">
+        </div>`).join('');
+      wtCalc();
+    }
+
+    function wtGetVal(id) {
+      const el = document.getElementById(id);
+      return el ? (parseFloat(el.value) || 0) : 0;
+    }
+
+    function wtArea(shape) {
+      const d1=wtGetVal('wt-d1'), d2=wtGetVal('wt-d2'),
+            d3=wtGetVal('wt-d3'), d4=wtGetVal('wt-d4');
+      switch(shape) {
+        case 'round_bar':     return Math.PI/4 * d1*d1;
+        case 'pipe':          return Math.PI/4 * (d1*d1 - d2*d2);
+        case 'square_bar':    return d1*d1;
+        case 'flat_bar':
+        case 'plate':         return d1*d2;
+        case 'h_steel':       return d2*d4*2 + (d1-d4*2)*d3;
+        case 'c_steel':       return d2*d4*2 + (d1-d4*2)*d3;
+        case 'angle':         return (2*d1 - d2)*d2;
+        case 'unequal_angle': return (d1+d2-d3)*d3;
+        case 'i_beam':        return d2*d4*2 + (d1-d4*2)*d3;
+        default: return 0;
+      }
+    }
+
+    function wtCalc() {
+      const matSel = document.getElementById('wt-mat').value;
+      const customField = document.getElementById('wt-custom-field');
+      let rho;
+      if (matSel === 'custom') {
+        customField.style.display = '';
+        rho = parseFloat(document.getElementById('wt-custom-rho').value) || 7.85;
+      } else {
+        customField.style.display = 'none';
+        rho = parseFloat(matSel);
+      }
+
+      const shape = document.getElementById('wt-shape').value;
+      const L     = wtGetVal('wt-len');
+      const qty   = Math.max(1, wtGetVal('wt-qty'));
+      const A     = wtArea(shape);   // mm²
+      const vol   = A * L;           // mm³
+      const massG = vol * rho * 1e-3; // g  (mm³ × g/cm³ × 1e-3)
+      const massKg = massG / 1000;
+      const kgm    = A * rho * 1e-3;  // kg/m
+
+      const fmt = v => v >= 100   ? v.toFixed(1)
+                     : v >= 1     ? v.toFixed(3)
+                     : v >= 0.001 ? v.toFixed(4)
+                     : v.toExponential(3);
+
+      document.getElementById('wt-one').innerHTML    = `${fmt(massKg)}<span class="card-unit"> kg</span>`;
+      document.getElementById('wt-one-g').textContent = `${massG >= 1000 ? (massG/1000).toFixed(2)+'kg' : massG.toFixed(1)+'g'}`;
+      document.getElementById('wt-total').innerHTML  = `${fmt(massKg*qty)}<span class="card-unit"> kg</span>`;
+      document.getElementById('wt-total-sub').textContent = qty > 1 ? `${qty}本 合計` : '1本';
+      document.getElementById('wt-area').innerHTML   = `${A.toFixed(2)}<span class="card-unit"> mm²</span>`;
+      document.getElementById('wt-len-show').textContent = `L = ${L} mm`;
+      document.getElementById('wt-kgm').innerHTML    = `${kgm.toFixed(3)}<span class="card-unit"> kg/m</span>`;
+      document.getElementById('wt-rho-show').innerHTML = `${rho}<span class="card-unit"> g/cm³</span>`;
+
+      wtDrawSVG(shape);
+      wtDrawCompare(shape, L, qty, rho);
+    }
+
+    function wtDrawSVG(shape) {
+      const d1=wtGetVal('wt-d1'), d2=wtGetVal('wt-d2'),
+            d3=wtGetVal('wt-d3'), d4=wtGetVal('wt-d4');
+      const W=200, H=140, cx=100, cy=70;
+      const s = '#388bfd', f = '#1c3a6b', g = '#cdd9e5';
+      let svg = '', formula = '';
+
+      const sc = (v, ref, max=80) => v>0 ? v/ref*max : max;
+
+      switch(shape) {
+        case 'round_bar': {
+          const r = Math.min(60, sc(d1,100,60));
+          svg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(cx-r, cy, cx+r, cy, `Φ${d1}`, 'h', W, H);
+          formula = `A = π/4 × D²`;
+          break;
+        }
+        case 'pipe': {
+          const ro = Math.min(60, sc(d1,100,60));
+          const ri = ro * (d2/d1);
+          svg = `<circle cx="${cx}" cy="${cy}" r="${ro}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <circle cx="${cx}" cy="${cy}" r="${ri}" fill="var(--bg)" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(cx, cy, cx+ro, cy, `D=${d1}`, 'h', W, H);
+          svg += wtDimLine(cx, cy, cx+ri, cy+15, `d=${d2}`, 'h', W, H);
+          formula = `A = π/4 × (D² − d²)`;
+          break;
+        }
+        case 'square_bar': {
+          const a = Math.min(80, sc(d1,100,80));
+          svg = `<rect x="${cx-a/2}" y="${cy-a/2}" width="${a}" height="${a}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(cx-a/2, cy+a/2+10, cx+a/2, cy+a/2+10, `${d1}`, 'h', W, H);
+          formula = `A = A²`;
+          break;
+        }
+        case 'flat_bar':
+        case 'plate': {
+          const bw = Math.min(120, sc(d1,200,120));
+          const bh = Math.min(40, sc(d2,50,40));
+          svg = `<rect x="${cx-bw/2}" y="${cy-bh/2}" width="${bw}" height="${bh}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(cx-bw/2, cy+bh/2+12, cx+bw/2, cy+bh/2+12, `W=${d1}`, 'h', W, H);
+          svg += wtDimLine(cx+bw/2+12, cy-bh/2, cx+bw/2+12, cy+bh/2, `t=${d2}`, 'v', W, H);
+          formula = `A = W × t`;
+          break;
+        }
+        case 'h_steel':
+        case 'i_beam': {
+          const fh = Math.min(90, sc(d1,300,90));
+          const fw = Math.min(70, sc(d2,200,70));
+          const tw = Math.max(3, sc(d3,20,10));
+          const tf = Math.max(4, sc(d4,20,12));
+          const x0=cx-fw/2, y0=cy-fh/2;
+          svg = `<rect x="${x0}" y="${y0}" width="${fw}" height="${tf}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${cx-tw/2}" y="${y0+tf}" width="${tw}" height="${fh-tf*2}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${x0}" y="${y0+fh-tf}" width="${fw}" height="${tf}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(x0-14, y0, x0-14, y0+fh, `H=${d1}`, 'v', W, H);
+          svg += wtDimLine(x0, y0-12, x0+fw, y0-12, `B=${d2}`, 'h', W, H);
+          formula = `A = B×tf×2 + (H−tf×2)×tw`;
+          break;
+        }
+        case 'c_steel': {
+          const fh = Math.min(90, sc(d1,200,90));
+          const fw = Math.min(55, sc(d2,100,55));
+          const tw = Math.max(3, sc(d3,15,8));
+          const tf = Math.max(4, sc(d4,15,10));
+          const x0=cx-fw/2, y0=cy-fh/2;
+          svg = `<rect x="${x0}" y="${y0}" width="${fw}" height="${tf}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${x0}" y="${y0+tf}" width="${tw}" height="${fh-tf*2}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${x0}" y="${y0+fh-tf}" width="${fw}" height="${tf}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(x0-14, y0, x0-14, y0+fh, `H=${d1}`, 'v', W, H);
+          svg += wtDimLine(x0, y0-12, x0+fw, y0-12, `B=${d2}`, 'h', W, H);
+          formula = `A = B×tf×2 + (H−tf×2)×tw`;
+          break;
+        }
+        case 'angle': {
+          const al = Math.min(70, sc(d1,100,70));
+          const at = Math.max(3, sc(d2,15,10));
+          const x0=cx-al/2, y0=cy-al/2;
+          svg = `<rect x="${x0}" y="${y0}" width="${at}" height="${al}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${x0+at}" y="${y0+al-at}" width="${al-at}" height="${at}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(x0-14, y0, x0-14, y0+al, `A=${d1}`, 'v', W, H);
+          svg += wtDimLine(x0, y0+al+12, x0+al, y0+al+12, `A=${d1}`, 'h', W, H);
+          formula = `A = (2A − t) × t`;
+          break;
+        }
+        case 'unequal_angle': {
+          const la = Math.min(80, sc(d1,120,80));
+          const lb = Math.min(60, sc(d2,100,60));
+          const at = Math.max(3, sc(d3,15,9));
+          const x0=cx-la/2, y0=cy-la/2;
+          svg = `<rect x="${x0}" y="${y0}" width="${at}" height="${la}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${x0+at}" y="${y0+la-at}" width="${lb-at}" height="${at}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(x0-14, y0, x0-14, y0+la, `A=${d1}`, 'v', W, H);
+          svg += wtDimLine(x0, y0+la+12, x0+lb, y0+la+12, `B=${d2}`, 'h', W, H);
+          formula = `A = (A + B − t) × t`;
+          break;
+        }
+      }
+
+      document.getElementById('wt-svg-wrap').innerHTML =
+        `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+          style="overflow:visible">${svg}</svg>`;
+      document.getElementById('wt-formula').textContent = formula;
+    }
+
+    function wtDimLine(x1,y1,x2,y2,label,dir,W,H) {
+      const m='var(--muted)', fs=9;
+      if(dir==='h') {
+        const my=(y1+y2)/2;
+        return `<line x1="${x1}" y1="${my}" x2="${x2}" y2="${my}" stroke="${m}" stroke-width="1" stroke-dasharray="3,2"/>
+                <text x="${(x1+x2)/2}" y="${my-3}" fill="${m}" font-size="${fs}" text-anchor="middle"
+                  font-family="JetBrains Mono,monospace">${label}</text>`;
+      } else {
+        const mx=(x1+x2)/2;
+        return `<line x1="${mx}" y1="${y1}" x2="${mx}" y2="${y2}" stroke="${m}" stroke-width="1" stroke-dasharray="3,2"/>
+                <text x="${mx+3}" y="${(y1+y2)/2+4}" fill="${m}" font-size="${fs}" text-anchor="start"
+                  font-family="JetBrains Mono,monospace">${label}</text>`;
+      }
+    }
+
+    function wtDrawCompare(shape, L, qty, currentRho) {
+      const A = wtArea(shape);
+      const maxKg = Math.max(...WT_MAT_LIST.map(m => A*L*m.rho*1e-6));
+      const rows = WT_MAT_LIST.map(m => {
+        const kg = A * L * m.rho * 1e-6;
+        const pct = maxKg > 0 ? kg/maxKg*100 : 0;
+        const isActive = Math.abs(m.rho - currentRho) < 0.01;
+        return `<div style="margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
+            <span style="color:${isActive?'var(--ink)':'var(--muted)'};font-weight:${isActive?700:400}">${m.label}</span>
+            <span style="font-family:'JetBrains Mono',monospace;color:${isActive?'var(--accent)':'var(--muted)'}">
+              ${kg>=100?kg.toFixed(1):kg.toFixed(3)} kg</span>
+          </div>
+          <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${pct.toFixed(1)}%;background:${isActive?'var(--accent)':m.color};opacity:${isActive?1:0.45};border-radius:4px;transition:width .3s;"></div>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('wt-compare').innerHTML = rows;
+    }
+
+    /* 初期化 */
+    wtShapeChange();
     </script>
   </body>
 </html>
