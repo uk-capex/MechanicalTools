@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.47 | 20260319 | Mechanical Tools | uk |-->
+    <!-- build: 1.48 | 20260319 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -19230,6 +19230,7 @@
                 <option value="round_bar">丸棒</option>
                 <option value="pipe">パイプ（円管）</option>
                 <option value="square_bar">角棒</option>
+                <option value="square_pipe">角パイプ</option>
                 <option value="flat_bar">フラットバー（平鋼）</option>
                 <option value="plate">板材</option>
               </optgroup>
@@ -19331,6 +19332,7 @@
       round_bar:      [['外径 D','wt-d1',50]],
       pipe:           [['外径 D','wt-d1',60],['内径 d','wt-d2',50]],
       square_bar:     [['一辺 A','wt-d1',50]],
+      square_pipe:    [['外寸 A','wt-d1',50],['肉厚 t','wt-d2',3]],
       flat_bar:       [['幅 W','wt-d1',50],['厚さ t','wt-d2',9]],
       plate:          [['幅 W','wt-d1',200],['厚さ t','wt-d2',9]],
       h_steel:        [['全高 H','wt-d1',200],['フランジ幅 B','wt-d2',100],['ウェブ厚 tw','wt-d3',5.5],['フランジ厚 tf','wt-d4',8]],
@@ -19368,6 +19370,7 @@
         case 'round_bar':     return Math.PI/4 * d1*d1;
         case 'pipe':          return Math.PI/4 * (d1*d1 - d2*d2);
         case 'square_bar':    return d1*d1;
+        case 'square_pipe':   return d1*d1 - (d1-d2*2)*(d1-d2*2);
         case 'flat_bar':
         case 'plate':         return d1*d2;
         case 'h_steel':       return d2*d4*2 + (d1-d4*2)*d3;
@@ -19450,6 +19453,16 @@
           svg = `<rect x="${cx-a/2}" y="${cy-a/2}" width="${a}" height="${a}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;
           svg += wtDimLine(cx-a/2, cy+a/2+10, cx+a/2, cy+a/2+10, `${d1}`, 'h', W, H);
           formula = `A = A²`;
+          break;
+        }
+        case 'square_pipe': {
+          const ao = Math.min(80, sc(d1,100,80));
+          const ai = ao * Math.max(0, (d1-d2*2)/d1);
+          svg = `<rect x="${cx-ao/2}" y="${cy-ao/2}" width="${ao}" height="${ao}" fill="${f}" stroke="${s}" stroke-width="1.5"/>
+                 <rect x="${cx-ai/2}" y="${cy-ai/2}" width="${ai}" height="${ai}" fill="var(--bg)" stroke="${s}" stroke-width="1.5"/>`;
+          svg += wtDimLine(cx-ao/2, cy+ao/2+10, cx+ao/2, cy+ao/2+10, `A=${d1}`, 'h', W, H);
+          svg += wtDimLine(cx+ao/2+12, cy-ao/2, cx+ao/2+12, cy+ao/2, `t=${d2}`, 'v', W, H);
+          formula = `A = A² − (A−2t)²`;
           break;
         }
         case 'flat_bar':
