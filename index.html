@@ -23,18 +23,13 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-  <!-- 構造化データ -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "uk-capex",
     "url": "https://uk-capex.com/",
-    "description": "製造現場のエンジニア　Webツール集",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://uk-capex.com/"
-    }
+    "description": "製造現場のエンジニア　Webツール集"
   }
   </script>
 
@@ -50,7 +45,7 @@
       --muted: #768390;
       --accent: #388bfd;
       --good: #3fb950;
-      --free: #bc8cff;
+      --estimate: #e3b341;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,23 +69,19 @@
       pointer-events: none; z-index: 0;
     }
 
-    .accent-bar {
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), #58a6ff, var(--accent), transparent);
-      position: relative; z-index: 10;
-    }
-
+    /* ── ヘッダー ── */
     header {
       position: relative; z-index: 10;
-      padding: 20px 32px;
-      background: var(--surface);
+      padding: 16px 20px;
+      background: rgba(22,27,34,0.9);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between;
     }
 
     .logo {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 16px; font-weight: 600;
+      font-size: 15px; font-weight: 600;
       color: var(--ink); letter-spacing: 2px;
       text-decoration: none;
     }
@@ -98,87 +89,113 @@
 
     .header-sub {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+      font-size: 10px; color: var(--muted); letter-spacing: 1px;
     }
 
     /* ── ヒーロー ── */
     .hero {
       position: relative; z-index: 1;
+      overflow: hidden;
+      padding: 52px 20px 44px;
       text-align: center;
-      padding: 64px 24px 52px;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse at center,
+        rgba(56,139,253,0.09) 0%,
+        rgba(63,185,80,0.03) 50%,
+        transparent 72%
+      );
+      pointer-events: none;
     }
 
     .hero-eyebrow {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; letter-spacing: 3px;
+      font-size: 10px; letter-spacing: 4px;
       color: var(--accent); text-transform: uppercase;
-      margin-bottom: 20px;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.1s forwards;
     }
     .hero-eyebrow::before, .hero-eyebrow::after {
-      content: ''; width: 32px; height: 1px;
-      background: var(--accent); opacity: 0.4;
+      content: ''; width: 28px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent));
+      opacity: 0.5;
+    }
+    .hero-eyebrow::after {
+      background: linear-gradient(90deg, var(--accent), transparent);
     }
 
-    .hero h1 {
-      font-size: clamp(22px, 4vw, 34px);
-      font-weight: 700; line-height: 1.45;
-      margin-bottom: 16px; color: var(--ink);
+    .hero-title {
+      font-size: clamp(22px, 6vw, 36px);
+      font-weight: 700; line-height: 1.5;
+      margin-bottom: 22px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.2s forwards;
     }
-
-    .hero h1 .highlight-mech { color: var(--accent); }
-    .hero h1 .highlight-mgmt { color: var(--good); }
-
-    .hero-desc {
-      font-size: 14px; color: var(--muted);
-      font-weight: 300; line-height: 1.9;
-      max-width: 480px; margin: 0 auto 28px;
-    }
+    .hero-title .hl-blue   { color: var(--accent); }
+    .hero-title .hl-green  { color: var(--good); }
+    .hero-title .hl-yellow { color: var(--estimate); }
 
     .hero-badges {
       display: flex; justify-content: center;
-      gap: 10px; flex-wrap: wrap;
+      gap: 8px; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.3s forwards;
     }
     .hero-badge {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; font-weight: 600;
-      padding: 4px 12px; border-radius: 20px;
+      font-size: 10px; font-weight: 600;
+      padding: 4px 11px; border-radius: 20px;
       letter-spacing: 0.5px;
     }
-    .badge-blue { background: rgba(56,139,253,0.1); color: var(--accent); border: 1px solid rgba(56,139,253,0.2); }
-    .badge-green { background: rgba(63,185,80,0.1); color: var(--good); border: 1px solid rgba(63,185,80,0.2); }
-    .badge-gray { background: rgba(118,131,144,0.1); color: var(--muted); border: 1px solid rgba(118,131,144,0.2); }
+    .badge-blue   { background: rgba(56,139,253,0.10);  color: var(--accent);   border: 1px solid rgba(56,139,253,0.22); }
+    .badge-green  { background: rgba(63,185,80,0.10);   color: var(--good);     border: 1px solid rgba(63,185,80,0.22); }
+    .badge-yellow { background: rgba(227,179,65,0.10);  color: var(--estimate); border: 1px solid rgba(227,179,65,0.22); }
+    .badge-gray   { background: rgba(118,131,144,0.10); color: var(--muted);    border: 1px solid rgba(118,131,144,0.22); }
 
-    /* ── セクション共通 ── */
-    .section-wrap {
+    /* ── 仕切り ── */
+    .divider {
       position: relative; z-index: 1;
-      max-width: 900px; margin: 0 auto;
-      padding: 0 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 20%, var(--border) 80%, transparent);
+      margin: 0 16px;
+    }
+
+    /* ── セクション ── */
+    .main-section {
+      position: relative; z-index: 1;
+      max-width: 860px; margin: 0 auto;
+      padding: 0 16px;
+      width: 100%;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.4s forwards;
     }
 
     .section-label {
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px; padding-top: 32px;
     }
     .section-label-text {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; font-weight: 600;
-      letter-spacing: 2px; text-transform: uppercase;
-      white-space: nowrap;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      white-space: nowrap; color: var(--accent);
     }
     .section-label-line {
-      flex: 1; height: 1px;
-      background: var(--border);
+      flex: 1; height: 1px; background: var(--border);
     }
-    .label-blue { color: var(--accent); }
-    .label-green { color: var(--good); }
-    .label-free { color: var(--free); }
 
-    /* ── メインカードグリッド（2本柱） ── */
+    /* ── カード（スマホ: 横長リスト） ── */
     .main-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 48px;
     }
 
@@ -189,278 +206,181 @@
       overflow: hidden;
       text-decoration: none;
       color: var(--ink);
-      display: flex; flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      display: flex; flex-direction: row;
+      align-items: stretch;
+      transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
     }
-    .main-card:hover {
+    .main-card:active {
       background: var(--surface2);
-      transform: translateY(-3px);
+      transform: scale(0.99);
     }
-    .main-card.card-mech { border-top: 3px solid var(--accent); }
-    .main-card.card-mech:hover { border-color: var(--accent); }
-    .main-card.card-mgmt { border-top: 3px solid var(--good); }
-    .main-card.card-mgmt:hover { border-color: var(--good); }
+
+    .main-card.card-mech  { border-left: 3px solid var(--accent); }
+    .main-card.card-lathe { border-left: 3px solid var(--good); }
+    .main-card.card-elec  { border-left: 3px solid var(--estimate); }
 
     .main-card-body {
-      padding: 28px 26px 20px;
-      flex: 1; display: flex; flex-direction: column; gap: 10px;
+      padding: 18px 16px;
+      flex: 1;
+      display: flex; align-items: center; gap: 14px;
     }
 
-    .main-card-icon { font-size: 32px; }
+    .main-card-icon { font-size: 24px; flex-shrink: 0; }
+
+    .main-card-text { flex: 1; }
 
     .main-card-title {
-      font-size: 17px; font-weight: 700;
-      color: var(--ink); line-height: 1.3;
+      font-size: 14px; font-weight: 700;
+      color: var(--ink); line-height: 1.4;
+      margin-bottom: 3px;
     }
 
     .main-card-desc {
-      font-size: 13px; color: var(--muted);
-      line-height: 1.8; font-weight: 300;
-      flex: 1;
+      font-size: 11px; color: var(--muted);
+      line-height: 1.7; font-weight: 300;
     }
 
-    .main-card-tags {
-      display: flex; gap: 6px; flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    .card-tag {
-      display: inline-block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px; font-weight: 600;
-      padding: 3px 8px; border-radius: 4px;
-      letter-spacing: 1px;
-    }
-    .tag-mech { background: rgba(56,139,253,0.12); color: var(--accent); border: 1px solid rgba(56,139,253,0.25); }
-    .tag-mgmt { background: rgba(63,185,80,0.12); color: var(--good); border: 1px solid rgba(63,185,80,0.25); }
-    .tag-free { background: rgba(188,140,255,0.12); color: var(--free); border: 1px solid rgba(188,140,255,0.25); }
-
-    .main-card-footer {
-      padding: 14px 26px;
-      border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .main-card-price {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px; color: var(--muted);
-    }
-    .main-card-price strong {
-      font-size: 15px; color: var(--ink);
-    }
     .main-card-cta {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; font-weight: 600;
-      padding: 6px 14px; border-radius: 5px;
-      text-decoration: none;
-      transition: all 0.2s;
+      font-size: 12px; font-weight: 600;
+      padding: 0 18px;
+      display: flex; align-items: center;
+      border-left: 1px solid var(--border);
+      flex-shrink: 0;
     }
-    .cta-mech {
-      background: rgba(56,139,253,0.15);
-      color: var(--accent);
-      border: 1px solid rgba(56,139,253,0.3);
-    }
-    .cta-mech:hover { background: rgba(56,139,253,0.25); }
-    .cta-mgmt {
-      background: rgba(63,185,80,0.15);
-      color: var(--good);
-      border: 1px solid rgba(63,185,80,0.3);
-    }
-    .cta-mgmt:hover { background: rgba(63,185,80,0.25); }
+    .cta-mech  { color: var(--accent); }
+    .cta-lathe { color: var(--good); }
+    .cta-elec  { color: var(--estimate); }
 
-    /* ── 契約者リンク ── */
-    .subscriber-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 48px;
-    }
-    .subscriber-link {
-      display: block;
-      text-align: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px; font-weight: 600;
-      color: var(--accent);
-      text-decoration: none;
-      padding: 10px 12px;
-      border: 1px solid rgba(56,139,253,0.2);
-      border-radius: 6px;
-      background: rgba(56,139,253,0.05);
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .subscriber-link:hover {
-      background: rgba(56,139,253,0.12);
-      border-color: rgba(56,139,253,0.4);
-    }
-    .subscriber-link-mgmt {
-      color: var(--good);
-      border-color: rgba(63,185,80,0.2);
-      background: rgba(63,185,80,0.05);
-    }
-    .subscriber-link-mgmt:hover {
-      background: rgba(63,185,80,0.12);
-      border-color: rgba(63,185,80,0.4);
-    }
-
-    @media (max-width: 640px) {
-      .subscriber-grid { grid-template-columns: 1fr; }
-    }
-
-    /* ── 無料ツールセクション ── */
-    .free-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 10px;
-      margin-bottom: 80px;
-    }
-
-    .free-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 18px 18px;
-      text-decoration: none;
-      color: var(--ink);
-      display: flex; flex-direction: column; gap: 8px;
-      opacity: 0.8;
-      transition: opacity 0.2s, background 0.2s, transform 0.15s;
-    }
-    .free-card:hover {
-      opacity: 1;
-      background: var(--surface2);
-      transform: translateY(-2px);
-    }
-
-    .free-card-icon { font-size: 22px; }
-    .free-card-title {
-      font-size: 13px; font-weight: 600;
-      color: var(--ink); line-height: 1.3;
-    }
-    .free-card-desc {
-      font-size: 11px; color: var(--muted);
-      line-height: 1.6; font-weight: 300;
-      flex: 1;
-    }
-
-    .free-card-point {
-      font-size: 11px; color: var(--free);
-      line-height: 1.6; font-weight: 500;
-    }
+    /* ── フッター ── */
     footer {
       position: relative; z-index: 1;
       margin-top: auto;
       border-top: 1px solid var(--border);
-      padding: 20px 32px; text-align: center;
+      padding: 16px 20px; text-align: center;
       background: var(--surface);
     }
-    .footer-links {
-      display: flex; justify-content: center;
-      gap: 24px; margin-bottom: 10px; flex-wrap: wrap;
-    }
-    .footer-links a {
-      font-size: 11px; color: var(--muted);
-      text-decoration: none;
-      font-family: 'JetBrains Mono', monospace;
-      transition: color 0.2s;
-    }
-    .footer-links a:hover { color: var(--accent); }
     .footer-copy {
       font-size: 11px; color: #3a4a5a;
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* ── 電気保全カード ── */
-    .main-card.card-elec { border-top: 3px solid #e3b341; }
-    .main-card.card-elec:hover { border-color: #e3b341; }
-    .cta-elec {
-      background: rgba(227,179,65,0.15);
-      color: #e3b341;
-      border: 1px solid rgba(227,179,65,0.3);
-    }
-    .cta-elec:hover { background: rgba(227,179,65,0.25); }
-
-    /* アニメーション */
+    /* ── アニメーション ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .hero { animation: fadeUp 0.4s ease 0.1s both; }
-    .main-section { animation: fadeUp 0.4s ease 0.2s both; }
-    .free-section { animation: fadeUp 0.4s ease 0.3s both; }
 
-    /* レスポンシブ */
-    @media (max-width: 640px) {
-      header { padding: 14px 16px; }
-      .header-sub { display: none; }
-      .hero { padding: 44px 16px 36px; }
-      .hero h1 { font-size: 22px; }
-      .hero-desc { font-size: 13px; }
-      .section-wrap { padding: 0 12px; }
+    /* ── タブレット・PC: 3列カード ── */
+    @media (min-width: 640px) {
+      header { padding: 18px 32px; }
+      .hero { padding: 72px 24px 60px; }
+      .divider { margin: 0 24px; }
+      .main-section { padding: 0 24px; }
+
       .main-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
       }
-      .main-card-body { padding: 22px 20px 16px; }
-      .main-card-footer { padding: 12px 20px; }
-      .main-card-title { font-size: 16px; }
-      .free-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 60px;
+      .main-card {
+        flex-direction: column;
       }
-      .free-card { padding: 14px 14px; }
-      .footer-links { gap: 16px; }
-    }
-
-    @media (max-width: 400px) {
-      .free-grid { grid-template-columns: 1fr; }
+      .main-card.card-mech  { border-left: none; border-top: 3px solid var(--accent); }
+      .main-card.card-lathe { border-left: none; border-top: 3px solid var(--good); }
+      .main-card.card-elec  { border-left: none; border-top: 3px solid var(--estimate); }
+      .main-card:hover {
+        background: var(--surface2);
+        transform: translateY(-3px);
+      }
+      .main-card.card-mech:hover  { box-shadow: 0 6px 24px rgba(56,139,253,0.10); }
+      .main-card.card-lathe:hover { box-shadow: 0 6px 24px rgba(63,185,80,0.10); }
+      .main-card.card-elec:hover  { box-shadow: 0 6px 24px rgba(227,179,65,0.10); }
+      .main-card-body {
+        flex-direction: column; align-items: flex-start; gap: 10px;
+        padding: 24px 22px 16px; flex: 1;
+      }
+      .main-card-icon { font-size: 28px; }
+      .main-card-title { font-size: 15px; margin-bottom: 0; }
+      .main-card-desc { font-size: 12px; }
+      .main-card-cta {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        width: 100%; padding: 12px 22px;
+        justify-content: flex-end;
+      }
     }
   </style>
 </head>
 <body>
 
+  <header>
+    <a href="/" class="logo">uk<span>-</span>capex</a>
+    <span class="header-sub">ENGINEER TOOLS</span>
+  </header>
 
-  <!-- メインツール -->
-  <div class="main-section" style="padding-top:48px;">
-    <div class="section-wrap">
-      <div class="main-grid">
+  <!-- ヒーロー -->
+  <section class="hero">
+    <div class="hero-eyebrow">Engineer Toolkit</div>
+    <h1 class="hero-title">
+      現場で活用！<br>
+      <span class="hl-blue">機械</span> ・ <span class="hl-green">切削</span> ・ <span class="hl-yellow">電気</span> Webツール集
+    </h1>
+    <div class="hero-badges">
+      <span class="hero-badge badge-blue">🔧 機械保全 16ツール</span>
+      <span class="hero-badge badge-green">🔵 切削計算</span>
+      <span class="hero-badge badge-yellow">⚡ 電気保全</span>
+      <span class="hero-badge badge-gray">ブラウザ完結</span>
+    </div>
+  </section>
 
-        <!-- 機械保全ツール -->
-        <a href="Mechanical_Tools.html" class="main-card card-mech">
-          <div class="main-card-body">
-            <div class="main-card-icon">🔧</div>
+  <div class="divider"></div>
+
+  <!-- ツール一覧 -->
+  <div class="main-section">
+    <div class="section-label">
+      <span class="section-label-text">// Tools</span>
+      <div class="section-label-line"></div>
+    </div>
+
+    <div class="main-grid">
+
+      <!-- 機械保全ツール -->
+      <a href="Mechanical_Tools.html" class="main-card card-mech">
+        <div class="main-card-body">
+          <div class="main-card-icon">🔧</div>
+          <div class="main-card-text">
             <h2 class="main-card-title">機械保全 便利ツール集</h2>
             <p class="main-card-desc">焼き嵌め・ネジ・歯車・ベアリングなど16ツール</p>
           </div>
-          <div class="main-card-footer">
-            <span class="main-card-cta cta-mech">開く →</span>
-          </div>
-        </a>
+        </div>
+        <span class="main-card-cta cta-mech">→</span>
+      </a>
 
-        <!-- 旋盤・フライスツール -->
-        <a href="Lathe_Milling_Tools.html" class="main-card card-mgmt">
-          <div class="main-card-body">
-            <div class="main-card-icon">🔵</div>
-            <h2 class="main-card-title">旋盤 &amp; フライス 計算ツール</h2>
+      <!-- 旋盤・フライス・ボール盤ツール -->
+      <a href="Lathe_Milling_Tools.html" class="main-card card-lathe">
+        <div class="main-card-body">
+          <div class="main-card-icon">🔵</div>
+          <div class="main-card-text">
+            <h2 class="main-card-title">旋盤・フライス・ボール盤 計算ツール</h2>
             <p class="main-card-desc">切削条件・回転数・送り速度・材料別早見表</p>
           </div>
-          <div class="main-card-footer">
-            <span class="main-card-cta cta-mgmt">開く →</span>
-          </div>
-        </a>
+        </div>
+        <span class="main-card-cta cta-lathe">→</span>
+      </a>
 
-        <!-- 電気保全ツール -->
-        <a href="Electrical_Tools.html" class="main-card card-elec">
-          <div class="main-card-body">
-            <div class="main-card-icon">⚡</div>
+      <!-- 電気保全ツール -->
+      <a href="Electrical_Tools.html" class="main-card card-elec">
+        <div class="main-card-body">
+          <div class="main-card-icon">⚡</div>
+          <div class="main-card-text">
             <h2 class="main-card-title">電気保全 便利ツール集</h2>
             <p class="main-card-desc">電線サイズ・アース線・電線管・フレキ・電線種類ガイド</p>
           </div>
-          <div class="main-card-footer">
-            <span class="main-card-cta cta-elec">開く →</span>
-          </div>
-        </a>
+        </div>
+        <span class="main-card-cta cta-elec">→</span>
+      </a>
 
-      </div>
     </div>
   </div>
 
