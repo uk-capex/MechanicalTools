@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <!-- build: 1.13 | 20260323 | THK EstiMate Factory | uk -->
+  <!-- build: 1.15 | 20260323 | THK EstiMate Factory | uk -->
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>THK EstiMate Factory</title>
@@ -588,8 +588,18 @@
         </div>
       </div>
       <div class="info-col-body collapsed" id="company-body">
-      <div class="field"><label>会社名</label>
-        <input type="text" id="q-company" placeholder="○○株式会社" oninput="updateInfoSummary()"/></div>
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+          <label style="margin:0">会社名</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);cursor:pointer;margin:0;font-weight:400;">
+            <input type="checkbox" id="q-company-hide-print" style="width:12px;height:12px;accent-color:var(--accent);cursor:pointer;"
+              onchange="updateCompanyHidePrint()"/>
+            印刷しない
+          </label>
+        </div>
+        <input type="text" id="q-company" placeholder="○○株式会社" oninput="updateInfoSummary()"/>
+        <div id="company-hide-hint" style="display:none;font-size:10px;color:var(--warn);margin-top:3px;">⚠ 印刷・PDF では社名を出力しません</div>
+      </div>
       <div class="two-col">
         <div class="field"><label>郵便番号</label>
           <input type="text" id="q-zip" placeholder="〒000-0000"/></div>
@@ -984,6 +994,30 @@ function copyToNew(){
 }
 
 /* ═══════════════════════════════════════════
+   自社名 印刷しないフラグ
+═══════════════════════════════════════════ */
+function updateCompanyHidePrint(){
+  const chk=document.getElementById('q-company-hide-print');
+  const hint=document.getElementById('company-hide-hint');
+  const hide=chk&&chk.checked;
+  if(hint) hint.style.display=hide?'block':'none';
+  try{ localStorage.setItem('thk-company-hide-print', hide?'1':'0'); }catch(e){}
+}
+function isCompanyHidden(){
+  const chk=document.getElementById('q-company-hide-print');
+  return chk&&chk.checked;
+}
+function restoreCompanyHidePrint(){
+  try{
+    const v=localStorage.getItem('thk-company-hide-print');
+    if(v==='1'){
+      const chk=document.getElementById('q-company-hide-print');
+      if(chk){ chk.checked=true; updateCompanyHidePrint(); }
+    }
+  }catch(e){}
+}
+
+/* ═══════════════════════════════════════════
    顧客・自社情報 折りたたみ
 ═══════════════════════════════════════════ */
 function toggleInfoCol(which){
@@ -1067,6 +1101,7 @@ function init(){
   renderRates(); renderAll(); recalcAll();
   restoreInfoColState();
   updateInfoSummary();
+  restoreCompanyHidePrint();
   // ESCキー or メインパネル以外クリックでプリセット解除
   document.addEventListener('keydown',e=>{if(e.key==='Escape') clearPreset();});
   document.addEventListener('click',e=>{
@@ -1812,7 +1847,7 @@ function buildLandscapeDoc(){
         </div><br>
         ${logoHtml}
         <div style="display:inline-block;text-align:left;">
-          <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${esc2(gv('q-company'))}</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${isCompanyHidden()?'':esc2(gv('q-company'))}</div>
           <div style="font-size:11px;color:#333;line-height:1.8;">
             ${gv('q-zip')?esc2(gv('q-zip'))+'<br>':''}
             ${gv('q-address')?esc2(gv('q-address')).replace(/\n/g,'<br>')+'<br>':''}
@@ -1987,7 +2022,7 @@ function buildPrintDoc(){
       </div><br>
       ${logoHtml}
       <div style="display:inline-block;text-align:left;">
-        <div style="font-size:15px;font-weight:700;margin-bottom:3px;">${esc(gv('q-company'))}</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:3px;">${isCompanyHidden()?'':esc(gv('q-company'))}</div>
         <div style="font-size:12px;color:#333;line-height:1.9;">
           ${gv('q-zip')?esc(gv('q-zip'))+'<br>':''}
           ${gv('q-address')?esc(gv('q-address')).replace(/\n/g,'<br>')+'<br>':''}
@@ -2221,6 +2256,7 @@ function buildSaveData(){
       tel:gv('q-tel'),fax:gv('q-fax'),staff:gv('q-staff'),
       invoiceNo:gv('q-invoice-no'),
       logo:gv('q-logo'),
+      companyHidePrint:document.getElementById('q-company-hide-print')?.checked||false,
       // チェックON時のみ base64 をJSONへ同梱（既定OFFで軽量化）
       logoData:(document.getElementById('include-logo-json-chk')?.checked===true) ? _logoDataUrl : '',
       logoSize:gv('q-logo-size')||'md',
@@ -2278,6 +2314,9 @@ function applyJSON(data){
   sv('q-tel',m.tel||'');sv('q-fax',m.fax||'');
   sv('q-staff',m.staff||'');sv('q-invoice-no',m.invoiceNo||'');
   sv('q-logo',m.logo||'');
+  // 社名印刷しないフラグ
+  const chkHide=document.getElementById('q-company-hide-print');
+  if(chkHide){ chkHide.checked=m.companyHidePrint||false; updateCompanyHidePrint(); }
   // ロゴ復元（アップロードデータ優先、なければパスのみ）
   if(m.logoData){
     _logoDataUrl=m.logoData;
@@ -2348,6 +2387,20 @@ function hardClear(){
   const btn=document.getElementById('st-draft');
   if(btn){document.querySelectorAll('#st-draft,#st-final').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
   renderAll();recalcAll();
+  // 開閉状態キャッシュもリセット（両パネルを閉じた状態に戻す）
+  try{
+    localStorage.removeItem('thk-infocol-client');
+    localStorage.removeItem('thk-infocol-company');
+    localStorage.removeItem('thk-company-hide-print');
+  }catch(e){}
+  ['client','company'].forEach(which=>{
+    const body=document.getElementById(which+'-body');
+    const header=document.getElementById(which+'-header');
+    if(body) body.classList.add('collapsed');
+    if(header) header.classList.remove('open');
+  });
+  const chkHide=document.getElementById('q-company-hide-print');
+  if(chkHide){ chkHide.checked=false; updateCompanyHidePrint(); }
 }
 function clearLines(){
   if(!confirm('見積明細（全セクションの行データ）をクリアします。\n顧客・自社情報・設定は保持されます。よろしいですか？'))return;
