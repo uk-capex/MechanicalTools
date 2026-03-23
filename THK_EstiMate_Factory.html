@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <!-- build: 1.15 | 20260323 | THK EstiMate Factory | uk -->
+  <!-- build: 1.17 | 20260323 | THK EstiMate Factory | uk -->
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>THK EstiMate Factory</title>
@@ -863,7 +863,7 @@ const SECTION_DEFS=[
     ]},
 ];
 
-let ST={sections:{}, tax:10, discount:0, discountRate:0, discountMode:'amount', status:'draft'};
+let ST={sections:{}, tax:10, discount:0, discountRate:0, discountMode:'amount', discounts:[], status:'draft'};
 let PRINT_MODE='quote';
 
 /* ═══════════════════════════════════════════
@@ -1626,7 +1626,10 @@ function calcSecTotal(id){
 }
 function calcTotals(){
   let sub=0; SECTION_DEFS.forEach(d=>{sub+=calcSecTotal(d.id);});
-  const disc=ST.discountMode==='amount'?ST.discount:Math.round(sub*ST.discountRate/100);
+  // 複数値引き行の合計
+  const disc=(ST.discounts&&ST.discounts.length>0)
+    ? ST.discounts.reduce((s,d)=>s+(+d.amount||0),0)
+    : (ST.discountMode==='amount'?ST.discount:Math.round(sub*ST.discountRate/100));
   const after=Math.max(0,sub-disc); const tax=Math.round(after*ST.tax/100);
   return{subtotal:sub,disc,afterDiscount:after,tax,total:after+tax};
 }
@@ -1644,19 +1647,32 @@ function buildSummary(){
   const t=calcTotals();
   const wrap=document.createElement('div');
   wrap.className='summary-box'; wrap.id='summary-box';
+
+  // 値引き行HTML
+  const discRows=(ST.discounts||[]).map((d,i)=>`
+    <div class="sum-row s-disc" id="disc-row-${i}">
+      <span class="sum-lbl" style="display:flex;align-items:center;gap:5px;">
+        <input type="text" value="${esc(d.label)}" placeholder="出精値引き"
+          style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px;width:130px;color:var(--ink);"
+          onchange="setDiscLabel(${i},this.value)"/>
+        <button onclick="removeDisc(${i})" style="background:none;border:none;color:var(--bad);cursor:pointer;font-size:13px;padding:0 2px;line-height:1;" title="削除">✕</button>
+      </span>
+      <span style="display:flex;align-items:center;gap:4px;">
+        <span style="color:var(--bad);font-size:13px;">−</span>
+        <input class="s-inp" type="number" value="${d.amount||0}" min="0" step="1000"
+          onchange="setDiscAmount(${i},+this.value)" placeholder="0"/>
+        <span style="font-size:12px;color:var(--muted);">円</span>
+      </span>
+    </div>`).join('');
+
   wrap.innerHTML=`
     <div class="section-title" style="margin-bottom:10px">💴 見積合計</div>
     <div class="sum-row"><span class="sum-lbl">小計（税抜）</span><span class="sum-val" id="sum-sub">${fmt(t.subtotal)}</span></div>
-    <div class="sum-row s-disc">
-      <span class="sum-lbl">値引き
-        <span class="print-hide" style="margin-left:7px;font-size:11px">
-          <label style="cursor:pointer"><input type="radio" name="dm" value="amount" ${ST.discountMode==='amount'?'checked':''} onchange="setDiscMode('amount')"> 金額</label>
-          <label style="cursor:pointer;margin-left:4px"><input type="radio" name="dm" value="rate" ${ST.discountMode==='rate'?'checked':''} onchange="setDiscMode('rate')"> %</label>
-        </span>
-      </span>
-      <span>${ST.discountMode==='amount'
-        ?`<input class="s-inp" type="number" value="${ST.discount}" min="0" step="1000" onchange="setDiscount(+this.value)" placeholder="0"> 円`
-        :`<input class="s-inp" type="number" value="${ST.discountRate}" min="0" max="100" step="1" onchange="setDiscRate(+this.value)" placeholder="0"> %`}</span>
+    ${discRows}
+    <div class="sum-row print-hide" style="padding:4px 0;">
+      <span></span>
+      <button onclick="addDisc()" style="font-size:11px;padding:3px 10px;border-radius:5px;border:1px dashed var(--bad);background:transparent;color:var(--bad);cursor:pointer;transition:all .15s;"
+        onmouseover="this.style.background='var(--bad-dim)'" onmouseout="this.style.background='transparent'">＋ 値引き行を追加</button>
     </div>
     <div class="sum-row"><span class="sum-lbl">値引後合計（税抜）</span><span class="sum-val" id="sum-after">${fmt(t.afterDiscount)}</span></div>
     <div class="sum-row"><span class="sum-lbl">消費税
@@ -1671,6 +1687,18 @@ function buildSummary(){
     <div class="sum-row s-total"><span class="sum-lbl">合計金額（税込）</span><span class="sum-val" id="sum-total">${fmt(t.total)}</span></div>`;
   return wrap;
 }
+function addDisc(){
+  if(!ST.discounts) ST.discounts=[];
+  ST.discounts.push({label:'出精値引き',amount:0});
+  const o=document.getElementById('summary-box'); if(o) o.replaceWith(buildSummary());
+}
+function removeDisc(i){
+  ST.discounts.splice(i,1);
+  const o=document.getElementById('summary-box'); if(o) o.replaceWith(buildSummary());
+  refreshTotals();
+}
+function setDiscLabel(i,v){ ST.discounts[i].label=v; }
+function setDiscAmount(i,v){ ST.discounts[i].amount=v; refreshTotals(); }
 function setDiscount(v){ST.discount=v;refreshTotals();}
 function setDiscRate(v){ST.discountRate=v;refreshTotals();}
 function setDiscMode(m){ST.discountMode=m;const o=document.getElementById('summary-box');if(o)o.replaceWith(buildSummary());}
@@ -1867,7 +1895,7 @@ function buildLandscapeDoc(){
       <div style="display:table-cell;vertical-align:middle;text-align:right;font-size:11px;color:#555;line-height:2;">
         <div>課税対象額（税抜）：<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#333;">${'¥'+t.afterDiscount.toLocaleString()}</span></div>
         <div>消費税（${isCombo?10:ST.tax}%）：<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#333;">${'¥'+t.tax.toLocaleString()}</span></div>
-        ${t.disc>0?`<div style="color:#c00;">値引き：<span style="font-family:'JetBrains Mono',monospace;">-${'¥'+t.disc.toLocaleString()}</span></div>`:''}
+        ${(ST.discounts&&ST.discounts.length>0)?ST.discounts.map(d=>`<div style="color:#c00;">${esc2(d.label||'出精値引き')}：<span style="font-family:'JetBrains Mono',monospace;">-${'¥'+(+d.amount||0).toLocaleString()}</span></div>`).join(''):(t.disc>0?`<div style="color:#c00;">値引き：<span style="font-family:'JetBrains Mono',monospace;">-${'¥'+t.disc.toLocaleString()}</span></div>`:'')}
       </div>
     </div>`:''}
 
@@ -1910,7 +1938,9 @@ function buildLandscapeDoc(){
       <tbody>${sumRows}</tbody>
       <tfoot>
         <tr><td style="padding:7px 14px;border-top:1px solid #bbb;color:#555;">小計（税抜）</td><td style="padding:7px 14px;border-top:1px solid #bbb;text-align:right;font-family:'JetBrains Mono',monospace;">${isDelivery?'—':'¥'+t.subtotal.toLocaleString()}</td></tr>
-        ${t.disc>0?`<tr><td style="padding:7px 14px;color:#c00;">値引き</td><td style="padding:7px 14px;text-align:right;font-family:'JetBrains Mono',monospace;color:#c00;">-¥${t.disc.toLocaleString()}</td></tr>`:''}
+        ${(ST.discounts&&ST.discounts.length>0)
+          ? ST.discounts.map(d=>`<tr><td style="padding:7px 14px;color:#c00;">${esc(d.label||'出精値引き')}</td><td style="padding:7px 14px;text-align:right;font-family:'JetBrains Mono',monospace;color:#c00;">-¥${(+d.amount||0).toLocaleString()}</td></tr>`).join('')
+          : (t.disc>0?`<tr><td style="padding:7px 14px;color:#c00;">値引き</td><td style="padding:7px 14px;text-align:right;font-family:'JetBrains Mono',monospace;color:#c00;">-¥${t.disc.toLocaleString()}</td></tr>`:'')}
         <tr><td style="padding:7px 14px;color:#555;">消費税（${isCombo?10:ST.tax}%）</td><td style="padding:7px 14px;text-align:right;font-family:'JetBrains Mono',monospace;">¥${t.tax.toLocaleString()}</td></tr>
         <tr style="background:#333;color:#fff;">
           <td style="padding:10px 14px;font-weight:700;font-size:15px;">税込合計</td>
@@ -2073,7 +2103,13 @@ function buildPrintDoc(){
   const disc=t.disc;
   // 空白行は挿入しない（備考欄はposition:absoluteで下端固定のため不要）
   summaryRows+=`<tr class="pd-grand"><td>小計（税抜）</td><td>${isDelivery?'—':fmt(t.subtotal)}</td></tr>`;
-  if(disc>0) summaryRows+=`<tr class="pd-disc"><td>値引き</td><td>${isDelivery?'—':'-'+fmt(disc)}</td></tr>`;
+  if(disc>0){
+    if(ST.discounts&&ST.discounts.length>0){
+      ST.discounts.forEach(d=>{ summaryRows+=`<tr class="pd-disc"><td>${esc(d.label||'出精値引き')}</td><td>${isDelivery?'—':'-'+fmt(+d.amount||0)}</td></tr>`; });
+    } else {
+      summaryRows+=`<tr class="pd-disc"><td>値引き</td><td>${isDelivery?'—':'-'+fmt(disc)}</td></tr>`;
+    }
+  }
   summaryRows+=`<tr class="pd-tax-row"><td>消費税（${ST.tax}%）</td><td>${isDelivery?'—':fmt(t.tax)}</td></tr>`;
   summaryRows+=`<tr class="pd-total-row"><td>税込合計</td><td>${isDelivery?'—':fmt(t.total)}</td></tr>`;
 
@@ -2207,10 +2243,16 @@ function buildPrintDoc(){
 
   // combo明細：値引き行を末尾に追加
   if(isCombo&&t.disc>0){
-    allDetailTbodies+=`<tbody><tr>
-      <td colspan="4" style="text-align:right;font-weight:700;color:#c00;padding:5px 8px;border-top:2px solid #bbb;">値引き</td>
-      <td class="num" style="color:#c00;font-weight:700;border-top:2px solid #bbb;">-${fmt(t.disc)}</td>
-    </tr></tbody>`;
+    const discRows=(ST.discounts&&ST.discounts.length>0)
+      ? ST.discounts.map(d=>`<tbody><tr>
+          <td colspan="4" style="text-align:right;font-weight:700;color:#c00;padding:5px 8px;border-top:2px solid #bbb;">${esc(d.label||'出精値引き')}</td>
+          <td class="num" style="color:#c00;font-weight:700;border-top:2px solid #bbb;">-${fmt(+d.amount||0)}</td>
+        </tr></tbody>`).join('')
+      : `<tbody><tr>
+          <td colspan="4" style="text-align:right;font-weight:700;color:#c00;padding:5px 8px;border-top:2px solid #bbb;">値引き</td>
+          <td class="num" style="color:#c00;font-weight:700;border-top:2px solid #bbb;">-${fmt(t.disc)}</td>
+        </tr></tbody>`;
+    allDetailTbodies+=discRows;
   }
 
   const detailHtml=hasDetail?`
@@ -2273,7 +2315,8 @@ function buildSaveData(){
     },
     settings:{
       tax:ST.tax,discount:ST.discount,discountRate:ST.discountRate,
-      discountMode:ST.discountMode,toolWearRate:parseFloat(gv('tool-wear-rate'))||5,
+      discountMode:ST.discountMode,discounts:ST.discounts||[],
+      toolWearRate:parseFloat(gv('tool-wear-rate'))||5,
       expensesRate:parseFloat(gv('expenses-rate'))||3.5,
     },
     sections:SECTION_DEFS.reduce((obj,def)=>{
@@ -2342,6 +2385,7 @@ function applyJSON(data){
   const s=data.settings||{};
   ST.tax=s.tax??10;ST.discount=s.discount??0;
   ST.discountRate=s.discountRate??0;ST.discountMode=s.discountMode||'amount';
+  ST.discounts=Array.isArray(s.discounts)?s.discounts:[];
   sv('tool-wear-rate',s.toolWearRate??5);
   sv('expenses-rate',s.expensesRate??3.5);
   if(data.status){
@@ -2381,7 +2425,7 @@ function hardClear(){
   if(preview) preview.src='';
   if(wrap) wrap.style.display='none';
   if(fname) fname.textContent='未選択';
-  ST.discount=0;ST.discountRate=0;ST.discountMode='amount';ST.tax=10;ST.status='draft';
+  ST.discount=0;ST.discountRate=0;ST.discountMode='amount';ST.discounts=[];ST.tax=10;ST.status='draft';
   // 損耗率・諸経費率は設定値なのでクリア対象外（現在値を保持）
   SECTION_DEFS.forEach(def=>{ST.sections[def.id]={open:false,lines:[]};});
   const btn=document.getElementById('st-draft');
@@ -2405,12 +2449,12 @@ function hardClear(){
 function clearLines(){
   if(!confirm('見積明細（全セクションの行データ）をクリアします。\n顧客・自社情報・設定は保持されます。よろしいですか？'))return;
   SECTION_DEFS.forEach(def=>{ST.sections[def.id]={open:false,lines:[]};});
-  ST.discount=0;ST.discountRate=0;ST.discountMode='amount';
+  ST.discount=0;ST.discountRate=0;ST.discountMode='amount';ST.discounts=[];
   renderAll();recalcAll();
 }
 function loadDefaults(){
   if(!confirm('明細を初期値に戻します。よろしいですか？'))return;
-  resetSections();ST.discount=0;ST.discountRate=0;ST.discountMode='amount';ST.tax=10;
+  resetSections();ST.discount=0;ST.discountRate=0;ST.discountMode='amount';ST.discounts=[];ST.tax=10;
   sv('tool-wear-rate','5');sv('expenses-rate','3.5');
   // RATESも初期値に戻す
   RATES=[
@@ -2477,7 +2521,7 @@ function loadSample(){
       lines:def.defaultLines.map((l,i)=>({...l,id:`${def.id}_${i}`,visible:true})),
     };
   });
-  ST.discount=50000;ST.discountMode='amount';ST.tax=10;
+  ST.discounts=[{label:'出精値引き',amount:50000}];ST.discount=0;ST.discountMode='amount';ST.tax=10;
   renderAll();recalcAll();
 }
 
