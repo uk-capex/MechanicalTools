@@ -2529,6 +2529,7 @@ init();
 
 // ── デフォルト自社情報（THKカスタム）──────────────────────
 (function setCompanyDefaults(){
+  if(!gv('q-company'))sv('q-company','東北特殊鋼株式会社');
   if(!gv('q-zip'))    sv('q-zip',    '〒989-1393　');
   if(!gv('q-address'))sv('q-address','宮城県柴田郡村田町大字村田字西ケ丘２３');
   if(!gv('q-tel'))    sv('q-tel',    '0224-82-1010(代表)　　');
