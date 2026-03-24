@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投資効果評価フォーマット 導入目的</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1a1f2e;
+            --ink-mid: #3d4558;
+            --ink-light: #6b7591;
+            --paper: #f7f5f0;
+            --paper-warm: #ede9e0;
+            --gold: #b8902a;
+            --gold-light: #e8d49a;
+            --navy: #1a3a52;
+            --navy-mid: #2d5270;
+            --rule: #c8c0b0;
+            --green: #1a5c3a;
+            --red-muted: #8c3a2e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            font-size: 15px;
+            line-height: 1.85;
+        }
+
+        .header {
+            background: var(--navy);
+            color: #fff;
+            padding: 3rem 3rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(184,144,42,0.15) 0%, transparent 70%);
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+        }
+        .header-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            color: var(--gold-light);
+            margin-bottom: 0.8rem;
+            opacity: 0.85;
+        }
+        .header h1 {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.85rem;
+            font-weight: 700;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+        .header h1 span { color: var(--gold-light); }
+        .header-sub {
+            margin-top: 0.7rem;
+            font-size: 0.85rem;
+            opacity: 0.65;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2.5rem 5rem;
+        }
+
+        .section {
+            margin-bottom: 3.2rem;
+        }
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-num {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+            min-width: 2.2rem;
+        }
+        .section-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--navy);
+            border-bottom: 2px solid var(--rule);
+            flex: 1;
+            padding-bottom: 0.45rem;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--rule);
+            border-radius: 6px;
+            padding: 1.5rem 1.8rem;
+            margin-bottom: 1.1rem;
+            box-shadow: 0 1px 4px rgba(26,31,46,0.04);
+        }
+
+        /* ── 課題リスト ── */
+        .issue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.8rem;
+        }
+        .issue-item {
+            display: flex;
+            gap: 1rem;
+            align-items: baseline;
+            font-size: 0.9rem;
+            color: var(--ink-mid);
+            padding: 0.75rem 1rem;
+            background: var(--paper);
+            border-left: 3px solid var(--gold);
+            border-radius: 0 4px 4px 0;
+        }
+        .issue-item strong {
+            color: var(--ink);
+            white-space: nowrap;
+        }
+
+        /* ── 設計思想テーブル ── */
+        .design-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin-top: 0.8rem;
+        }
+        .design-table th {
+            background: var(--navy);
+            color: #fff;
+            padding: 0.7rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .design-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--rule);
+            vertical-align: top;
+            color: var(--ink-mid);
+            line-height: 1.7;
+        }
+        .design-table tr:last-child td { border-bottom: none; }
+        .design-table tr:hover td { background: var(--paper-warm); }
+        .design-table td:first-child {
+            color: var(--navy);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .design-table td code {
+            background: var(--paper-warm);
+            padding: 0.15rem 0.45rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: var(--navy-mid);
+        }
+
+        /* ── 意見募集ボックス ── */
+        .ask-box {
+            background: #fff;
+            border: 1.5px solid var(--navy-mid);
+            border-radius: 6px;
+            padding: 1.5rem 1.8rem;
+        }
+        .ask-box h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .ask-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .ask-list li {
+            font-size: 0.88rem;
+            color: var(--ink-mid);
+            padding-left: 1.2rem;
+            position: relative;
+            line-height: 1.75;
+        }
+        .ask-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .footer {
+            background: var(--navy);
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            padding: 1.8rem;
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 600px) {
+            .header { padding: 2.2rem 1.5rem 2rem; }
+            .container { padding: 2rem 1.3rem 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-label">設備部門 → 経理部　共有資料</div>
+        <h1>投資効果評価フォーマット<br><span>導入の目的と設計の考え方</span></h1>
+        <div class="header-sub">Capital Expenditure Evaluation Format ／ 2026年3月</div>
+    </div>
+
+    <div class="container">
+
+        <!-- 01 背景と課題認識 -->
+        <section class="section">
+            <div class="section-label">
+                <div class="section-num">01</div>
+                <div class="section-title">背景と課題認識</div>
+            </div>
+
+            <div class="card">
+                <p style="font-size:0.92rem; color:var(--ink-mid);">
+                    設備投資の判断にあたり、定量的な根拠の付け方や使う指標が案件・担当者によってまちまちになりがちという状況があります。
+                    以下の点を課題と認識し、フォーマット整備に着手しました。
+                </p>
+                <div class="issue-list">
+                    <div class="issue-item">
+                        <strong>判断指標のばらつき</strong>
+                        回収期間ベースの判断が多く、投資が生む価値の大きさ（NPV）や資本効率（IRR）が判断に織り込まれていないケースがある
+                    </div>
+                    <div class="issue-item">
+                        <strong>CF・会計利益の混同</strong>
+                        事業部制の中で「減価償却費＝部門収支の悪化」という認識が固定化しており、非現金費用であるという点が判断に反映されていない
+                    </div>
+                    <div class="issue-item">
+                        <strong>フォローアップが不十分</strong>
+                        実行後の計画 vs 実績の追跡が属人的になりがちで、判断精度の改善が組織に蓄積されにくい
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02 ツールの設計思想 -->
+        <section class="section">
+            <div class="section-label">
+                <div class="section-num">02</div>
+                <div class="section-title">ツールの設計思想と計算ロジック</div>
+            </div>
+
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table class="design-table">
+                    <thead>
+                        <tr>
+                            <th style="width:22%">論点</th>
+                            <th>設計の考え方</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CFの定義</td>
+                            <td>
+                                税シールドを含めた営業CFを基本とする。<br>
+                                <code>CF = 営業効果 × (1−税率) + 減価償却費 × 税率</code><br>
+                                企業会計原則・IFRSに準拠。グラフA（税シールドなし）との差分で税効果を可視化。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>割引率（WACC）</td>
+                            <td>
+                                NPV・IRR・割引回収期間の計算に使用。現状はデフォルト値を設定しているが、
+                                適切な値は財務的に決定されるべきと考えており、経理部の見解を踏まえて確定したい。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>シナリオ分析</td>
+                            <td>
+                                受注見込みの振れ幅（±%）で上振れ・標準・下振れの3シナリオを自動生成。
+                                「下振れシナリオでもNPV &gt; 0か」をスクリーニングの参考軸として想定している。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>回収期間（3種）</td>
+                            <td>
+                                ①単純回収期間　②割引回収期間（WACC考慮）　③減価償却考慮の割引回収期間、
+                                の3種を並列表示。③をメイン指標として位置づけているが、社内基準としての妥当性は要議論。
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>実績フォロー</td>
+                            <td>
+                                投資実行後、年度ごとの実績効果額を入力することで計画 vs 実績の乖離を追跡。
+                                実績達成率を将来に延長した予測線も自動描画し、着地見込みを常時把握できる設計。
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 03 一緒に考えたいこと -->
+        <section class="section">
+            <div class="section-label">
+                <div class="section-num">03</div>
+                <div class="section-title">一緒に考えたいこと</div>
+            </div>
+
+            <div class="ask-box">
+                <h3>💬 経理の視点からフィードバックがほしい点</h3>
+                <ul class="ask-list">
+                    <li>WACCの設定値 ── 自社の資本コストに照らして妥当な水準はどのあたりか</li>
+                    <li>法人税率・修繕費率などのデフォルトパラメータ ── 経理的に整合しているか</li>
+                    <li>3種の回収期間のうち、社内基準として使うなら何が適切か</li>
+                    <li>スクリーニング基準（NPV・IRR・シナリオ条件）の設計 ── こうした方がいい、という部分</li>
+                    <li>実績フォローの定例化 ── 経理部として関われる・関わるべき範囲</li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+
+    <div class="footer">
+        投資効果評価フォーマット 導入目的資料 ／ 設備部門　ver.2.28
+    </div>
+
+</body>
+</html>
