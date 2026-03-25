@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.48 | 20260319 | Mechanical Tools | uk |-->
+    <!-- build: 1.49 | 20260325 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -1702,6 +1702,7 @@
                     <th>細目 1</th>
                     <th>細目 2</th>
                     <th>細目 3</th>
+                    <th>細目 4<br><span style="font-weight:400;font-size:10px;color:var(--warn)">(極細目)</span></th>
                   </tr>
                 </thead>
                 <tbody id="fine-pitch-tbody"></tbody>
@@ -1710,8 +1711,10 @@
             <div class="memo" style="margin-top: 8px">
               <b>細目ネジとは</b
               >：同じ呼び径で並目より小さいピッチ。振動環境での緩み止め・薄肉部品・精密調整機構に使用。<br />
+              <b style="color:var(--warn)">極細目（細目4）</b>：P1.0〜1.5など最も細かいピッチ。シリンダーヘッドプラグ・燃料系部品・油圧機器など高気密性が求められる部位に使用。<br />
               <b>タップ下穴径（目安）</b> ≈ 呼び径 −
-              ピッチ（鉄鋼）
+              ピッチ（鉄鋼）<br />
+              <b style="color:var(--accent)">ダイス加工用軸径</b>：呼び径 − (ピッチ × 0.1〜0.15) が目安。例：M20×P2.5 → Ø19.63〜19.75。素材をこの径に仕上げてからダイスをかける。
             </div>
           </div>
         </div>
@@ -8355,35 +8358,64 @@
         ],
       };
       // 細目ピッチデータ（JIS B 0207）
-      // [呼び径, 並目p, 細目p1, 細目p2, 細目p3]  null=なし
+      // [呼び径, 並目p, 細目p1, 細目p2, 細目p3, 細目p4(極細目)]  null=なし
       const FINE_PITCH = [
-        [8, 1.25, 1.0, null, null],
-        [10, 1.5, 1.25, 1.0, null],
-        [12, 1.75, 1.5, 1.25, null],
-        [14, 2.0, 1.5, null, null],
-        [16, 2.0, 1.5, null, null],
-        [18, 2.5, 2.0, 1.5, null],
-        [20, 2.5, 2.0, 1.5, null],
-        [22, 2.5, 2.0, 1.5, null],
-        [24, 3.0, 2.0, null, null],
-        [27, 3.0, 2.0, null, null],
-        [30, 3.5, 2.0, null, null],
-        [33, 3.5, 2.0, null, null],
-        [36, 4.0, 3.0, 2.0, null],
-        [39, 4.0, 3.0, 2.0, null],
-        [42, 4.5, 3.0, 2.0, null],
-        [45, 4.5, 3.0, 2.0, null],
-        [48, 5.0, 3.0, 2.0, null],
-        [52, 5.0, 4.0, 3.0, 2.0],
-        [56, 5.5, 4.0, 3.0, 2.0],
-        [60, 5.5, 4.0, 3.0, 2.0],
-        [64, 6.0, 4.0, 3.0, 2.0],
-        [68, 6.0, 4.0, 3.0, 2.0],
-        [72, 6.0, 4.0, 3.0, 2.0],
-        [76, 6.0, 4.0, 3.0, 2.0],
-        [80, 6.0, 4.0, 3.0, 2.0],
-        [90, 6.0, 4.0, 3.0, 2.0],
-        [100, 6.0, 4.0, 3.0, 2.0],
+        // ── M2〜M7（小径：細目は限定的）──
+        [2,   0.4,  null, null, null, null],
+        [2.5, 0.45, null, null, null, null],
+        [3,   0.5,  null, null, null, null],
+        [4,   0.7,  null, null, null, null],
+        [5,   0.8,  null, null, null, null],
+        [6,   1.0,  0.75, null, null, null],
+        [7,   1.0,  0.75, null, null, null],
+        // ── M8〜M18 ──
+        [8,   1.25, 1.0,  0.75, null, null],
+        [9,   1.25, 1.0,  0.75, null, null],
+        [10,  1.5,  1.25, 1.0,  0.75, null],
+        [11,  1.5,  1.0,  0.75, null, null],
+        [12,  1.75, 1.5,  1.25, 1.0,  null],
+        [14,  2.0,  1.5,  1.25, 1.0,  null],
+        [15,  1.5,  1.0,  null, null, null],  // 非標準径・一部規格に存在
+        [16,  2.0,  1.5,  1.0,  null, null],
+        [17,  1.5,  1.0,  null, null, null],  // 非標準径
+        [18,  2.5,  2.0,  1.5,  1.0,  null],
+        // ── M20以上 ──
+        [20,  2.5,  2.0,  1.5,  1.0,  null],  // P1.0：シリンダーヘッド・燃料系等
+        [22,  2.5,  2.0,  1.5,  1.0,  null],
+        [24,  3.0,  2.0,  1.5,  1.0,  null],
+        [25,  null, 2.0,  1.5,  1.0,  null],  // 並目なし・細目専用規格
+        [26,  null, 1.5,  null, null, null],
+        [27,  3.0,  2.0,  1.5,  1.0,  null],
+        [28,  null, 2.0,  1.5,  1.0,  null],
+        [30,  3.5,  2.0,  1.5,  1.0,  null],
+        [32,  null, 2.0,  1.5,  null, null],
+        [33,  3.5,  2.0,  1.5,  null, null],
+        [35,  null, 1.5,  null, null, null],
+        [36,  4.0,  3.0,  2.0,  1.5,  null],
+        [38,  null, 1.5,  null, null, null],
+        [39,  4.0,  3.0,  2.0,  1.5,  null],
+        [40,  null, 3.0,  2.0,  1.5,  null],
+        [42,  4.5,  3.0,  2.0,  1.5,  null],
+        [45,  4.5,  3.0,  2.0,  1.5,  null],
+        [48,  5.0,  3.0,  2.0,  1.5,  null],
+        [50,  null, 3.0,  2.0,  1.5,  null],
+        [52,  5.0,  4.0,  3.0,  2.0,  1.5],
+        [55,  null, 4.0,  3.0,  2.0,  1.5],
+        [56,  5.5,  4.0,  3.0,  2.0,  1.5],
+        [58,  null, 4.0,  3.0,  2.0,  1.5],
+        [60,  5.5,  4.0,  3.0,  2.0,  1.5],
+        [62,  null, 4.0,  3.0,  2.0,  1.5],
+        [64,  6.0,  4.0,  3.0,  2.0,  1.5],
+        [65,  null, 4.0,  3.0,  2.0,  1.5],
+        [68,  6.0,  4.0,  3.0,  2.0,  1.5],
+        [70,  null, 6.0,  4.0,  3.0,  2.0],
+        [72,  6.0,  4.0,  3.0,  2.0,  1.5],
+        [76,  6.0,  4.0,  3.0,  2.0,  1.5],
+        [80,  6.0,  4.0,  3.0,  2.0,  1.5],
+        [85,  null, 6.0,  4.0,  3.0,  2.0],
+        [90,  6.0,  4.0,  3.0,  2.0,  null],
+        [95,  null, 6.0,  4.0,  3.0,  2.0],
+        [100, 6.0,  4.0,  3.0,  2.0,  null],
       ];
 
       function buildScrewSelect() {
@@ -8455,15 +8487,24 @@
 
         $("fine-pitch-tbody").innerHTML = FINE_PITCH.map(
           (r) => {
-            const [d, coarse, f1, f2, f3] = r;
-            const cell = (v) =>
-              v !== null
-                ? `<td class="hl">${v.toFixed(2)}<span style="color:var(--muted);font-size:11px"> mm (下穴 Ø${(d - v).toFixed(2)})</span></td>`
-                : `<td style="color:var(--border)">—</td>`;
+            const [d, coarse, f1, f2, f3, f4] = r;
+            const cell = (v, isUltra) => {
+              if (v === null) return `<td style="color:var(--border)">—</td>`;
+              const dieMin = (d - v * 0.15).toFixed(2);
+              const dieMax = (d - v * 0.1).toFixed(2);
+              return `<td class="hl" style="${isUltra ? 'background:var(--warn-dim);' : ''}">
+                    <span style="${isUltra ? 'color:var(--warn);font-weight:700' : ''}">${v.toFixed(2)} mm</span>
+                    <span style="display:block;color:var(--muted);font-size:10px">下穴 Ø${(d - v).toFixed(2)}</span>
+                    <span style="display:block;color:var(--accent);font-size:10px">軸径 Ø${dieMin}〜${dieMax}</span>
+                   </td>`;
+            };
+            const coarseDisp = coarse !== null
+              ? `<td style="color:var(--muted)">${coarse.toFixed(2)} mm</td>`
+              : `<td style="color:var(--border)">—</td>`;
             return `<tr>
-      <td style="font-family:'JetBrains Mono',monospace;color:var(--ink)">M${d}</td>
-      <td style="color:var(--muted)">${coarse.toFixed(2)} mm</td>
-      ${cell(f1)}${cell(f2)}${cell(f3)}
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--ink);font-weight:700">M${d}</td>
+      ${coarseDisp}
+      ${cell(f1,false)}${cell(f2,false)}${cell(f3,false)}${cell(f4,true)}
     </tr>`;
           },
         ).join("");
