@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <!-- build: 1.18 | 20260323 | THK EstiMate Factory | uk -->
+  <!-- build: 1.22 | 20260327 | THK EstiMate Factory | uk -->
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>THK EstiMate Factory</title>
@@ -103,6 +103,10 @@
     #combo-fields-bar .field label{font-size:11px;color:var(--gold);white-space:nowrap;margin:0;}
     #combo-fields-bar input{width:130px;}
     #combo-fields-bar #q-bill-no{width:190px;}
+    /* 発行日フィールド（納品書・請求書系モード時に表示） */
+    #issue-date-bar{display:none;align-items:center;gap:5px;}
+    #issue-date-bar label{font-size:11px;color:var(--warn);white-space:nowrap;margin:0;}
+    #issue-date-bar input{width:130px;border-color:var(--warn)!important;}
     /* 中段：顧客 50% ／ 自社 50% */
     .info-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
     .info-col{background:var(--surface);padding:0;display:flex;flex-direction:column;gap:0;}
@@ -512,10 +516,16 @@
       <input type="text" id="q-no-prefix" placeholder="ABC" style="width:70px;" oninput="onPrefixChange()" title="見積Noの先頭に付加するコード（例：ABC → Q-ABC-20260317-...）"/></div>
     <div class="field"><label>見積No</label>
       <input type="text" id="q-no" placeholder="Q-20260317-120000" oninput="onQNoChange(this.value)"/></div>
-    <div class="field"><label>発行日</label>
+    <div class="field"><label>作成日</label>
       <input type="date" id="q-date"/></div>
     <div class="field"><label>有効期限</label>
       <input type="date" id="q-valid"/></div>
+    <!-- 発行日（納品書・請求書系モードのときのみ表示） -->
+    <div id="issue-date-bar" class="field">
+      <label style="color:var(--warn)">発行日</label>
+      <input type="date" id="q-issue-date" style="width:130px;border-color:var(--warn);"/>
+      <span style="font-size:10px;color:var(--warn);white-space:nowrap;">印刷時の発行日</span>
+    </div>
     <div class="meta-bar-sep"></div>
     <!-- combo専用フィールド -->
     <div id="combo-fields-bar" style="display:none;align-items:center;gap:10px;">
@@ -1095,7 +1105,7 @@ function init(){
   const today=new Date();
   const fmt=d=>d.toISOString().slice(0,10);
   const valid=new Date(today); valid.setDate(valid.getDate()+30);
-  sv('q-date',fmt(today)); sv('q-valid',fmt(valid));
+  sv('q-date',fmt(today)); sv('q-valid',fmt(valid)); sv('q-issue-date',fmt(today));
   sv('q-no',genNo(fmt(today)));
   resetSections();
   renderRates(); renderAll(); recalcAll();
@@ -1167,8 +1177,11 @@ function setPrintMode(m,btn){
   btn.classList.add('active');
   const isCombo=(m==='combo');
   const isInvoice=(m==='invoice');
+  const isDelivery=(m==='delivery');
+  const needsIssueDate=(isDelivery||isInvoice||isCombo);
   document.getElementById('combo-fields-bar').style.display=isCombo?'flex':'none';
   document.getElementById('invoice-fields-bar').style.display=isInvoice?'flex':'none';
+  document.getElementById('issue-date-bar').style.display=needsIssueDate?'flex':'none';
   const comboOpts=document.getElementById('combo-toolbar-opts');
   if(comboOpts) comboOpts.style.display=isCombo?'flex':'none';
   if(isCombo) initComboFields();
@@ -1865,7 +1878,7 @@ function buildLandscapeDoc(){
       <div style="display:table-cell;width:42%;vertical-align:top;text-align:right;">
         <div style="display:inline-block;text-align:left;margin-bottom:5px;">
           <div style="font-size:10px;color:#555;line-height:1.8;border-bottom:1px solid #ddd;padding-bottom:4px;margin-bottom:4px;">
-            発行日：${gv('q-date')}<br>
+            発行日：${(isDelivery||isInvoice||isCombo)?gv('q-issue-date')||gv('q-date'):gv('q-date')}<br>
             ${(isCombo||isInvoice)?'請求日：'+billDate+'<br>':''}
             ${isInvoice?'請求No：'+billNo+'<br>':isDelivery?'納品No：'+gv('q-no')+'<br>':isCombo?'請求No：'+billNo+'<br>':'見積No：'+gv('q-no')+'<br>'}
             ${isCombo&&gv('q-no')?'見積No：'+esc2(gv('q-no'))+'<br>':''}
@@ -2042,7 +2055,7 @@ function buildPrintDoc(){
     <div style="text-align:right">
       <div style="display:inline-block;text-align:left;margin-bottom:6px;">
         <div style="font-size:11px;color:#555;line-height:1.9;border-bottom:1px solid #ddd;padding-bottom:5px;margin-bottom:5px;">
-          発行日：${gv('q-date')}<br>
+          発行日：${(isDelivery||isInvoice||isCombo)?gv('q-issue-date')||gv('q-date'):gv('q-date')}<br>
           ${(isCombo||isInvoice)?'請求日：'+billDate+'<br>':''}
           ${isInvoice?'請求No：'+billNo+'<br>':isDelivery?'納品No：'+gv('q-no')+'<br>':isCombo?'請求No：'+billNo+'<br>':'見積No：'+gv('q-no')+'<br>'}
           ${isCombo&&gv('q-no')?'見積No：'+esc(gv('q-no'))+'<br>':''}
@@ -2290,7 +2303,7 @@ function buildSaveData(){
     ver:4,
     status:ST.status,
     meta:{
-      no:gv('q-no'),noPrefix:gv('q-no-prefix'),date:gv('q-date'),valid:gv('q-valid'),
+      no:gv('q-no'),noPrefix:gv('q-no-prefix'),date:gv('q-date'),valid:gv('q-valid'),issueDate:gv('q-issue-date'),
       client:gv('q-client'),clientStaff:gv('q-client-staff'),subject:gv('q-subject'),
       location:gv('q-location'),period:gv('q-period'),
       payment:gv('q-payment'),expire:gv('q-expire'),
@@ -2350,6 +2363,7 @@ function applyJSON(data){
   if(!data.meta||!data.sections){alert('形式が正しくありません');return;}
   const m=data.meta;
   sv('q-no',m.no||'');sv('q-no-prefix',m.noPrefix||'');sv('q-date',m.date||'');sv('q-valid',m.valid||'');
+  sv('q-issue-date',m.issueDate||new Date().toISOString().slice(0,10));
   sv('q-client',m.client||'');sv('q-client-staff',m.clientStaff||'');sv('q-subject',m.subject||'');
   sv('q-location',m.location||'');sv('q-period',m.period||'');
   sv('q-payment',m.payment||'');sv('q-expire',m.expire||'');
@@ -2405,6 +2419,12 @@ function applyJSON(data){
   if(data.rates)RATES=data.rates;
   renderRates();renderAll();recalcAll();
   updateInfoSummary();
+  // JSON読み込み時、発行日・請求日系は常にTODAYに更新
+  // q-date（作成日・見積No生成基準）は保持
+  const _today=new Date().toISOString().slice(0,10);
+  sv('q-issue-date',_today);
+  sv('q-bill-date',_today);
+  sv('q-invoice-bill-date',_today);
 }
 
 /* ═══════════════════════════════════════════
@@ -2412,7 +2432,7 @@ function applyJSON(data){
 ═══════════════════════════════════════════ */
 function hardClear(){
   if(!confirm('全項目を完全にクリアします。よろしいですか？'))return;
-  ['q-no','q-no-prefix','q-date','q-valid','q-client','q-client-staff','q-subject','q-location','q-period',
+  ['q-no','q-no-prefix','q-date','q-valid','q-issue-date','q-client','q-client-staff','q-subject','q-location','q-period',
    'q-payment','q-expire','q-company','q-zip','q-address','q-tel','q-fax',
    'q-staff','q-invoice-no','q-logo','q-notes','q-bank',
    'q-bill-no','q-bill-date','q-txn-from','q-txn-to','q-bill-notes',
