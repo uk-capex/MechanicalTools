@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.49 | 20260325 | Mechanical Tools | uk |-->
+    <!-- build: 1.50 | 20260330 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -1643,6 +1643,35 @@
             </div>
           </div>
           <hr class="divider" />
+          <div class="section-title">締結強度 条件</div>
+          <div class="field">
+            <label>強度区分</label>
+            <select id="screw-grade" onchange="calcScrew()">
+              <option value="4.8">4.8（一般ボルト）</option>
+              <option value="6.8">6.8（中強度）</option>
+              <option value="8.8" selected>8.8（高強度・標準）</option>
+              <option value="10.9">10.9（超高強度）</option>
+              <option value="12.9">12.9（最高強度）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>トルク係数 k</label>
+            <select id="screw-k" onchange="calcScrew()">
+              <option value="0.15">0.15（潤滑あり・モリブデン系）</option>
+              <option value="0.17">0.17（潤滑あり・油脂系）</option>
+              <option value="0.20" selected>0.20（標準・無潤滑）</option>
+              <option value="0.25">0.25（乾燥・錆あり）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>軸力利用率</label>
+            <select id="screw-util" onchange="calcScrew()">
+              <option value="0.70">70%（振動あり・安全重視）</option>
+              <option value="0.75" selected>75%（一般的）</option>
+              <option value="0.80">80%（静的荷重・精度重視）</option>
+            </select>
+          </div>
+          <hr class="divider" />
           <div class="memo">
             <b>タップ下穴</b
             >：ドリルで開けてからタップを切る際の穴径<br />
@@ -1683,6 +1712,38 @@
               </thead>
               <tbody id="screw-tbody"></tbody>
             </table>
+          </div>
+
+          <!-- 締結強度 -->
+          <div id="screw-strength-section" style="margin-top:12px">
+            <div class="section-title">締結強度 概算</div>
+            <div class="result-cards" id="screw-strength-cards">
+              <div class="card accent">
+                <div class="card-label">推奨締付けトルク</div>
+                <div class="card-value" id="sc-torque">—<span class="card-unit">N·m</span></div>
+              </div>
+              <div class="card">
+                <div class="card-label">発生軸力</div>
+                <div class="card-value" id="sc-axial">—<span class="card-unit">kN</span></div>
+              </div>
+              <div class="card">
+                <div class="card-label">ネジ断面引張応力</div>
+                <div class="card-value" id="sc-stress">—<span class="card-unit">MPa</span></div>
+              </div>
+              <div class="card">
+                <div class="card-label">許容軸力（降伏基準）</div>
+                <div class="card-value" id="sc-axial-max">—<span class="card-unit">kN</span></div>
+              </div>
+              <div class="card">
+                <div class="card-label">せん断耐力（概算）</div>
+                <div class="card-value" id="sc-shear">—<span class="card-unit">kN</span></div>
+              </div>
+            </div>
+            <div class="memo" style="margin-top:8px">
+              <b>締付けトルク</b>：T = k × d × F（k：トルク係数、d：呼び径、F：軸力）<br />
+              <b>許容軸力</b>：降伏点 × 有効断面積 × 利用率。設計上の上限目安。<br />
+              <b style="color:var(--warn)">せん断耐力</b>：τ_y = σ_y / √3（Von Mises）× As。<b>ネジ軸単体の純せん断</b>であり、実際の継手には摩擦・ねじり・本数分担・かみ合い長さを別途考慮すること。
+            </div>
           </div>
 
           <!-- 細目ピッチ表 -->
@@ -8440,6 +8501,52 @@
           `${s.p.toFixed(3)}<span class="card-unit"> mm</span>`;
         $("sc-area").innerHTML =
           `${s.area.toFixed(1)}<span class="card-unit"> mm²</span>`;
+
+        // ────── 締結強度計算 ──────
+        // 強度区分 → 降伏点・引張強さ (MPa)
+        const GRADE_TABLE = {
+          "4.8":  { Sy: 320,  Su: 400  },
+          "6.8":  { Sy: 480,  Su: 600  },
+          "8.8":  { Sy: 640,  Su: 800  },
+          "10.9": { Sy: 940,  Su: 1040 },
+          "12.9": { Sy: 1100, Su: 1220 },
+        };
+        const grade  = $("screw-grade").value;
+        const k      = parseFloat($("screw-k").value);
+        const util   = parseFloat($("screw-util").value);
+        const { Sy }  = GRADE_TABLE[grade];
+        const As      = s.area;          // mm²
+        const d_m     = s.d;             // mm
+
+        // 許容軸力 F_allow（降伏点ベース）
+        const F_allow = Sy * As * util / 1000;  // kN
+
+        // 推奨締付けトルク（許容軸力を使って逆算）
+        const T_rec   = k * d_m * (F_allow * 1000) / 1000;  // N·m
+
+        // そのときの軸力（＝ F_allow そのもの）
+        const F_axial = F_allow;  // kN
+
+        // 引張応力（= Sy × util、参考値）
+        const sigma   = Sy * util;  // MPa
+
+        // せん断耐力（von Mises: τy = Sy/√3）
+        const tau_y   = Sy / Math.sqrt(3);
+        const F_shear = tau_y * As / 1000;  // kN
+
+        const setStrength = (id, val, dec=1) => {
+          const el = $(id);
+          if (el) el.innerHTML = `${val.toFixed(dec)}<span class="card-unit">${el.innerHTML.match(/card-unit[^>]*>([^<]+)/)?.[1] ?? ""}</span>`;
+        };
+
+        // カード更新（card-unit はHTMLに既にある）
+        $("sc-torque").innerHTML    = `${T_rec.toFixed(1)}<span class="card-unit">N·m</span>`;
+        $("sc-axial").innerHTML     = `${F_axial.toFixed(2)}<span class="card-unit">kN</span>`;
+        $("sc-stress").innerHTML    = `${sigma.toFixed(0)}<span class="card-unit">MPa</span>`;
+        $("sc-axial-max").innerHTML = `${F_allow.toFixed(2)}<span class="card-unit">kN</span>`;
+        $("sc-shear").innerHTML     = `${F_shear.toFixed(2)}<span class="card-unit">kN</span>`;
+        // ────────────────────────────
+
         const rows = [
           [
             "タップ下穴径（鉄・鋼 推奨）",
