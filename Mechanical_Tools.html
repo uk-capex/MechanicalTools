@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.50 | 20260330 | Mechanical Tools | uk |-->
+    <!-- build: 1.51 | 20260407 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -1115,6 +1115,12 @@
         onclick="showTab('weight', event.currentTarget)"
       >
         ⚖️ 重量計算
+      </button>
+      <button
+        class="tab-btn"
+        onclick="showTab('seal', event.currentTarget)"
+      >
+        🔵 Oリング/シール
       </button>
     </div>
 
@@ -19463,6 +19469,272 @@
       </div>
     </div><!-- /tab-weight -->
 
+    <!-- ══════════════════════════════════════════════════════
+         🔵 Oリング/シールタブ
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-seal" class="tab-content" style="flex-direction:column;">
+      <div class="subtabbar">
+        <button class="stab-btn active" id="sbtn-seal-oring"   onclick="showSealTab('oring',this)">🔵 Oリング溝寸法</button>
+        <button class="stab-btn"        id="sbtn-seal-comp"    onclick="showSealTab('comp',this)">📐 圧縮率計算</button>
+        <button class="stab-btn"        id="sbtn-seal-mat"     onclick="showSealTab('mat',this)">🧪 材質・適合流体</button>
+        <button class="stab-btn"        id="sbtn-seal-oilseal" onclick="showSealTab('oilseal',this)">🌀 オイルシール</button>
+        <button class="stab-btn"        id="sbtn-seal-pack"    onclick="showSealTab('pack',this)">📦 パッキン種類</button>
+      </div>
+      <div id="seal-stab-wrap" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+
+      <!-- ══ サブタブ: Oリング溝寸法 ══ -->
+      <div id="stab-seal-oring" class="stab-content active">
+        <div class="two-panel">
+          <div class="panel-left">
+            <div class="section-title">検索条件</div>
+            <div class="field">
+              <label>規格系列</label>
+              <select id="or-series" onchange="orFilter()">
+                <option value="P">P系（運動用・内圧）</option>
+                <option value="G">G系（固定用・外圧）</option>
+                <option value="S">S系（小型シリンダ用）</option>
+                <option value="V">V系（真空フランジ）</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>呼び番号 または 内径(mm)で絞り込み</label>
+              <input type="text" id="or-search" placeholder="例: P20 または 19.8" oninput="orFilter()" style="text-transform:uppercase;">
+            </div>
+            <div class="field">
+              <label>用途</label>
+              <select id="or-use" onchange="orFilter()">
+                <option value="all">すべて</option>
+                <option value="dynamic">運動用（動的）</option>
+                <option value="static">固定用（静的）</option>
+              </select>
+            </div>
+            <hr class="divider">
+            <div class="memo">
+              <b>JIS B 2401 準拠</b><br>
+              溝幅 b・溝深さ t は推奨値。<br>
+              動的用途は仕上げ Ra0.8以下推奨。<br>
+              固定用途は Ra1.6以下でも可。<br>
+              バックアップリング使用時は溝幅を調整。
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="section-title" style="margin-bottom:6px;">Oリング溝寸法表 <span id="or-count" style="font-size:11px;color:var(--muted);font-weight:400;"></span></div>
+            <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
+              <table class="data-table" id="or-table">
+                <thead>
+                  <tr>
+                    <th>呼び番号</th>
+                    <th>内径 d1<br>(mm)</th>
+                    <th>線径 d2<br>(mm)</th>
+                    <th>溝幅 b<br>動/静(mm)</th>
+                    <th>溝深さ t<br>動/静(mm)</th>
+                    <th>面取り C<br>(mm)</th>
+                    <th>用途</th>
+                  </tr>
+                </thead>
+                <tbody id="or-tbody"></tbody>
+              </table>
+            </div>
+            <div class="memo" style="margin-top:8px;" id="or-selected-info" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ サブタブ: 圧縮率計算 ══ -->
+      <div id="stab-seal-comp" class="stab-content">
+        <div class="two-panel">
+          <div class="panel-left">
+            <div class="section-title">Oリング寸法入力</div>
+            <div class="field">
+              <label>線径 d2（mm）</label>
+              <input type="number" id="cp-d2" value="3.5" step="0.1" min="0.5" oninput="calcComp()">
+            </div>
+            <div class="field">
+              <label>溝深さ t（mm）</label>
+              <input type="number" id="cp-t" value="2.8" step="0.1" min="0.1" oninput="calcComp()">
+            </div>
+            <div class="field">
+              <label>用途</label>
+              <select id="cp-use" onchange="calcComp()">
+                <option value="dynamic">運動用（動的）</option>
+                <option value="static">固定用（静的）</option>
+                <option value="vacuum">真空用</option>
+              </select>
+            </div>
+            <hr class="divider">
+            <div class="section-title">引張り率（内径伸び）</div>
+            <div class="field">
+              <label>Oリング内径 d1（mm）</label>
+              <input type="number" id="cp-d1" value="25.0" step="0.1" min="1" oninput="calcComp()">
+            </div>
+            <div class="field">
+              <label>装着溝 内径 Dg（mm）</label>
+              <input type="number" id="cp-dg" value="26.0" step="0.1" min="1" oninput="calcComp()">
+            </div>
+            <hr class="divider">
+            <div class="memo">
+              <b>圧縮率目安（JIS B 2401）</b><br>
+              運動用：15〜30%　推奨20%前後<br>
+              固定用（液体）：15〜30%<br>
+              固定用（気体）：20〜35%<br>
+              真空用：25〜35%<br>
+              <b>引張り率：</b>1〜5% 推奨（最大8%）
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="result-cards">
+              <div class="card accent">
+                <div class="card-label">圧縮率 C</div>
+                <div class="card-value" id="cp-r-comp">—</div>
+                <div class="card-unit">%</div>
+                <div class="card-sub" id="cp-r-comp-judge">—</div>
+              </div>
+              <div class="card">
+                <div class="card-label">圧縮量</div>
+                <div class="card-value" id="cp-r-delta">—</div>
+                <div class="card-unit">mm</div>
+              </div>
+              <div class="card">
+                <div class="card-label">引張り率 S</div>
+                <div class="card-value" id="cp-r-stretch">—</div>
+                <div class="card-unit">%</div>
+                <div class="card-sub" id="cp-r-str-judge">—</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <div class="section-title">圧縮率 ビジュアライザ</div>
+              <div style="margin-top:10px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+                <svg id="cp-svg" width="160" height="160" viewBox="0 0 160 160"
+                     style="background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+                  <!-- 溝断面 -->
+                  <rect id="cp-groove" x="40" y="60" width="80" height="40" rx="2"
+                        fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+                  <!-- Oリング断面（楕円） -->
+                  <ellipse id="cp-oring-shape" cx="80" cy="80" rx="20" ry="20"
+                           fill="none" stroke="var(--accent)" stroke-width="3" opacity="0.9"/>
+                  <!-- ラベル -->
+                  <text x="80" y="148" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="JetBrains Mono,monospace">溝断面イメージ</text>
+                </svg>
+                <div style="flex:1;min-width:160px;">
+                  <div id="cp-detail" style="font-size:12px;line-height:1.8;color:var(--muted);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ サブタブ: 材質・適合流体 ══ -->
+      <div id="stab-seal-mat" class="stab-content">
+        <div class="two-panel">
+          <div class="panel-left">
+            <div class="section-title">材質選択</div>
+            <div style="display:flex;flex-direction:column;gap:6px;" id="mat-selector">
+              <!-- JS で生成 -->
+            </div>
+            <hr class="divider">
+            <div class="memo">
+              選択した材質の特性・使用温度・<br>
+              適合流体を右パネルに表示します。<br>
+              複数選択で横比較も可。
+            </div>
+          </div>
+          <div class="panel-right">
+            <div id="mat-detail-wrap" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ サブタブ: オイルシール ══ -->
+      <div id="stab-seal-oilseal" class="stab-content">
+        <div class="two-panel">
+          <div class="panel-left">
+            <div class="section-title">検索条件</div>
+            <div class="field">
+              <label>軸径 d（mm）</label>
+              <input type="number" id="os-shaft" value="30" step="1" min="5" oninput="osFilter()">
+            </div>
+            <div class="field">
+              <label>外径 D（mm）または空欄で全表示</label>
+              <input type="number" id="os-outer" placeholder="空欄=全件" oninput="osFilter()">
+            </div>
+            <hr class="divider">
+            <div class="memo">
+              <b>型式記号（NOK等）</b><br>
+              <b>TC：</b>ばね付 内向リップ 金属ケース<br>
+              <b>TB：</b>ばね付 内向リップ ゴムO.D.<br>
+              <b>SC：</b>ばね付 外向リップ 金属ケース<br>
+              <b>VC：</b>ばね無し 内向リップ<br>
+              <b>WA：</b>防塵リップ付 ダブル<br><br>
+              <b>ハウジング内径公差：</b>H8<br>
+              <b>軸公差：</b>h8<br>
+              軸面粗さ：Ra0.2〜0.8 推奨<br>
+              軸硬さ：HRC30以上推奨<br>
+              面取り：15〜30° C1〜C3
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="section-title" style="margin-bottom:6px;">オイルシール 参考寸法表 <span id="os-count" style="font-size:11px;color:var(--muted);font-weight:400;"></span></div>
+            <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
+              <table class="data-table" id="os-table">
+                <thead>
+                  <tr>
+                    <th>軸径 d<br>(mm)</th>
+                    <th>外径 D<br>(mm)</th>
+                    <th>幅 B<br>(mm)</th>
+                    <th>通称<br>(TC呼び)</th>
+                    <th>JIS呼び記号<br>(JIS D形式)</th>
+                    <th>ISO呼び記号<br>(TYPE 4形式)</th>
+                    <th>NOK品番<br>(参考)</th>
+                    <th>武蔵オイルシール<br>(参考)</th>
+                  </tr>
+                </thead>
+                <tbody id="os-tbody"></tbody>
+              </table>
+            </div>
+            <div class="memo" style="margin-top:8px;">※ 寸法はJIS B 2402-1 / NOK標準サイズ参考値。実際の選定はメーカカタログで確認してください。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ サブタブ: パッキン種類 ══ -->
+      <div id="stab-seal-pack" class="stab-content">
+        <div class="two-panel" style="align-items:flex-start;">
+          <div class="panel-left">
+            <div class="section-title">シール選定ガイド</div>
+            <div class="field">
+              <label>用途</label>
+              <select id="pk-use" onchange="pkFilter()">
+                <option value="all">すべて</option>
+                <option value="recipro">往復動（シリンダ等）</option>
+                <option value="rotate">回転軸</option>
+                <option value="static">固定・フランジ</option>
+                <option value="vacuum">真空</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>圧力</label>
+              <select id="pk-press" onchange="pkFilter()">
+                <option value="all">すべて</option>
+                <option value="low">低圧（〜1MPa）</option>
+                <option value="mid">中圧（1〜10MPa）</option>
+                <option value="high">高圧（10MPa〜）</option>
+              </select>
+            </div>
+            <hr class="divider">
+            <div class="memo">
+              条件に合うシール種類と<br>
+              特徴を右パネルに表示します。
+            </div>
+          </div>
+          <div class="panel-right" style="flex:1;">
+            <div id="pk-cards" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /seal-stab-wrap -->
+    </div><!-- /tab-seal -->
+
     <script>
     /* ══════════════════════════════════════════
        重量計算
@@ -19721,6 +19993,544 @@
 
     /* 初期化 */
     wtShapeChange();
+
+    /* ══════════════════════════════════════════
+       🔵 Oリング / シール
+    ══════════════════════════════════════════ */
+
+    /* ── Oリングデータ (JIS B 2401) ── */
+    const OR_DATA = [
+      // P系 (運動用)
+      {id:'P3',   d1:2.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P4',   d1:3.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P5',   d1:4.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P6',   d1:5.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P7',   d1:6.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P8',   d1:7.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P9',   d1:8.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P10',  d1:9.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'P'},
+      {id:'P10A', d1:10.0, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P11',  d1:10.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P11A', d1:11.0, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P12',  d1:11.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P12A', d1:12.0, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P14',  d1:13.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P15',  d1:14.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P16',  d1:15.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P18',  d1:17.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P20',  d1:19.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P21',  d1:20.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P22',  d1:21.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'P'},
+      {id:'P22A', d1:22.0, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P24',  d1:23.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P25',  d1:24.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P25A', d1:25.0, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P26',  d1:25.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P28',  d1:27.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P29',  d1:28.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P30',  d1:29.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P31',  d1:30.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P32',  d1:31.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P34',  d1:33.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P35',  d1:34.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P35A', d1:35.0, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P38',  d1:37.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P40',  d1:39.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P42',  d1:41.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P44',  d1:43.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P45',  d1:44.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P46',  d1:45.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P48',  d1:47.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P50',  d1:49.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P53',  d1:52.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P55',  d1:54.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P56',  d1:55.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P58',  d1:57.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P60',  d1:59.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'P'},
+      {id:'P62',  d1:61.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P63',  d1:62.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P65',  d1:64.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P67',  d1:66.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P70',  d1:69.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P75',  d1:74.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P80',  d1:79.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P85',  d1:84.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P90',  d1:89.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P95',  d1:94.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P100', d1:99.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P105', d1:104.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P110', d1:109.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P112', d1:111.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P115', d1:114.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P118', d1:117.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P120', d1:119.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P125', d1:124.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P130', d1:129.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P132', d1:131.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P136', d1:135.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P140', d1:139.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P145', d1:144.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P150', d1:149.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'P'},
+      {id:'P155', d1:154.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P160', d1:159.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P165', d1:164.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P170', d1:169.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P175', d1:174.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P180', d1:179.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P185', d1:184.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P190', d1:189.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P200', d1:199.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P210', d1:209.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P220', d1:219.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P230', d1:229.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P240', d1:239.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P250', d1:249.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P260', d1:259.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P270', d1:269.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P280', d1:279.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P290', d1:289.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P300', d1:299.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P315', d1:314.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P335', d1:334.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P355', d1:354.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P375', d1:374.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P400', d1:399.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      // S系 (小型シリンダ用 / 運動用)
+      {id:'S6',   d1:5.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'S'},
+      {id:'S8',   d1:7.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'S'},
+      {id:'S10',  d1:9.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'S'},
+      {id:'S12',  d1:11.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'S'},
+      {id:'S14',  d1:13.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'S'},
+      {id:'S15',  d1:14.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'S'},
+      {id:'S16',  d1:15.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'S'},
+      {id:'S18',  d1:17.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'S'},
+      {id:'S20',  d1:19.8, d2:2.4, bDyn:3.0, bSta:2.9, tDyn:1.8, tSta:1.9, C:0.4, use:'dynamic', series:'S'},
+      {id:'S22',  d1:21.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S24',  d1:23.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S25',  d1:24.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S28',  d1:27.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S30',  d1:29.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S32',  d1:31.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S35',  d1:34.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S38',  d1:37.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S40',  d1:39.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S45',  d1:44.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S50',  d1:49.8, d2:3.5, bDyn:4.4, bSta:4.2, tDyn:2.7, tSta:2.8, C:0.8, use:'dynamic', series:'S'},
+      {id:'S55',  d1:54.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S60',  d1:59.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S65',  d1:64.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S70',  d1:69.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S75',  d1:74.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S80',  d1:79.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S85',  d1:84.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S90',  d1:89.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S95',  d1:94.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S100', d1:99.8, d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S110', d1:109.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S120', d1:119.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S125', d1:124.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S130', d1:129.8,d2:5.7, bDyn:7.1, bSta:6.9, tDyn:4.4, tSta:4.6, C:1.2, use:'dynamic', series:'S'},
+      {id:'S140', d1:139.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S150', d1:149.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S160', d1:159.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S180', d1:179.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S200', d1:199.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S220', d1:219.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S250', d1:249.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S280', d1:279.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      {id:'S300', d1:299.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'S'},
+      // G系 (固定用)
+      {id:'G25',  d1:24.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G30',  d1:29.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G35',  d1:34.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G40',  d1:39.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G45',  d1:44.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G50',  d1:49.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G55',  d1:54.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G60',  d1:59.4, d2:3.1, bDyn:null, bSta:3.8, tDyn:null, tSta:2.4, C:0.4, use:'static', series:'G'},
+      {id:'G65',  d1:63.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G70',  d1:68.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G75',  d1:73.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G80',  d1:78.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G85',  d1:83.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G90',  d1:88.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G95',  d1:93.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G100', d1:98.1, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G105', d1:103.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G110', d1:108.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G115', d1:113.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G120', d1:118.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G125', d1:123.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G130', d1:128.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G135', d1:133.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G140', d1:138.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G145', d1:143.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G150', d1:148.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      // V系 (真空フランジ)
+      {id:'V75',  d1:74.0, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V100', d1:98.0, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V150', d1:147.0,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V200', d1:196.0,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V250', d1:245.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V300', d1:294.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+    ];
+
+    function orFilter() {
+      const series = document.getElementById('or-series').value;
+      const query  = document.getElementById('or-search').value.trim().toUpperCase();
+      const useF   = document.getElementById('or-use').value;
+      const tbody  = document.getElementById('or-tbody');
+      let rows = OR_DATA.filter(r => r.series === series);
+      if (useF !== 'all') rows = rows.filter(r => r.use === useF);
+      if (query) rows = rows.filter(r => r.id.includes(query) || String(r.d1).startsWith(query.replace('P','').replace('G','').replace('V','')));
+      document.getElementById('or-count').textContent = `${rows.length} 件`;
+      tbody.innerHTML = rows.map(r => {
+        const bTxt = r.bDyn ? `${r.bDyn} / ${r.bSta}` : `— / ${r.bSta}`;
+        const tTxt = r.tDyn ? `${r.tDyn} / ${r.tSta}` : `— / ${r.tSta}`;
+        return `<tr onclick="orSelect(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="cursor:pointer;">
+          <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${r.id}</td>
+          <td>${r.d1}</td><td>${r.d2}</td>
+          <td>${bTxt}</td><td>${tTxt}</td><td>${r.C}</td>
+          <td style="font-size:11px;color:var(--muted);">${r.use==='dynamic'?'運動用':'固定用'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function orSelect(r) {
+      const el = document.getElementById('or-selected-info');
+      el.style.display = '';
+      el.innerHTML = `
+        <b style="color:var(--accent);">${r.id}</b> を選択 &nbsp;|&nbsp;
+        内径 d1: <b>${r.d1} mm</b> &nbsp; 線径 d2: <b>${r.d2} mm</b><br>
+        溝幅 b: 動的 <b>${r.bDyn??'—'}</b> / 静的 <b>${r.bSta}</b> mm &nbsp;
+        溝深さ t: 動的 <b>${r.tDyn??'—'}</b> / 静的 <b>${r.tSta}</b> mm<br>
+        <span style="color:var(--muted);">→ 圧縮率計算タブへ自動入力するには下のボタンを</span>
+        <button onclick="orToComp(${r.d2},${r.tSta??r.tDyn},${r.d1})" style="margin-left:8px;padding:2px 8px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);border-radius:4px;cursor:pointer;font-size:11px;">
+          📐 圧縮率計算へ
+        </button>`;
+    }
+
+    function orToComp(d2, t, d1) {
+      document.getElementById('cp-d2').value = d2;
+      document.getElementById('cp-t').value  = t;
+      document.getElementById('cp-d1').value = d1;
+      calcComp();
+      showSealTab('comp', document.getElementById('sbtn-seal-comp'));
+    }
+
+    /* ── 圧縮率計算 ── */
+    function calcComp() {
+      const d2   = parseFloat(document.getElementById('cp-d2').value) || 0;
+      const t    = parseFloat(document.getElementById('cp-t').value)  || 0;
+      const d1   = parseFloat(document.getElementById('cp-d1').value) || 0;
+      const dg   = parseFloat(document.getElementById('cp-dg').value) || 0;
+      const use  = document.getElementById('cp-use').value;
+      const comp = d2 > 0 ? ((d2 - t) / d2 * 100) : 0;
+      const delta = d2 - t;
+      const str  = d1 > 0 ? ((dg - d1) / d1 * 100) : 0;
+
+      const limits = {
+        dynamic: {min:15, max:30, rec:'20%前後'},
+        static:  {min:15, max:30, rec:'15〜30%'},
+        vacuum:  {min:25, max:35, rec:'25〜35%'},
+      };
+      const lim = limits[use];
+
+      function judge(val, min, max) {
+        if (val < min) return `<span style="color:var(--warn);">⚠ 低すぎ (推奨${min}〜${max}%)</span>`;
+        if (val > max) return `<span style="color:var(--bad);">✕ 高すぎ (推奨${min}〜${max}%)</span>`;
+        return `<span style="color:var(--good);">✓ 適正 (${lim.rec})</span>`;
+      }
+
+      document.getElementById('cp-r-comp').textContent       = comp.toFixed(1);
+      document.getElementById('cp-r-comp-judge').innerHTML   = judge(comp, lim.min, lim.max);
+      document.getElementById('cp-r-delta').textContent      = delta.toFixed(2);
+      document.getElementById('cp-r-stretch').textContent    = str.toFixed(1);
+      document.getElementById('cp-r-str-judge').innerHTML    =
+        str < 0 ? `<span style="color:var(--bad);">✕ 負値（溝>Oリング?）</span>` :
+        str > 8 ? `<span style="color:var(--bad);">✕ 引張り過大(推奨1〜5%)</span>` :
+        str > 5 ? `<span style="color:var(--warn);">⚠ やや大(推奨1〜5%)</span>` :
+        str < 1 ? `<span style="color:var(--muted);">— ほぼ0（ゆとりあり）</span>` :
+                  `<span style="color:var(--good);">✓ 適正(1〜5%)</span>`;
+
+      // SVGビジュアライザ
+      const scale = Math.min(3.0, 30 / Math.max(d2, 1));
+      const cx = 80, cy = 80;
+      // t > d2 は物理的にありえないので d2 でクランプ（真円）
+      const tClamped = Math.min(t, d2);
+      const grooveH = Math.max(tClamped * scale, 4);
+      const grooveW = Math.max(d2 * scale * 1.4, 10);
+      const rx = (d2 * scale) / 2;
+      const ry = (tClamped * scale) / 2;  // t>=d2のとき ry==rx → 真円
+      const gy = cy - grooveH / 2;
+      document.getElementById('cp-groove').setAttribute('x', cx - grooveW/2);
+      document.getElementById('cp-groove').setAttribute('y', gy);
+      document.getElementById('cp-groove').setAttribute('width', grooveW);
+      document.getElementById('cp-groove').setAttribute('height', grooveH);
+      document.getElementById('cp-oring-shape').setAttribute('cx', cx);
+      document.getElementById('cp-oring-shape').setAttribute('cy', cy);
+      document.getElementById('cp-oring-shape').setAttribute('rx', rx);
+      document.getElementById('cp-oring-shape').setAttribute('ry', ry);
+      document.getElementById('cp-oring-shape').setAttribute('stroke',
+        comp < lim.min ? 'var(--warn)' : comp > lim.max ? 'var(--bad)' : 'var(--good)');
+
+      document.getElementById('cp-detail').innerHTML =
+        `線径 d2: <b>${d2} mm</b><br>溝深さ t: <b>${t} mm</b><br>圧縮量: <b>${delta.toFixed(2)} mm</b><br>` +
+        `圧縮後 高さ: <b>${t.toFixed(2)} mm</b><br>` +
+        `<span style="color:var(--muted);font-size:11px;">※断面イメージ（縮尺は概略）</span>`;
+    }
+
+    /* ── 材質データ ── */
+    const SEAL_MAT = [
+      {
+        id:'NBR', name:'NBR（ニトリル）', color:'var(--accent)',
+        temp:'-40〜+120℃', hardness:'A70±5',
+        good:['鉱物油','グリース','水（温水）','燃料油','空気'],
+        bad:['ケトン類','エステル','塩素系溶剤','臭素系流体'],
+        feature:'最も汎用的。耐油性・耐水性バランス良好。コスト低。',
+        note:'動的用途でよく使われる標準材。'
+      },
+      {
+        id:'FKM', name:'FKM（フッ素ゴム/バイトン）', color:'#ff9966',
+        temp:'-20〜+200℃', hardness:'A70±5',
+        good:['有機溶剤','燃料油','鉱物油','酸類','アルカリ（薄）'],
+        bad:['アセトン','MEK','アミン類','熱水（>150℃）'],
+        feature:'耐熱・耐薬品性最高クラス。高価。高温油圧や化学機械に最適。',
+        note:'価格はNBRの約10〜20倍。'
+      },
+      {
+        id:'VMQ', name:'VMQ（シリコン）', color:'#a0c4ff',
+        temp:'-60〜+200℃', hardness:'A50〜A70',
+        good:['熱風','食品・飲料','薬品（弱）','水'],
+        bad:['鉱物油（膨潤大）','スチーム','燃料油'],
+        feature:'超広温度域・食品衛生OK。耐油性低いため注意。',
+        note:'機械油の存在する環境では不適。'
+      },
+      {
+        id:'EPDM', name:'EPDM（エチレンプロピレン）', color:'var(--good)',
+        temp:'-40〜+150℃', hardness:'A60〜A80',
+        good:['水（温水・スチーム）','ブレーキ液','アルカリ','希酸'],
+        bad:['鉱物油','ガソリン','グリース'],
+        feature:'耐候・耐オゾン・耐蒸気優秀。屋外・水配管に最適。油と絶対NG。',
+        note:'水系・蒸気系の標準材。'
+      },
+      {
+        id:'CR', name:'CR（クロロプレン/ネオプレン）', color:'var(--warn)',
+        temp:'-40〜+120℃', hardness:'A60±5',
+        good:['冷媒フロン','弱酸','アルカリ','海水','空気'],
+        bad:['強酸','芳香族溶剤','ケトン'],
+        feature:'耐フロン・耐候・難燃性あり。冷凍機・空調・屋外用。',
+        note:'冷媒用Oリングとして重宝。'
+      },
+      {
+        id:'PTFE', name:'PTFE（テフロン）', color:'#c9a0ff',
+        temp:'-200〜+260℃', hardness:'Shore D50〜65',
+        good:['ほぼ全薬品','強酸','強アルカリ','溶剤'],
+        bad:['溶融アルカリ金属','フッ素ガス'],
+        feature:'最強耐薬品。弾性なし→バックアップリングや成形品として使用。',
+        note:'Oリング単体より成形パッキンで使うことが多い。'
+      },
+    ];
+
+    function initMatSelector() {
+      const wrap = document.getElementById('mat-selector');
+      wrap.innerHTML = SEAL_MAT.map(m => `
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);">
+          <input type="checkbox" value="${m.id}" onchange="renderMatDetail()" style="accent-color:${m.color};">
+          <span style="color:${m.color};font-weight:600;">${m.name}</span>
+        </label>`).join('');
+      // デフォルトでNBRとFKMにチェック
+      wrap.querySelectorAll('input[type=checkbox]').forEach((cb,i) => { if(i<2) cb.checked=true; });
+      renderMatDetail();
+    }
+
+    function renderMatDetail() {
+      const checked = [...document.querySelectorAll('#mat-selector input:checked')].map(cb=>cb.value);
+      const wrap = document.getElementById('mat-detail-wrap');
+      wrap.innerHTML = checked.map(id => {
+        const m = SEAL_MAT.find(x=>x.id===id);
+        if(!m) return '';
+        return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+          <div style="font-weight:700;color:${m.color};font-size:14px;margin-bottom:6px;">${m.name}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-bottom:8px;">
+            <div><span style="color:var(--muted);">使用温度：</span><b>${m.temp}</b></div>
+            <div><span style="color:var(--muted);">硬さ目安：</span><b>${m.hardness}</b></div>
+          </div>
+          <div style="font-size:12px;color:var(--good);margin-bottom:4px;">✓ 適合：${m.good.join('、')}</div>
+          <div style="font-size:12px;color:var(--bad);margin-bottom:6px;">✕ 不適：${m.bad.join('、')}</div>
+          <div style="font-size:12px;color:var(--ink);margin-bottom:4px;">${m.feature}</div>
+          <div style="font-size:11px;color:var(--muted);">${m.note}</div>
+        </div>`;
+      }).join('');
+      if(!checked.length) wrap.innerHTML = `<div style="color:var(--muted);padding:12px;">材質を選択してください</div>`;
+    }
+
+    /* ── オイルシールデータ (JIS B 2402-1参考) ── */
+    const OS_DATA = [
+      // [d, D, B, ハウジング公差, 軸公差]
+      [8,22,7,'H8','h8'],[10,22,7,'H8','h8'],[10,25,7,'H8','h8'],
+      [12,22,7,'H8','h8'],[12,25,7,'H8','h8'],[12,30,7,'H8','h8'],
+      [14,25,7,'H8','h8'],[15,25,7,'H8','h8'],[15,30,7,'H8','h8'],[15,35,7,'H8','h8'],
+      [16,30,7,'H8','h8'],[17,30,7,'H8','h8'],[17,35,7,'H8','h8'],
+      [18,30,7,'H8','h8'],[18,35,7,'H8','h8'],[20,35,7,'H8','h8'],
+      [20,40,7,'H8','h8'],[20,47,7,'H8','h8'],[22,35,7,'H8','h8'],
+      [22,40,7,'H8','h8'],[25,40,7,'H8','h8'],[25,47,7,'H8','h8'],
+      [25,52,7,'H8','h8'],[28,47,7,'H8','h8'],[30,45,8,'H8','h8'],
+      [30,47,8,'H8','h8'],[30,50,8,'H8','h8'],[30,52,8,'H8','h8'],
+      [32,47,8,'H8','h8'],[32,52,8,'H8','h8'],[35,50,8,'H8','h8'],
+      [35,52,8,'H8','h8'],[35,55,8,'H8','h8'],[35,62,8,'H8','h8'],
+      [38,55,8,'H8','h8'],[40,55,8,'H8','h8'],[40,60,8,'H8','h8'],
+      [40,62,8,'H8','h8'],[42,62,8,'H8','h8'],[45,60,8,'H8','h8'],
+      [45,65,8,'H8','h8'],[45,68,10,'H8','h8'],[48,65,8,'H8','h8'],
+      [50,65,8,'H8','h8'],[50,70,10,'H8','h8'],[50,72,10,'H8','h8'],
+      [55,72,10,'H8','h8'],[55,80,10,'H8','h8'],[60,80,10,'H8','h8'],
+      [60,85,10,'H8','h8'],[65,85,10,'H8','h8'],[65,90,10,'H8','h8'],
+      [70,90,10,'H8','h8'],[70,95,10,'H8','h8'],[75,95,10,'H8','h8'],
+      [75,100,10,'H8','h8'],[80,100,10,'H8','h8'],[80,105,10,'H8','h8'],
+      [85,110,12,'H8','h8'],[90,115,12,'H8','h8'],[95,120,12,'H8','h8'],
+      [100,125,12,'H8','h8'],[110,140,12,'H8','h8'],[120,150,15,'H8','h8'],
+    ];
+
+    function osFilter() {
+      const shaft = parseFloat(document.getElementById('os-shaft').value) || null;
+      const outer = parseFloat(document.getElementById('os-outer').value) || null;
+      const tbody = document.getElementById('os-tbody');
+      let rows = OS_DATA;
+      if (shaft !== null) rows = rows.filter(r => r[0] === shaft);
+      if (outer !== null) rows = rows.filter(r => r[1] === outer);
+      // 軸径が完全一致なければ近傍±5mm
+      if (shaft !== null && rows.length === 0) {
+        rows = OS_DATA.filter(r => Math.abs(r[0] - shaft) <= 5);
+      }
+      document.getElementById('os-count').textContent = `${rows.length} 件`;
+      tbody.innerHTML = rows.map(r => {
+        const d = r[0], D = r[1], B = r[2];
+        // 各種呼び番号を生成
+        const tcCode  = `TC${d}×${D}×${B}`;           // 通称
+        const jisCode = `JIS D ${d} ${D} ${B}`;         // JIS呼び記号
+        const isoCode = `TYPE 4 ${d} ${D} ${B}`;        // ISO呼び記号
+        // NOK品番: AE + d(3桁) + D(3桁) + E0  ※参考生成
+        const nokCode = `AE${String(d).padStart(2,'0')}${String(D).padStart(3,'0')}E0`;
+        // 武蔵: AD + 同様
+        const muCode  = `AD${String(d).padStart(2,'0')}${String(D).padStart(3,'0')}E0`;
+        return `<tr>
+          <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;">${d}</td>
+          <td>${D}</td><td>${B}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);">${tcCode}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">${jisCode}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">${isoCode}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${nokCode}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${muCode}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    /* ── パッキンデータ ── */
+    const PK_DATA = [
+      {
+        name:'Oリング', icon:'🔵',
+        use:['recipro','static','vacuum'], press:['low','mid','high'],
+        feature:'最も汎用的なシール。溝設計が重要。静的・動的両対応。圧縮率管理がポイント。',
+        pros:'小型・軽量・安価・種類豊富', cons:'溝加工が必要。高速摺動には不向き。',
+        pressRange:'〜35MPa（静的）、〜10MPa（動的）',
+        speedRange:'往復動 1.5m/s以下推奨',
+        temp:'-60〜+200℃（材質による）'
+      },
+      {
+        name:'Uパッキン（リップパッキン）', icon:'🌙',
+        use:['recipro'], press:['low','mid','high'],
+        feature:'油圧・空圧シリンダの往復動に最適。方向性あり（片方向シール）。バックアップ不要。',
+        pros:'低摩擦・低リーク・自己補償機能', cons:'一方向シール。組み付け向き注意。',
+        pressRange:'〜40MPa',
+        speedRange:'0.01〜1.5m/s',
+        temp:'-30〜+110℃'
+      },
+      {
+        name:'Vパッキン（シェブロンパッキン）', icon:'🔽',
+        use:['recipro'], press:['mid','high'],
+        feature:'高圧往復動。V形断面を複数積層。締め付け量で接触力調整可能。',
+        pros:'高圧対応・耐久性高・多段積みで高圧化', cons:'摩擦大・スペース必要',
+        pressRange:'10〜70MPa',
+        speedRange:'0.1〜1m/s',
+        temp:'-20〜+100℃'
+      },
+      {
+        name:'オイルシール（リップシール）', icon:'🌀',
+        use:['rotate'], press:['low'],
+        feature:'回転軸の油漏れ防止専用。バネ付きリップが軸に密着。主に大気側漏れ防止。',
+        pros:'高速回転対応・取り付け簡単・安価', cons:'高圧不可（通常0.05MPa以下）',
+        pressRange:'〜0.05MPa（基本的に大気圧側）',
+        speedRange:'周速4〜15m/s（型式による）',
+        temp:'-40〜+150℃（NBR）'
+      },
+      {
+        name:'メカニカルシール', icon:'⚙️',
+        use:['rotate'], press:['low','mid','high'],
+        feature:'回転機器（ポンプ・攪拌機）の完全密封。端面密封方式。漏れ最小。',
+        pros:'低漏れ・高速・長寿命', cons:'高価・組み付け精度必要・冷却水要',
+        pressRange:'〜3MPa（標準型）',
+        speedRange:'〜25m/s',
+        temp:'流体依存（〜200℃）'
+      },
+      {
+        name:'ガスケット（平パッキン）', icon:'📄',
+        use:['static'], press:['low','mid','high'],
+        feature:'フランジ・蓋などの固定部シール。面圧で密封。各材質・形状あり。',
+        pros:'安価・取り付け簡単・広面積対応', cons:'動的用途不可。再使用不可が多い。',
+        pressRange:'材質・形状による（〜高圧対応品も）',
+        speedRange:'固定専用',
+        temp:'材質依存（〜500℃：金属ガスケット）'
+      },
+      {
+        name:'メタルOリング', icon:'⭕',
+        use:['static','vacuum'], press:['high'],
+        feature:'超高圧・高真空・高温用途。アルミ・銅・ステンレス等。特殊フランジに使用。',
+        pros:'超高圧・高温・高真空対応', cons:'高価・高面圧が必要・再使用不可',
+        pressRange:'〜200MPa',
+        speedRange:'固定専用',
+        temp:'〜600℃（材質による）'
+      },
+    ];
+
+    function pkFilter() {
+      const use   = document.getElementById('pk-use').value;
+      const press = document.getElementById('pk-press').value;
+      const cards = document.getElementById('pk-cards');
+      let rows = PK_DATA;
+      if (use   !== 'all') rows = rows.filter(r => r.use.includes(use));
+      if (press !== 'all') rows = rows.filter(r => r.press.includes(press));
+      cards.innerHTML = rows.map(r => `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+          <div style="font-size:15px;font-weight:700;color:var(--accent);margin-bottom:6px;">${r.icon} ${r.name}</div>
+          <div style="font-size:12px;color:var(--ink);margin-bottom:6px;">${r.feature}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;margin-bottom:6px;">
+            <div><span style="color:var(--muted);">圧力：</span>${r.pressRange}</div>
+            <div><span style="color:var(--muted);">速度：</span>${r.speedRange}</div>
+            <div><span style="color:var(--muted);">温度：</span>${r.temp}</div>
+          </div>
+          <div style="font-size:11px;">
+            <span style="color:var(--good);">✓ ${r.pros}</span> &nbsp;
+            <span style="color:var(--bad);">✕ ${r.cons}</span>
+          </div>
+        </div>`).join('');
+      if(!rows.length) cards.innerHTML = `<div style="color:var(--muted);">該当するシール種類がありません</div>`;
+    }
+
+    /* ── サブタブ切り替え ── */
+    function showSealTab(name, btn) {
+      const wrap = document.getElementById('seal-stab-wrap');
+      wrap.querySelectorAll('.stab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('#tab-seal .stab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('stab-seal-' + name).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    /* ── 初期化 ── */
+    orFilter();
+    calcComp();
+    initMatSelector();
+    osFilter();
+    pkFilter();
     </script>
   </body>
 </html>
