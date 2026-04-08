@@ -19800,6 +19800,7 @@
             <option value="NW">NW/KF（真空）</option>
             <option value="ISO-F">ISO-F（真空）</option>
             <option value="ICF">ICF（真空）</option>
+            <option value="JIS-F">JIS丸フランジ（真空）</option>
             <option value="R">Rねじ・Rcねじ</option>
             <option value="SWG">Swagelok/VCR</option>
             <option value="SAN">サニタリー(ISO 2852)</option>
@@ -20248,6 +20249,19 @@
       {id:'P355', d1:354.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
       {id:'P375', d1:374.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
       {id:'P400', d1:399.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      // P系 拡張（P425〜P800）※JIS B 2401参考値・大径
+      {id:'P425', d1:424.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P450', d1:449.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P475', d1:474.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P500', d1:499.8,d2:8.4, bDyn:10.3,bSta:10.0,tDyn:6.4, tSta:6.7, C:1.6, use:'dynamic', series:'P'},
+      {id:'P530', d1:529.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P560', d1:559.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P600', d1:599.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P630', d1:629.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P670', d1:669.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P710', d1:709.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P750', d1:749.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
+      {id:'P800', d1:799.8,d2:11.0,bDyn:13.5,bSta:13.2,tDyn:8.5, tSta:8.8, C:2.0, use:'dynamic', series:'P'},
       // S系 (小型シリンダ用 / 運動用)
       {id:'S6',   d1:5.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'S'},
       {id:'S8',   d1:7.8,  d2:1.9, bDyn:2.4, bSta:2.3, tDyn:1.4, tSta:1.5, C:0.4, use:'dynamic', series:'S'},
@@ -20319,13 +20333,79 @@
       {id:'G140', d1:138.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
       {id:'G145', d1:143.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
       {id:'G150', d1:148.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      // G系 拡張（G160〜G800）※JIS B 2401参考値
+      {id:'G160', d1:158.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G170', d1:168.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G180', d1:178.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G190', d1:188.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G200', d1:198.1,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'G'},
+      {id:'G215', d1:213.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G220', d1:218.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G230', d1:228.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G240', d1:238.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G250', d1:248.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G260', d1:258.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G270', d1:268.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G280', d1:278.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G290', d1:288.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G300', d1:298.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G320', d1:318.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G340', d1:338.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G360', d1:358.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G380', d1:378.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G400', d1:398.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G420', d1:418.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G440', d1:438.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G460', d1:458.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G480', d1:478.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G500', d1:498.1,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'G'},
+      {id:'G530', d1:528.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G560', d1:558.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G600', d1:598.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G630', d1:628.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G670', d1:668.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G710', d1:708.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G750', d1:748.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
+      {id:'G800', d1:798.1,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'G'},
       // V系 (真空フランジ)
+      {id:'V30',  d1:29.0, d2:3.5, bDyn:null, bSta:4.2, tDyn:null, tSta:2.8, C:0.8, use:'static', series:'V'},
+      {id:'V40',  d1:39.0, d2:3.5, bDyn:null, bSta:4.2, tDyn:null, tSta:2.8, C:0.8, use:'static', series:'V'},
+      {id:'V50',  d1:49.0, d2:3.5, bDyn:null, bSta:4.2, tDyn:null, tSta:2.8, C:0.8, use:'static', series:'V'},
+      {id:'V63',  d1:62.0, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
       {id:'V75',  d1:74.0, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V90',  d1:88.0, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
       {id:'V100', d1:98.0, d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V110', d1:108.0,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V125', d1:122.5,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V140', d1:137.2,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
       {id:'V150', d1:147.0,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V160', d1:156.8,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V175', d1:171.5,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
       {id:'V200', d1:196.0,d2:5.7, bDyn:null, bSta:6.9, tDyn:null, tSta:4.6, C:0.8, use:'static', series:'V'},
+      {id:'V225', d1:220.5,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
       {id:'V250', d1:245.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V275', d1:269.5,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
       {id:'V300', d1:294.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V325', d1:318.5,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V350', d1:343.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V375', d1:367.5,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V400', d1:392.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V425', d1:416.5,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V450', d1:441.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V475', d1:465.5,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V500', d1:490.0,d2:8.4, bDyn:null, bSta:10.3,tDyn:null, tSta:6.7, C:1.2, use:'static', series:'V'},
+      {id:'V530', d1:519.4,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V560', d1:548.8,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V600', d1:588.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V630', d1:617.4,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V670', d1:656.6,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V700', d1:686.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V750', d1:735.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V800', d1:784.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V850', d1:833.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V900', d1:882.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V950', d1:931.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
+      {id:'V1000',d1:980.0,d2:11.0,bDyn:null, bSta:13.5,tDyn:null, tSta:8.8, C:1.6, use:'static', series:'V'},
     ];
 
     function orFilter() {
@@ -20748,7 +20828,24 @@
       {cat:'B', pclass:'ICF',  nom:'ICF70',  od:92,  pcd:79.5,boltN:6,boltSize:'M8',  boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-70', compatFlag:'ok',note:'超高真空専用。フランジ面傷つけ厳禁。ナイフエッジ接続'},
       {cat:'B', pclass:'ICF',  nom:'ICF114', od:146, pcd:130, boltN:8,boltSize:'M8',  boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-114',compatFlag:'ok',note:'半導体・研究装置の高真空配管で標準'},
       {cat:'B', pclass:'ICF',  nom:'ICF152', od:202, pcd:184, boltN:16,boltSize:'M8', boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-152',compatFlag:'ok',note:''},
-      // ═══ C: ねじ込み・Swagelok系 ═══
+      // ═══ B: JIS 丸フランジ（JIS B 2290）===
+      // 締結：ボルト・ナット / シール：Oリング溝（JIS B 2401 P系またはG系）
+      // 真空度目安：〜10⁻⁵Pa（ゴムOリング）/ 〜10⁻⁸Pa（メタルOリング）
+      {cat:'B', pclass:'JIS-F', nom:'DN16（25A）',  od:45,  pcd:32,  boltN:4, boltSize:'M5',  boltL:20, torque:3,   packOD:'P18(d1:17.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-16',  compatFlag:'ok',note:'JIS B 2290 最小径。小型真空装置・計装配管'},
+      {cat:'B', pclass:'JIS-F', nom:'DN25（32A）',  od:58,  pcd:44,  boltN:4, boltSize:'M6',  boltL:20, torque:5,   packOD:'P22(d1:21.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-25',  compatFlag:'ok',note:'真空チャンバー小口径ポート・ゲートバルブに多用'},
+      {cat:'B', pclass:'JIS-F', nom:'DN40（50A）',  od:75,  pcd:60,  boltN:4, boltSize:'M8',  boltL:25, torque:8,   packOD:'P35(d1:34.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-40',  compatFlag:'ok',note:'ターボポンプ排気ポート・フォアライン標準サイズ'},
+      {cat:'B', pclass:'JIS-F', nom:'DN50（65A）',  od:90,  pcd:74,  boltN:4, boltSize:'M8',  boltL:25, torque:8,   packOD:'P44(d1:43.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-50',  compatFlag:'ok',note:''},
+      {cat:'B', pclass:'JIS-F', nom:'DN63（80A）',  od:110, pcd:90,  boltN:6, boltSize:'M8',  boltL:25, torque:8,   packOD:'P56(d1:55.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-63',  compatFlag:'ok',note:'スパッタ装置・CVD装置の主配管に多用'},
+      {cat:'B', pclass:'JIS-F', nom:'DN80（100A）', od:130, pcd:110, boltN:6, boltSize:'M8',  boltL:25, torque:8,   packOD:'P70(d1:69.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-80',  compatFlag:'ok',note:''},
+      {cat:'B', pclass:'JIS-F', nom:'DN100（125A）',od:152, pcd:130, boltN:8, boltSize:'M8',  boltL:25, torque:8,   packOD:'P90(d1:89.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-100', compatFlag:'warn',note:'ICF114とPCDが同じ(130mm)・ボルト本数同じ→混用に注意。規格が異なるため互換なし'},
+      {cat:'B', pclass:'JIS-F', nom:'DN125（150A）',od:180, pcd:156, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'P115(d1:114.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-125', compatFlag:'ok',note:'大型真空チャンバーメインポート'},
+      {cat:'B', pclass:'JIS-F', nom:'DN160（200A）',od:218, pcd:192, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'P150(d1:149.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-160', compatFlag:'ok',note:''},
+      {cat:'B', pclass:'JIS-F', nom:'DN200（250A）',od:270, pcd:240, boltN:12,boltSize:'M10', boltL:30, torque:15,  packOD:'P190(d1:189.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-200', compatFlag:'ok',note:'大型装置・ロードロック室ポート'},
+      {cat:'B', pclass:'JIS-F', nom:'DN250（300A）',od:325, pcd:292, boltN:12,boltSize:'M12', boltL:35, torque:25,  packOD:'P240(d1:239.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-250', compatFlag:'ok',note:''},
+      {cat:'B', pclass:'JIS-F', nom:'DN320（400A）',od:410, pcd:370, boltN:16,boltSize:'M12', boltL:35, torque:25,  packOD:'P310(d1:309.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-320', compatFlag:'ok',note:'大型真空チャンバー本体フランジ'},
+      {cat:'B', pclass:'JIS-F', nom:'DN400（500A）',od:505, pcd:460, boltN:20,boltSize:'M12', boltL:35, torque:25,  packOD:'P390(d1:389.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-400', compatFlag:'ok',note:''},
+      {cat:'B', pclass:'JIS-F', nom:'DN500（600A）',od:615, pcd:565, boltN:20,boltSize:'M16', boltL:45, torque:55,  packOD:'P490(d1:489.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-500', compatFlag:'ok',note:'大型スパッタ・蒸着装置チャンバー本体'},
+      {cat:'B', pclass:'JIS-F', nom:'DN630（800A）',od:765, pcd:710, boltN:24,boltSize:'M16', boltL:45, torque:55,  packOD:'P630(d1:629.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-630', compatFlag:'ok',note:'超大型チャンバー。Cuガスケット使用が多い'},
       {cat:'C', pclass:'R',   nom:'R1/8',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/8',  compatFlag:'ok',note:'Rねじ（旧PT）テーパーオスねじ。Rcねじと組み合わせ'},
       {cat:'C', pclass:'R',   nom:'R1/4',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/4',  compatFlag:'ok',note:'最も一般的な計装・エア配管サイズ'},
       {cat:'C', pclass:'R',   nom:'R3/8',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-3/8',  compatFlag:'ok',note:''},
@@ -20814,6 +20911,11 @@
 <span style="color:var(--muted);">締結方式</span>　クランプ1本のみ（ボルト不要・着脱30秒）<br>
 <span style="color:var(--muted);">シール材</span>　センタリングリング内蔵Oリング（NBR/FKM）<br>
 <span style="color:var(--muted);">特徴</span>　　薄型フランジ。実験・研究装置の標準。再使用可<br>
+<b style="color:var(--muted);">▍JIS丸フランジ（JIS B 2290）〜10⁻⁵ Pa〜10⁻⁸ Pa</b><br>
+<span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M5〜M16）<br>
+<span style="color:var(--muted);">シール材</span>　Oリング溝（P系/G系）+ NBR/FKM/Cuガスケット<br>
+<span style="color:var(--muted);">特徴</span>　　国内真空装置の標準。DN16〜DN630。汎用性高い<br>
+　　　　　Oリング材質で到達真空度が変わる<br>
 <b style="color:var(--muted);">▍ISO-F（〜10⁻⁷ Pa）</b><br>
 <span style="color:var(--muted);">締結方式</span>　ボルト（M8〜M10）<br>
 <span style="color:var(--muted);">シール材</span>　Oリング（NBR/FKM/Viton）<br>
