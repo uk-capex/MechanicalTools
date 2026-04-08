@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.51 | 20260407 | Mechanical Tools | uk |-->
+    <!-- build: 1.52 | 20260408 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -1121,6 +1121,12 @@
         onclick="showTab('seal', event.currentTarget)"
       >
         🔵 Oリング/シール
+      </button>
+      <button
+        class="tab-btn"
+        onclick="showTab('flange', event.currentTarget)"
+      >
+        🔩 配管フランジ
       </button>
     </div>
 
@@ -19509,6 +19515,36 @@
               </select>
             </div>
             <hr class="divider">
+            <div class="section-title" style="margin-bottom:6px;">Oリング 種別早見表</div>
+            <div style="font-size:11px;line-height:1.7;">
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin-bottom:8px;">
+                <span style="color:var(--accent);font-weight:700;">1種A</span>
+                <span>硬さ <b>Hs70±5</b>（標準・最汎用）</span>
+                <span style="color:var(--muted);font-size:10px;grid-column:2;">運動用・固定用・真空用すべてに対応。<br>迷ったらこれ。</span>
+
+                <span style="color:var(--accent);font-weight:700;">1種B</span>
+                <span>硬さ <b>Hs90±5</b>（高硬度）</span>
+                <span style="color:var(--muted);font-size:10px;grid-column:2;">高圧・バックアップリング代わり。<br>変形しにくいが伸びにくい。溝設計注意。</span>
+
+                <span style="color:var(--accent);font-weight:700;">2種</span>
+                <span>硬さ <b>Hs60±5</b>（低硬度・柔らかめ）</span>
+                <span style="color:var(--muted);font-size:10px;grid-column:2;">真空・精密機器・低荷重シール向け。<br>変形しやすく低面圧でもシール可。</span>
+              </div>
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;">
+                <div style="color:var(--warn);font-weight:700;margin-bottom:3px;">⚠ 同じ型番でも種別が違うと…</div>
+                <div style="color:var(--muted);">
+                  外径・内径は同じでも<b style="color:var(--ink);">線径公差が異なる</b>ため<br>
+                  圧縮率が変わります。発注時は必ず種別を指定。<br>
+                  <span style="color:var(--good);">無指定の場合：通常 1種A が供給される</span>
+                </div>
+              </div>
+              <div style="margin-top:6px;color:var(--muted);">
+                <b style="color:var(--ink);">JIS規格</b>　JIS B 2401-1（一般工業用）<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;JIS B 2401-2（真空フランジ用）<br>
+                <b style="color:var(--ink);">材質の指定</b>は種別とは別（NBR・FKM等）
+              </div>
+            </div>
+            <hr class="divider">
             <div class="memo">
               <b>JIS B 2401 準拠</b><br>
               溝幅 b・溝深さ t は推奨値。<br>
@@ -19574,13 +19610,6 @@
             <hr class="divider">
             <div class="memo">
               <b>圧縮率目安（JIS B 2401）</b><br>
-              運動用：15〜30%　推奨20%前後<br>
-              固定用（液体）：15〜30%<br>
-              固定用（気体）：20〜35%<br>
-              真空用：25〜35%<br>
-              <b>引張り率：</b>1〜5% 推奨（最大8%）
-            </div>
-          </div>
           <div class="panel-right">
             <div class="result-cards">
               <div class="card accent">
@@ -19734,6 +19763,123 @@
       </div>
     </div><!-- /seal-stab-wrap -->
     </div><!-- /tab-seal -->
+
+    <!-- ══════════════════════════════════════════════════════
+         🔩 配管フランジタブ
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-flange" class="tab-content">
+      <!-- 左パネル：検索・絞り込み -->
+      <div class="panel-left" style="min-width:220px;max-width:260px;">
+        <div class="section-title">絞り込み条件</div>
+
+        <div class="field">
+          <label>カテゴリー</label>
+          <select id="fl-cat" onchange="flFilter()">
+            <option value="all">すべて</option>
+            <option value="A">A：JISフランジ（水・油・汎用）</option>
+            <option value="B">B：真空フランジ（NW/KF・ISO・ICF）</option>
+            <option value="C">C：ねじ込み・Swagelok系</option>
+            <option value="D">D：衛生・サニタリー系</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>圧力クラス／規格</label>
+          <select id="fl-pclass" onchange="flFilter()">
+            <option value="all">すべて</option>
+            <option value="5K">5K</option>
+            <option value="10K">10K</option>
+            <option value="20K">20K</option>
+            <option value="NW">NW/KF（真空）</option>
+            <option value="ISO-F">ISO-F（真空）</option>
+            <option value="ICF">ICF（真空）</option>
+            <option value="R">Rねじ・Rcねじ</option>
+            <option value="SWG">Swagelok/VCR</option>
+            <option value="SAN">サニタリー(ISO 2852)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>呼び径（テキスト絞り込み）</label>
+          <input type="text" id="fl-search" placeholder="例: 25A, NW25, 1&quot;" oninput="flFilter()" style="text-transform:uppercase;">
+        </div>
+
+        <div class="field">
+          <label>互換性フィルター</label>
+          <select id="fl-compat" onchange="flFilter()">
+            <option value="all">すべて表示</option>
+            <option value="warn">⚠ 要注意のみ</option>
+            <option value="ok">✓ 互換あり含む</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 接続方式テキスト説明 -->
+        <div class="section-title" style="margin-bottom:6px;">接続方式・構造</div>
+        <div id="fl-info-box" style="
+          background:var(--surface2);
+          border:1px solid var(--border);
+          border-radius:8px;
+          padding:10px 12px;
+          font-size:11px;
+          line-height:1.75;
+          color:var(--ink);
+        ">
+          <span style="color:var(--muted);">← カテゴリーを選択</span>
+        </div>
+
+        <hr class="divider">
+        <div class="memo" style="font-size:11px;">
+          <b>⚠ 互換性の罠</b><br>
+          同じ呼び径でも圧力クラスが違うと<br>
+          PCDが異なる場合があります。<br>
+          <span style="color:var(--bad);">赤行</span>：混用厳禁<br>
+          <span style="color:var(--warn);">黄行</span>：要確認<br>
+          <span style="color:var(--good);">緑行</span>：互換OK
+        </div>
+      </div>
+
+      <!-- 右パネル：テーブル常時表示 -->
+      <div class="panel-right" style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="section-title" style="margin:0;">配管フランジ 寸法・仕様一覧</div>
+          <span id="fl-count" style="font-size:11px;color:var(--muted);"></span>
+          <span id="fl-compat-legend" style="font-size:11px;color:var(--muted);margin-left:auto;">
+            互換: <span style="color:var(--good);">■同一PCD</span>
+            <span style="color:var(--warn);margin-left:6px;">■要確認</span>
+            <span style="color:var(--bad);margin-left:6px;">■混用禁止</span>
+          </span>
+        </div>
+
+        <div class="data-table-wrap" style="flex:1;overflow-y:auto;">
+          <table class="data-table" id="fl-table" style="font-size:12px;">
+            <thead>
+              <tr>
+                <th>Cat</th>
+                <th>規格/<br>圧力クラス</th>
+                <th>呼び径</th>
+                <th>外径 OD<br>(mm)</th>
+                <th>PCD<br>(mm)</th>
+                <th>ボルト<br>本数</th>
+                <th>ボルト<br>サイズ</th>
+                <th>ボルト首下<br>長さ目安(mm)</th>
+                <th>締付トルク<br>(N·m)</th>
+                <th>パッキン<br>内径×外径(mm)</th>
+                <th>推奨<br>パッキン材質</th>
+                <th>互換性/<br>共通化</th>
+                <th>備考</th>
+              </tr>
+            </thead>
+            <tbody id="fl-tbody"></tbody>
+          </table>
+        </div>
+        <div class="memo" style="font-size:11px;">
+          ※ 寸法はJIS B 2220 / JIS B 2290 / ISO 1127参考値。実際の施工はメーカカタログ・設計図で必ず確認してください。<br>
+          ※ 締付トルクはNBRパッキン使用・M16以下標準六角ボルト（強度区分4.8）での参考値。材質・パッキン種類により変動します。
+        </div>
+      </div>
+    </div><!-- /tab-flange -->
 
     <script>
     /* ══════════════════════════════════════════
@@ -20525,12 +20671,219 @@
       if (btn) btn.classList.add('active');
     }
 
+    /* ══════════════════════════════════════════
+       🔩 配管フランジ
+    ══════════════════════════════════════════ */
+    /*
+      カラム定義:
+      cat, pclass, nom, od, pcd, boltN, boltSize, boltL, torque,
+      packID(内径×外径), packMat, compatKey, compatFlag, note
+      compatFlag: 'ok'=互換あり / 'warn'=要確認 / 'ng'=混用禁止
+    */
+    const FL_DATA = [
+      // ═══ A: JIS 5K ═══
+      {cat:'A', pclass:'5K',  nom:'10A',  od:75,  pcd:55,  boltN:4, boltSize:'M12', boltL:45,  torque:25,  packOD:'30×15',  packMat:'NBR/EPDM',  compatKey:'5K-10A',  compatFlag:'warn', note:'5K-10Aと10K-10AはPCD同じ(55mm)。ボルト本数同じなら共通化可能'},
+      {cat:'A', pclass:'5K',  nom:'15A',  od:80,  pcd:60,  boltN:4, boltSize:'M12', boltL:45,  torque:25,  packOD:'36×20',  packMat:'NBR/EPDM',  compatKey:'5K-15A',  compatFlag:'warn', note:'10K-15AとPCD同じ(65mm)。10K兼用可の場合あり'},
+      {cat:'A', pclass:'5K',  nom:'20A',  od:85,  pcd:65,  boltN:4, boltSize:'M12', boltL:45,  torque:25,  packOD:'42×26',  packMat:'NBR/EPDM',  compatKey:'5K-20A',  compatFlag:'warn', note:'10K-20AとPCD同じ(75mm)の場合あり。要確認'},
+      {cat:'A', pclass:'5K',  nom:'25A',  od:95,  pcd:75,  boltN:4, boltSize:'M12', boltL:45,  torque:25,  packOD:'48×32',  packMat:'NBR/EPDM',  compatKey:'5K-25A',  compatFlag:'ng',   note:'10K-25AはPCD90mm。5K-25A(PCD75mm)と混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'32A',  od:115, pcd:90,  boltN:4, boltSize:'M16', boltL:55,  torque:60,  packOD:'58×40',  packMat:'NBR/EPDM',  compatKey:'5K-32A',  compatFlag:'ng',   note:'10K-32AはPCD100mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'40A',  od:120, pcd:95,  boltN:4, boltSize:'M16', boltL:55,  torque:60,  packOD:'66×46',  packMat:'NBR/EPDM',  compatKey:'5K-40A',  compatFlag:'ng',   note:'10K-40AはPCD105mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'50A',  od:130, pcd:105, boltN:4, boltSize:'M16', boltL:55,  torque:60,  packOD:'76×58',  packMat:'NBR/EPDM',  compatKey:'5K-50A',  compatFlag:'ng',   note:'10K-50AはPCD120mm。混用禁止 ★よくある混同'},
+      {cat:'A', pclass:'5K',  nom:'65A',  od:155, pcd:130, boltN:4, boltSize:'M16', boltL:55,  torque:60,  packOD:'96×74',  packMat:'NBR/EPDM',  compatKey:'5K-65A',  compatFlag:'ng',   note:'10K-65AはPCD145mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'80A',  od:180, pcd:150, boltN:8, boltSize:'M16', boltL:55,  torque:60,  packOD:'110×88', packMat:'NBR/EPDM',  compatKey:'5K-80A',  compatFlag:'ng',   note:'10K-80AはPCD160mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'100A', od:200, pcd:175, boltN:8, boltSize:'M16', boltL:55,  torque:60,  packOD:'135×112',packMat:'NBR/EPDM',  compatKey:'5K-100A', compatFlag:'ng',   note:'10K-100AはPCD190mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'125A', od:235, pcd:210, boltN:8, boltSize:'M20', boltL:65,  torque:120, packOD:'162×138',packMat:'NBR/EPDM',  compatKey:'5K-125A', compatFlag:'ng',   note:'10K-125AはPCD220mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'150A', od:265, pcd:240, boltN:8, boltSize:'M20', boltL:65,  torque:120, packOD:'192×164',packMat:'NBR/EPDM',  compatKey:'5K-150A', compatFlag:'ng',   note:'10K-150AはPCD250mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'200A', od:320, pcd:290, boltN:12,boltSize:'M20', boltL:65,  torque:120, packOD:'245×212',packMat:'NBR/EPDM',  compatKey:'5K-200A', compatFlag:'ng',   note:'10K-200AはPCD310mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'250A', od:385, pcd:350, boltN:12,boltSize:'M22', boltL:70,  torque:150, packOD:'300×262',packMat:'NBR/EPDM',  compatKey:'5K-250A', compatFlag:'ng',   note:'10K-250AはPCD370mm。混用禁止'},
+      {cat:'A', pclass:'5K',  nom:'300A', od:430, pcd:400, boltN:16,boltSize:'M22', boltL:70,  torque:150, packOD:'352×312',packMat:'NBR/EPDM',  compatKey:'5K-300A', compatFlag:'ng',   note:'10K-300AはPCD430mm。混用禁止'},
+      // ═══ A: JIS 10K ═══
+      {cat:'A', pclass:'10K', nom:'10A',  od:90,  pcd:55,  boltN:4, boltSize:'M12', boltL:50,  torque:30,  packOD:'30×15',  packMat:'NBR/EPDM',  compatKey:'10K-10A', compatFlag:'ok',   note:'5K-10AとPCD同じ(55mm)・ボルト同じ→共通化可'},
+      {cat:'A', pclass:'10K', nom:'15A',  od:95,  pcd:65,  boltN:4, boltSize:'M12', boltL:50,  torque:30,  packOD:'36×20',  packMat:'NBR/EPDM',  compatKey:'10K-15A', compatFlag:'ok',   note:'5K-15AとPCD同じ可能性あり。現物確認推奨'},
+      {cat:'A', pclass:'10K', nom:'20A',  od:100, pcd:75,  boltN:4, boltSize:'M12', boltL:50,  torque:30,  packOD:'42×26',  packMat:'NBR/EPDM',  compatKey:'10K-20A', compatFlag:'warn', note:'5K-20Aと同じPCDの場合あり。要確認'},
+      {cat:'A', pclass:'10K', nom:'25A',  od:125, pcd:90,  boltN:4, boltSize:'M16', boltL:60,  torque:70,  packOD:'48×32',  packMat:'NBR/EPDM',  compatKey:'10K-25A', compatFlag:'ok',   note:'20K-25AとPCD同じ(90mm)→共通化可 ★重要'},
+      {cat:'A', pclass:'10K', nom:'32A',  od:135, pcd:100, boltN:4, boltSize:'M16', boltL:60,  torque:70,  packOD:'58×40',  packMat:'NBR/EPDM',  compatKey:'10K-32A', compatFlag:'ok',   note:'20K-32AとPCD同じ(100mm)→共通化可'},
+      {cat:'A', pclass:'10K', nom:'40A',  od:140, pcd:105, boltN:4, boltSize:'M16', boltL:60,  torque:70,  packOD:'66×46',  packMat:'NBR/EPDM',  compatKey:'10K-40A', compatFlag:'ok',   note:'20K-40AとPCD同じ(105mm)→共通化可'},
+      {cat:'A', pclass:'10K', nom:'50A',  od:155, pcd:120, boltN:4, boltSize:'M16', boltL:60,  torque:70,  packOD:'76×58',  packMat:'NBR/EPDM',  compatKey:'10K-50A', compatFlag:'ng',   note:'5K-50A(PCD105mm)と混用禁止 ★最多トラブル事例'},
+      {cat:'A', pclass:'10K', nom:'65A',  od:175, pcd:145, boltN:4, boltSize:'M16', boltL:60,  torque:70,  packOD:'96×74',  packMat:'NBR/EPDM',  compatKey:'10K-65A', compatFlag:'ng',   note:'5K-65A(PCD130mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'80A',  od:200, pcd:160, boltN:8, boltSize:'M16', boltL:60,  torque:70,  packOD:'110×88', packMat:'NBR/EPDM',  compatKey:'10K-80A', compatFlag:'ng',   note:'5K-80A(PCD150mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'100A', od:225, pcd:190, boltN:8, boltSize:'M16', boltL:60,  torque:70,  packOD:'135×112',packMat:'NBR/EPDM',  compatKey:'10K-100A',compatFlag:'ng',   note:'5K-100A(PCD175mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'125A', od:270, pcd:220, boltN:8, boltSize:'M20', boltL:70,  torque:130, packOD:'162×138',packMat:'NBR/EPDM',  compatKey:'10K-125A',compatFlag:'ng',   note:'5K-125A(PCD210mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'150A', od:305, pcd:250, boltN:8, boltSize:'M20', boltL:70,  torque:130, packOD:'192×164',packMat:'NBR/EPDM',  compatKey:'10K-150A',compatFlag:'ng',   note:'5K-150A(PCD240mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'200A', od:350, pcd:310, boltN:12,boltSize:'M20', boltL:70,  torque:130, packOD:'245×212',packMat:'NBR/EPDM',  compatKey:'10K-200A',compatFlag:'ng',   note:'5K-200A(PCD290mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'250A', od:430, pcd:370, boltN:12,boltSize:'M24', boltL:80,  torque:200, packOD:'300×262',packMat:'NBR/EPDM',  compatKey:'10K-250A',compatFlag:'ng',   note:'5K-250A(PCD350mm)と混用禁止'},
+      {cat:'A', pclass:'10K', nom:'300A', od:480, pcd:430, boltN:16,boltSize:'M24', boltL:80,  torque:200, packOD:'352×312',packMat:'NBR/EPDM',  compatKey:'10K-300A',compatFlag:'ng',   note:'5K-300A(PCD400mm)と混用禁止'},
+      // ═══ A: JIS 20K ═══
+      {cat:'A', pclass:'20K', nom:'25A',  od:125, pcd:90,  boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'48×32',  packMat:'NBR/FKM',   compatKey:'20K-25A', compatFlag:'ok',   note:'10K-25AとPCD同じ(90mm)→共通化可'},
+      {cat:'A', pclass:'20K', nom:'32A',  od:135, pcd:100, boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'58×40',  packMat:'NBR/FKM',   compatKey:'20K-32A', compatFlag:'ok',   note:'10K-32AとPCD同じ(100mm)→共通化可'},
+      {cat:'A', pclass:'20K', nom:'40A',  od:140, pcd:105, boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'66×46',  packMat:'NBR/FKM',   compatKey:'20K-40A', compatFlag:'ok',   note:'10K-40AとPCD同じ(105mm)→共通化可'},
+      {cat:'A', pclass:'20K', nom:'50A',  od:165, pcd:130, boltN:8, boltSize:'M16', boltL:65,  torque:80,  packOD:'76×58',  packMat:'NBR/FKM',   compatKey:'20K-50A', compatFlag:'ng',   note:'10K-50A(PCD120mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'65A',  od:185, pcd:155, boltN:8, boltSize:'M20', boltL:75,  torque:140, packOD:'96×74',  packMat:'NBR/FKM',   compatKey:'20K-65A', compatFlag:'ng',   note:'10K-65A(PCD145mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'80A',  od:210, pcd:170, boltN:8, boltSize:'M20', boltL:75,  torque:140, packOD:'110×88', packMat:'NBR/FKM',   compatKey:'20K-80A', compatFlag:'ng',   note:'10K-80A(PCD160mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'100A', od:250, pcd:200, boltN:8, boltSize:'M22', boltL:80,  torque:180, packOD:'135×112',packMat:'NBR/FKM',   compatKey:'20K-100A',compatFlag:'ng',   note:'10K-100A(PCD190mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'150A', od:325, pcd:270, boltN:12,boltSize:'M22', boltL:80,  torque:180, packOD:'192×164',packMat:'NBR/FKM',   compatKey:'20K-150A',compatFlag:'ng',   note:'10K-150A(PCD250mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'200A', od:390, pcd:330, boltN:12,boltSize:'M24', boltL:90,  torque:230, packOD:'245×212',packMat:'NBR/FKM',   compatKey:'20K-200A',compatFlag:'ng',   note:'10K-200A(PCD310mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'250A', od:445, pcd:385, boltN:16,boltSize:'M24', boltL:90,  torque:230, packOD:'300×262',packMat:'NBR/FKM',   compatKey:'20K-250A',compatFlag:'ng',   note:'10K-250A(PCD370mm)と混用禁止'},
+      {cat:'A', pclass:'20K', nom:'300A', od:510, pcd:450, boltN:16,boltSize:'M27', boltL:100, torque:310, packOD:'352×312',packMat:'NBR/FKM',   compatKey:'20K-300A',compatFlag:'ng',   note:'10K-300A(PCD430mm)と混用禁止。大型・高圧設備専用'},
+      // ═══ B: 真空フランジ NW/KF ═══
+      {cat:'B', pclass:'NW',  nom:'NW10', od:21.5,pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'12.5×6',  packMat:'NBR/FKM/Viton',compatKey:'NW-10', compatFlag:'ok',note:'センタリングリング+クランプで接続。ボルト不要'},
+      {cat:'B', pclass:'NW',  nom:'NW16', od:28,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'19×12',   packMat:'NBR/FKM',      compatKey:'NW-16', compatFlag:'ok',note:'NW/KF規格はDIN28403準拠。クランプ接続'},
+      {cat:'B', pclass:'NW',  nom:'NW25', od:40,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'30×18',   packMat:'NBR/FKM',      compatKey:'NW-25', compatFlag:'ok',note:'最も一般的な真空規格。研究・分析機器に多用'},
+      {cat:'B', pclass:'NW',  nom:'NW32', od:50,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'38×24',   packMat:'NBR/FKM',      compatKey:'NW-32', compatFlag:'ok',note:'NW25より大流量が必要な場合に使用'},
+      {cat:'B', pclass:'NW',  nom:'NW40', od:55,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'45×30',   packMat:'NBR/FKM',      compatKey:'NW-40', compatFlag:'ok',note:'ターボポンプ排気口等に使用'},
+      {cat:'B', pclass:'NW',  nom:'NW50', od:67,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'57×38',   packMat:'NBR/FKM',      compatKey:'NW-50', compatFlag:'ok',note:''},
+      {cat:'B', pclass:'NW',  nom:'NW63', od:83,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'71×50',   packMat:'NBR/FKM',      compatKey:'NW-63', compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ISO-F',nom:'ISO63',  od:114,pcd:94.5,boltN:4, boltSize:'M8',  boltL:25, torque:8,   packOD:'75.0×61.2',packMat:'NBR/FKM/Viton',compatKey:'ISO-63', compatFlag:'ok',note:'ISO-F規格 ボルト締め接続。超高真空(UHV)用途'},
+      {cat:'B', pclass:'ISO-F',nom:'ISO100', od:152,pcd:130, boltN:8, boltSize:'M8',  boltL:25, torque:8,   packOD:'114×98',   packMat:'NBR/FKM/Viton',compatKey:'ISO-100',compatFlag:'ok',note:'ディフュージョンポンプ等に多用'},
+      {cat:'B', pclass:'ISO-F',nom:'ISO160', od:213,pcd:189, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'172×154',  packMat:'NBR/FKM/Viton',compatKey:'ISO-160',compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ISO-F',nom:'ISO200', od:261,pcd:235, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'213×192',  packMat:'NBR/FKM/Viton',compatKey:'ISO-200',compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ICF',  nom:'ICF34',  od:55.5,pcd:44.5,boltN:4,boltSize:'M6',  boltL:20, torque:4,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-34', compatFlag:'ok',note:'ICF(ConFlat)規格 メタルガスケット使用。超高真空(UHV)専用。再使用不可'},
+      {cat:'B', pclass:'ICF',  nom:'ICF70',  od:92,  pcd:79.5,boltN:6,boltSize:'M8',  boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-70', compatFlag:'ok',note:'超高真空専用。フランジ面傷つけ厳禁。ナイフエッジ接続'},
+      {cat:'B', pclass:'ICF',  nom:'ICF114', od:146, pcd:130, boltN:8,boltSize:'M8',  boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-114',compatFlag:'ok',note:'半導体・研究装置の高真空配管で標準'},
+      {cat:'B', pclass:'ICF',  nom:'ICF152', od:202, pcd:184, boltN:16,boltSize:'M8', boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-152',compatFlag:'ok',note:''},
+      // ═══ C: ねじ込み・Swagelok系 ═══
+      {cat:'C', pclass:'R',   nom:'R1/8',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/8',  compatFlag:'ok',note:'Rねじ（旧PT）テーパーオスねじ。Rcねじと組み合わせ'},
+      {cat:'C', pclass:'R',   nom:'R1/4',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/4',  compatFlag:'ok',note:'最も一般的な計装・エア配管サイズ'},
+      {cat:'C', pclass:'R',   nom:'R3/8',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-3/8',  compatFlag:'ok',note:''},
+      {cat:'C', pclass:'R',   nom:'R1/2',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/2',  compatFlag:'ok',note:''},
+      {cat:'C', pclass:'R',   nom:'R3/4',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-3/4',  compatFlag:'ok',note:''},
+      {cat:'C', pclass:'R',   nom:'R1',    od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1',    compatFlag:'ok',note:''},
+      {cat:'C', pclass:'R',   nom:'R1-1/2',od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1h',   compatFlag:'ok',note:''},
+      {cat:'C', pclass:'R',   nom:'R2',    od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-2',    compatFlag:'ok',note:''},
+      {cat:'C', pclass:'SWG', nom:'1/8"',  od:null,pcd:null,boltN:0,boltSize:'ナット',boltL:null,torque:5,   packOD:'フェルール',  packMat:'SS316',       compatKey:'SWG-1/8',compatFlag:'ok',note:'Swagelokフェルール継手。配管外径に直接接続。計装・高圧ガス配管'},
+      {cat:'C', pclass:'SWG', nom:'1/4"',  od:null,pcd:null,boltN:0,boltSize:'ナット',boltL:null,torque:8,   packOD:'フェルール',  packMat:'SS316',       compatKey:'SWG-1/4',compatFlag:'ok',note:'最汎用サイズ。1-1/4回転締め込みルール'},
+      {cat:'C', pclass:'SWG', nom:'3/8"',  od:null,pcd:null,boltN:0,boltSize:'ナット',boltL:null,torque:12,  packOD:'フェルール',  packMat:'SS316',       compatKey:'SWG-3/8',compatFlag:'ok',note:''},
+      {cat:'C', pclass:'SWG', nom:'1/2"',  od:null,pcd:null,boltN:0,boltSize:'ナット',boltL:null,torque:20,  packOD:'フェルール',  packMat:'SS316',       compatKey:'SWG-1/2',compatFlag:'ok',note:''},
+      {cat:'C', pclass:'SWG', nom:'3/4"',  od:null,pcd:null,boltN:0,boltSize:'ナット',boltL:null,torque:35,  packOD:'フェルール',  packMat:'SS316',       compatKey:'SWG-3/4',compatFlag:'ok',note:''},
+      {cat:'C', pclass:'SWG', nom:'1"',    od:null,pcd:null,boltN:0,boltSize:'ナット',boltL:null,torque:55,  packOD:'フェルール',  packMat:'SS316',       compatKey:'SWG-1',  compatFlag:'ok',note:'VCR接続も選択肢として検討'},
+      // ═══ D: 衛生・サニタリー系（ISO 2852 / JIS B 2808） ═══
+      {cat:'D', pclass:'SAN', nom:'1.5"(38A)',od:50.5,pcd:null,boltN:0,boltSize:'クランプ',boltL:null,torque:null,packOD:'38×28',   packMat:'EPDM/PTFE/FKM',compatKey:'SAN-1.5',compatFlag:'ok',note:'サニタリークランプ（ISO 2852）。食品・飲料・医薬に標準。分解清掃容易'},
+      {cat:'D', pclass:'SAN', nom:'2"(51A)', od:64,  pcd:null,boltN:0,boltSize:'クランプ',boltL:null,torque:null,packOD:'52×38',   packMat:'EPDM/PTFE/FKM',compatKey:'SAN-2',  compatFlag:'ok',note:'最も一般的なサニタリーサイズ。Tri-Clampとも呼ばれる'},
+      {cat:'D', pclass:'SAN', nom:'2.5"(63A)',od:77.5,pcd:null,boltN:0,boltSize:'クランプ',boltL:null,torque:null,packOD:'66×50',   packMat:'EPDM/PTFE/FKM',compatKey:'SAN-2.5',compatFlag:'ok',note:''},
+      {cat:'D', pclass:'SAN', nom:'3"(76A)', od:91,  pcd:null,boltN:0,boltSize:'クランプ',boltL:null,torque:null,packOD:'79×62',   packMat:'EPDM/PTFE/FKM',compatKey:'SAN-3',  compatFlag:'ok',note:'CIP洗浄・SIP滅菌対応配管で標準的使用'},
+      {cat:'D', pclass:'SAN', nom:'4"(102A)',od:119, pcd:null,boltN:0,boltSize:'クランプ',boltL:null,torque:null,packOD:'106×84',  packMat:'EPDM/PTFE/FKM',compatKey:'SAN-4',  compatFlag:'ok',note:'大型タンクノズル、移送ライン'},
+      {cat:'D', pclass:'SAN', nom:'6"(152A)',od:170, pcd:null,boltN:0,boltSize:'クランプ',boltL:null,torque:null,packOD:'158×128', packMat:'EPDM/PTFE/FKM',compatKey:'SAN-6',  compatFlag:'ok',note:'大型設備の移送ライン'},
+    ];
+
+    // カテゴリラベル
+    const FL_CAT_LABEL = {A:'JIS', B:'真空', C:'ねじ込', D:'衛生'};
+    const FL_CAT_COLOR = {A:'var(--accent)', B:'#a0c4ff', C:'var(--warn)', D:'var(--good)'};
+
+    function flFilter() {
+      const cat     = document.getElementById('fl-cat').value;
+      const pclass  = document.getElementById('fl-pclass').value;
+      const query   = document.getElementById('fl-search').value.trim().toUpperCase();
+      const compat  = document.getElementById('fl-compat').value;
+      const tbody   = document.getElementById('fl-tbody');
+
+      let rows = FL_DATA;
+      if (cat    !== 'all') rows = rows.filter(r => r.cat === cat);
+      if (pclass !== 'all') rows = rows.filter(r => r.pclass === pclass);
+      if (query)            rows = rows.filter(r => r.nom.toUpperCase().includes(query) || r.pclass.includes(query));
+      if (compat === 'warn') rows = rows.filter(r => r.compatFlag !== 'ok');
+      if (compat === 'ok')   rows = rows.filter(r => r.compatFlag === 'ok');
+
+      document.getElementById('fl-count').textContent = `${rows.length} 件`;
+
+      // 接続方式テキスト説明更新
+      const catSelected = document.getElementById('fl-cat').value;
+      const infoBox = document.getElementById('fl-info-box');
+      const FL_INFO = {
+        all: `<span style="color:var(--muted);">← カテゴリーを選択すると接続方式の説明が表示されます</span>`,
+        A: `<b style="color:var(--accent);">JISフランジ（水・油・汎用ガス）</b><br>
+<span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M12〜M27）<br>
+<span style="color:var(--muted);">シール材</span>　5K/10K：平パッキン（NBR/EPDM）<br>
+　　　　　20K：Oリング（溝型シート M/F）<br>
+<span style="color:var(--muted);">シート面</span>　5K：フラット　10K：ライズドフェイス　20K：溝型<br>
+<span style="color:var(--muted);">特徴</span>　　圧力クラスが上がるほどフランジが厚くなりボルトが太くなる<br>
+<hr style="border:none;border-top:1px solid var(--border);margin:6px 0;">
+<span style="color:var(--bad);">⚠ PCD の罠</span><br>
+同じ呼び径でも 5K・10K・20K でPCDが異なる場合があります。<br>
+例）50A：5K=PCD105mm　10K=PCD120mm　→ 混用禁止<br>
+例）25A：10K=20K=PCD90mm　→ 共通化可`,
+
+        B: `<b style="color:#a0c4ff;">真空フランジ</b><br>
+<b style="color:var(--muted);">▍NW/KF（〜10⁻³ Pa）</b><br>
+<span style="color:var(--muted);">締結方式</span>　クランプ1本のみ（ボルト不要・着脱30秒）<br>
+<span style="color:var(--muted);">シール材</span>　センタリングリング内蔵Oリング（NBR/FKM）<br>
+<span style="color:var(--muted);">特徴</span>　　薄型フランジ。実験・研究装置の標準。再使用可<br>
+<b style="color:var(--muted);">▍ISO-F（〜10⁻⁷ Pa）</b><br>
+<span style="color:var(--muted);">締結方式</span>　ボルト（M8〜M10）<br>
+<span style="color:var(--muted);">シール材</span>　Oリング（NBR/FKM/Viton）<br>
+<span style="color:var(--muted);">特徴</span>　　大口径対応。ディフュージョンポンプ等に多用<br>
+<b style="color:var(--muted);">▍ICF / ConFlat（〜10⁻¹⁰ Pa）</b><br>
+<span style="color:var(--muted);">締結方式</span>　ボルト（M6〜M8）<br>
+<span style="color:var(--muted);">シール材</span>　メタルガスケット（Al/Cu）→ナイフエッジが食い込む<br>
+<span style="color:var(--muted);">特徴</span>　　超高真空専用。<span style="color:var(--bad);">ガスケット再使用不可</span>。フランジ面傷つけ厳禁`,
+
+        C: `<b style="color:var(--warn);">ねじ込み・継手系</b><br>
+<b style="color:var(--muted);">▍Rねじ / Rcねじ（管用テーパーねじ）</b><br>
+<span style="color:var(--muted);">締結方式</span>　テーパーねじの食い込みでシール<br>
+<span style="color:var(--muted);">シール材</span>　PTFE（シールテープ）または麻糸<br>
+<span style="color:var(--muted);">特徴</span>　　Rねじ（オス）＋Rcねじ（メス）の組み合わせ<br>
+　　　　　Gネジ（平行ねじ）と混用禁止<br>
+<span style="color:var(--muted);">締め込み目安</span>　手締め後 2〜3回転<br>
+<b style="color:var(--muted);">▍Swagelok / VCR（フェルール継手）</b><br>
+<span style="color:var(--muted);">締結方式</span>　ナット締めでフェルールが管に食い込む<br>
+<span style="color:var(--muted);">シール材</span>　フェルール本体（SS316）<br>
+<span style="color:var(--muted);">特徴</span>　　初回：手締め後 1-1/4回転（重要）<br>
+　　　　　再締め：1/4〜1/2回転で再シール可<br>
+<span style="color:var(--bad);">⚠ 締め過ぎ注意：フェルールが変形して交換必要になる</span>`,
+
+        D: `<b style="color:var(--good);">衛生・サニタリー系（ISO 2852 / Tri-Clamp）</b><br>
+<span style="color:var(--muted);">締結方式</span>　クランプ＋蝶ネジ（工具不要・片手で着脱）<br>
+<span style="color:var(--muted);">シール材</span>　EPDM / PTFE / FKM（食品・薬品グレード）<br>
+<span style="color:var(--muted);">シート面</span>　テーパー溝（パッキンが脱落しにくい形状）<br>
+<span style="color:var(--muted);">特徴</span>　　内面鏡面仕上げ（Ra0.8以下推奨）<br>
+　　　　　CIP洗浄・SIP蒸気滅菌対応<br>
+　　　　　ガスケット定期交換が前提（耐薬品性確認必須）<br>
+<hr style="border:none;border-top:1px solid var(--border);margin:6px 0;">
+<span style="color:var(--muted);">呼び径の注意</span>　インチ表記（1.5"=38A相当）と<br>
+JIS呼び径（A表記）が混在しているため確認が必要`,
+      };
+      infoBox.innerHTML = FL_INFO[catSelected] || FL_INFO.all;
+
+      tbody.innerHTML = rows.map(r => {
+        // 行の背景色（互換性フラグ）
+        const rowBg =
+          r.compatFlag === 'ng'   ? 'background:var(--bad-dim);'  :
+          r.compatFlag === 'warn' ? 'background:var(--warn-dim);' : '';
+        const compatIcon =
+          r.compatFlag === 'ng'   ? '<span style="color:var(--bad);">✕ 混用禁止</span>'  :
+          r.compatFlag === 'warn' ? '<span style="color:var(--warn);">⚠ 要確認</span>'   :
+                                    '<span style="color:var(--good);">✓ 互換OK</span>';
+        const torqueTxt = r.torque ? `${r.torque} N·m` : '—';
+        const odTxt     = r.od     ? `${r.od}` : '—';
+        const pcdTxt    = r.pcd    ? `${r.pcd}` : '—';
+        const boltLTxt  = r.boltL  ? `${r.boltL}` : '—';
+        return `<tr style="${rowBg}">
+          <td style="color:${FL_CAT_COLOR[r.cat]};font-weight:700;white-space:nowrap;">${FL_CAT_LABEL[r.cat]}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;">${r.pclass}</td>
+          <td style="font-weight:700;color:var(--ink);white-space:nowrap;">${r.nom}</td>
+          <td>${odTxt}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:${r.pcd?'700':'400'};color:${r.pcd?'var(--ink)':'var(--muted)'};">${pcdTxt}</td>
+          <td style="text-align:center;">${r.boltN > 0 ? r.boltN : '—'}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.boltSize}</td>
+          <td style="text-align:center;">${boltLTxt}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${r.torque?'var(--warn)':'var(--muted)'};">${torqueTxt}</td>
+          <td style="font-size:11px;">${r.packOD}</td>
+          <td style="font-size:11px;color:var(--muted);">${r.packMat}</td>
+          <td style="font-size:11px;white-space:nowrap;">${compatIcon}</td>
+          <td style="font-size:11px;color:var(--muted);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note}">${r.note||'—'}</td>
+        </tr>`;
+      }).join('');
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:20px;">該当するフランジデータがありません</td></tr>`;
+      }
+    }
+
     /* ── 初期化 ── */
     orFilter();
     calcComp();
     initMatSelector();
     osFilter();
     pkFilter();
-    </script>
+    flFilter();</script>
   </body>
 </html>
