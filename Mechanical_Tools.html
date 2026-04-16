@@ -14830,7 +14830,7 @@
         } else if (t === "steel_pipe") {
           const p = PRESETS_PIPE[si];
           const D = p[1], tt = p[2], di = D - 2 * tt;
-          [shape, a, b] = ["pipe", D, di];
+          [shape, a, b] = ["pipe", D, tt];  // b=肉厚tを渡す（drawShapeToSvgがri=r*(D-2t)/Dで計算）
           weakRotate = false;
           titleS = p[0].replace('単管 ','').replace('SGP ','');
           titleW = `${titleS} (等方)`;
