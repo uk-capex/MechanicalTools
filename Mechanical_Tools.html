@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.52 | 20260408 | Mechanical Tools | uk |-->
+    <!-- build: 1.53 | 20260416 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -4444,6 +4444,12 @@
                 </div>
                 <div
                   class="mat-tab"
+                  onclick="setMatType('steel_pipe', this)"
+                >
+                  丸パイプ
+                </div>
+                <div
+                  class="mat-tab"
                   onclick="setMatType('alumi', this)"
                 >
                   アルミフレーム
@@ -4527,6 +4533,38 @@
                   class="preset-grid"
                   id="pg-steel_rd"
                 ></div>
+              </div>
+
+              <!-- 丸パイププリセット -->
+              <div
+                id="preset-steel_pipe"
+                class="preset-group"
+                style="display: none"
+              >
+                <div class="field">
+                  <label>単管 / 配管用鋼管 (外径×肉厚)</label>
+                </div>
+                <div
+                  class="preset-grid"
+                  id="pg-steel_pipe"
+                ></div>
+                <div class="field" style="margin-top:8px;">
+                  <label>任意サイズ入力</label>
+                </div>
+                <div class="two-col">
+                  <div class="field">
+                    <label>外径 D (mm)</label>
+                    <input type="number" id="pipe-custom-D" value="48.6" step="0.1" min="1">
+                  </div>
+                  <div class="field">
+                    <label>肉厚 t (mm)</label>
+                    <input type="number" id="pipe-custom-t" value="2.4" step="0.1" min="0.1">
+                  </div>
+                </div>
+                <button
+                  onclick="applyPipeCustom()"
+                  style="width:100%;padding:6px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);border-radius:4px;cursor:pointer;font-size:12px;margin-top:2px;"
+                >任意サイズを使用</button>
               </div>
 
               <!-- アルミフレームプリセット -->
@@ -13909,6 +13947,28 @@
       // ════════════════════════════════════════════════════
       //  STATE
       // ════════════════════════════════════════════════════
+      // 丸パイププリセット [名称, 外径D(mm), 肉厚t(mm)]
+      // 単管 JIS A 8951 / 配管用鋼管 JIS G 3452
+      const PRESETS_PIPE = [
+        // 単管
+        ['単管 φ48.6×2.4',  48.6, 2.4],
+        ['単管 φ42.7×2.3',  42.7, 2.3],
+        ['単管 φ34.0×2.3',  34.0, 2.3],
+        ['単管 φ27.2×2.0',  27.2, 2.0],
+        // SGP 配管用鋼管 JIS G 3452
+        ['SGP 15A φ21.7×2.8',  21.7, 2.8],
+        ['SGP 20A φ27.2×2.8',  27.2, 2.8],
+        ['SGP 25A φ34.0×3.2',  34.0, 3.2],
+        ['SGP 32A φ42.7×3.5',  42.7, 3.5],
+        ['SGP 40A φ48.6×3.5',  48.6, 3.5],
+        ['SGP 50A φ60.5×3.8',  60.5, 3.8],
+        ['SGP 65A φ76.3×4.2',  76.3, 4.2],
+        ['SGP 80A φ89.1×4.2',  89.1, 4.2],
+        ['SGP 100A φ114.3×4.5',114.3, 4.5],
+        ['SGP 125A φ139.8×4.5',139.8, 4.5],
+        ['SGP 150A φ165.2×5.0',165.2, 5.0],
+        ['SGP 200A φ216.3×5.8',216.3, 5.8],
+      ];
       let state = {
         matType: "steel_H",
         selectedPreset: null,
@@ -13943,6 +14003,11 @@
           "steel_rd",
           PRESETS_RD,
           (p) => `φ${p[1]}`,
+        );
+        buildPresets(
+          "steel_pipe",
+          PRESETS_PIPE,
+          (p) => p[0].replace('単管 ','').replace('SGP ',''),
         );
         buildPresets(
           "alumi",
@@ -14048,6 +14113,28 @@
         calcBeam();
       }
 
+      function applyPipeCustom() {
+        const D = parseFloat(document.getElementById('pipe-custom-D').value) || 48.6;
+        const t = parseFloat(document.getElementById('pipe-custom-t').value) || 2.4;
+        // PRESETS_PIPEに任意サイズを末尾に追加 or 上書き
+        const label = `任意 φ${D}×${t}`;
+        // 末尾に追加（重複なら上書き）
+        const lastIdx = PRESETS_PIPE.length - 1;
+        if (PRESETS_PIPE[lastIdx][0].startsWith('任意')) {
+          PRESETS_PIPE[lastIdx] = [label, D, t];
+        } else {
+          PRESETS_PIPE.push([label, D, t]);
+        }
+        // プリセットグリッド再描画
+        const pg = document.getElementById('pg-steel_pipe');
+        if (pg) {
+          pg.innerHTML = '';
+          buildPresets('steel_pipe', PRESETS_PIPE, (p) => p[0].replace('単管 ','').replace('SGP ','').replace('任意 ',''));
+        }
+        selectPreset('steel_pipe', PRESETS_PIPE.length - 1);
+        calcBeam();
+      }
+
       // ════════════════════════════════════════════════════
       //  SECTION DATA RESOLUTION
       // ════════════════════════════════════════════════════
@@ -14124,6 +14211,18 @@
           sigma_allow = MATERIAL.steel.sigma_allow;
           matName = `丸鋼 φ${d}`;
           label = `φ${d}`;
+        } else if (t === "steel_pipe") {
+          const p = PRESETS_PIPE[si];
+          const D = p[1], tt = p[2];
+          const di = D - 2 * tt;
+          H_dim = D; B_dim = D;
+          I = Math.PI * (D ** 4 - di ** 4) / 64;
+          Z = I / (D / 2);
+          A = Math.PI * (D ** 2 - di ** 2) / 4;
+          E = MATERIAL.steel.E;
+          sigma_allow = MATERIAL.steel.sigma_allow;
+          matName = p[0];
+          label = p[0].replace('単管 ','').replace('SGP ','');
         } else if (t === "alumi") {
           const p = PRESETS_ALUMI[si];
           H_dim = p[4];
@@ -14210,6 +14309,9 @@
         } else if (t === "steel_rd") {
           Iy = I;
           Zy = Z; // 円は等方
+        } else if (t === "steel_pipe") {
+          Iy = I;
+          Zy = Z; // 円管は等方
         } else if (t === "alumi") {
           // アルミフレームは正方形系が多い。HxBが逆の場合で近似
           const p = PRESETS_ALUMI[si];
@@ -14724,6 +14826,27 @@
             ["円形 → 全方向等値", ""],
             ["I", `${(I / 1e4).toFixed(2)} cm⁴`],
             ["Z", `${(Z / 1e3).toFixed(2)} cm³`],
+          ];
+        } else if (t === "steel_pipe") {
+          const p = PRESETS_PIPE[si];
+          const D = p[1], tt = p[2], di = D - 2 * tt;
+          [shape, a, b] = ["pipe", D, di];
+          weakRotate = false;
+          titleS = p[0].replace('単管 ','').replace('SGP ','');
+          titleW = `${titleS} (等方)`;
+          const Ip = Math.PI * (D**4 - di**4) / 64;
+          const Zp = Ip / (D / 2);
+          infoS = [
+            ["外径 D", `${D} mm`],
+            ["肉厚 t", `${tt} mm`],
+            ["内径 di", `${di.toFixed(1)} mm`],
+            ["I", `${(Ip / 1e4).toFixed(2)} cm⁴`],
+            ["Z", `${(Zp / 1e3).toFixed(2)} cm³`],
+          ];
+          infoW = [
+            ["円管 → 全方向等値", ""],
+            ["I", `${(Ip / 1e4).toFixed(2)} cm⁴`],
+            ["Z", `${(Zp / 1e3).toFixed(2)} cm³`],
           ];
         } else if (t === "alumi") {
           const p = PRESETS_ALUMI[si];
