@@ -506,6 +506,8 @@
         #tab-flange .panel-left,
         #tab-rigging .panel-left {
           max-height: none;
+          max-width: none;
+          min-width: 0;
         }
         .result-cards,
         .result-cards-4 {
@@ -15575,10 +15577,10 @@
       // ════════════════════════════════════════════════════
       function showStab(id, el) {
         document
-          .querySelectorAll(".stab-content")
+          .querySelectorAll("#tab-beam .stab-content")
           .forEach((c) => c.classList.remove("active"));
         document
-          .querySelectorAll(".stab-btn")
+          .querySelectorAll("#tab-beam .stab-btn")
           .forEach((b) => b.classList.remove("active"));
         document
           .getElementById(`stab-${id}`)
@@ -19910,7 +19912,7 @@
     <div id="tab-flange" class="tab-content">
       <div class="two-panel">
       <!-- 左パネル：検索・絞り込み -->
-      <div class="panel-left" style="min-width:220px;max-width:260px;">
+      <div class="panel-left">
         <div class="section-title">絞り込み条件</div>
 
         <div class="field">
@@ -19984,7 +19986,7 @@
       </div>
 
       <!-- 右パネル：テーブル常時表示 -->
-      <div class="panel-right" style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:8px;">
+      <div class="panel-right" style="overflow:hidden;display:flex;flex-direction:column;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="section-title" style="margin:0;">配管フランジ 寸法・仕様一覧</div>
           <span id="fl-count" style="font-size:11px;color:var(--muted);"></span>
@@ -20021,6 +20023,7 @@
           ※ 寸法はJIS B 2220 / JIS B 2290 / ISO 1127参考値。実際の施工はメーカカタログ・設計図で必ず確認してください。<br>
           ※ 締付トルクはNBRパッキン使用・M16以下標準六角ボルト（強度区分4.8）での参考値。材質・パッキン種類により変動します。
         </div>
+      </div><!-- /panel-right -->
       </div><!-- /two-panel -->
     </div><!-- /tab-flange -->
 
