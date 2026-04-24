@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.53 | 20260416 | Mechanical Tools | uk |-->
+    <!-- build: 1.54 | 20260424 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -502,6 +502,10 @@
           border-right: none;
           border-bottom: 1px solid var(--border);
           max-height: 45vh;
+        }
+        #tab-flange .panel-left,
+        #tab-rigging .panel-left {
+          max-height: none;
         }
         .result-cards,
         .result-cards-4 {
@@ -1127,6 +1131,12 @@
         onclick="showTab('flange', event.currentTarget)"
       >
         🔩 配管フランジ
+      </button>
+      <button
+        class="tab-btn"
+        onclick="showTab('rigging', event.currentTarget)"
+      >
+        🪝 吊り具選定
       </button>
     </div>
 
@@ -19919,6 +19929,7 @@
             <option value="all">すべて</option>
             <option value="5K">5K</option>
             <option value="10K">10K</option>
+            <option value="16K">16K（蒸気・高圧）</option>
             <option value="20K">20K</option>
             <option value="NW">NW/KF（真空）</option>
             <option value="ISO-F">ISO-F（真空）</option>
@@ -20011,6 +20022,270 @@
         </div>
       </div>
     </div><!-- /tab-flange -->
+
+    <!-- ══════════════════════════════════════════════════════
+         🪝 吊り具選定タブ
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-rigging" class="tab-content" style="flex-direction:column;">
+      <div class="subtabbar">
+        <button class="stab-btn active" id="sbtn-rig-calc"    onclick="showRigTab('calc',this)">🎯 総合選定</button>
+        <button class="stab-btn"        id="sbtn-rig-wire"    onclick="showRigTab('wire',this)">🔗 ワイヤーロープ</button>
+        <button class="stab-btn"        id="sbtn-rig-eyebolt" onclick="showRigTab('eyebolt',this)">🔩 アイボルト</button>
+        <button class="stab-btn"        id="sbtn-rig-shackle" onclick="showRigTab('shackle',this)">🪝 シャックル</button>
+      </div>
+      <div id="rig-stab-wrap" style="flex:1;overflow:auto;display:flex;flex-direction:column;">
+
+        <!-- ══ 総合選定 ══ -->
+        <div id="stab-rig-calc" class="stab-content active">
+          <div class="two-panel">
+            <div class="panel-left">
+              <div class="section-title">吊り条件を入力</div>
+
+              <div class="field">
+                <label>荷重 W (kgf)</label>
+                <input type="number" id="rc-load" value="1000" step="100" min="0" oninput="rigCalc()">
+              </div>
+              <div class="field">
+                <label>吊り点数</label>
+                <select id="rc-points" onchange="rigPointsChanged()">
+                  <option value="1" selected>1点吊り</option>
+                  <option value="2">2点吊り</option>
+                  <option value="4">4点吊り</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>開き角 θ（2本の間の角度）</label>
+                <select id="rc-angle" onchange="rigAngleChanged()" disabled style="opacity:0.5;">
+                  <option value="0" selected>0°（垂直）× 1.00</option>
+                  <option value="30">30° × 1.04</option>
+                  <option value="60">60° × 1.16</option>
+                  <option value="90">90° × 1.41</option>
+                  <option value="120">120° × 2.00 ⚠上限</option>
+                </select>
+              </div>
+              <hr class="divider">
+              <div class="memo" style="font-size:11px;">
+                <b>⚠ 開き角120°超は使用禁止</b><br>（クレーン等安全衛生規則）<br><br>
+                各サブタブへ反映ボタンを押すと<br>
+                荷重・角度が各タブに自動セットされます。
+              </div>
+              <button onclick="rigApplyToTabs()" style="
+                width:100%;margin-top:10px;padding:8px;
+                background:var(--accent-dim);border:1px solid var(--accent);
+                color:var(--accent);border-radius:6px;cursor:pointer;
+                font-size:12px;font-family:'Noto Sans JP',sans-serif;">
+                📋 各タブへ条件を反映
+              </button>
+            </div>
+
+            <div class="panel-right" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="section-title">推奨吊り具 一覧</div>
+
+              <!-- 張力情報 -->
+              <div id="rc-tension-box" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;"></div>
+
+              <!-- ワイヤー推奨 -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+                <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">🔗 ワイヤーロープ（SF=6）</div>
+                <div id="rc-wire-result" style="font-size:12px;"></div>
+              </div>
+
+              <!-- アイボルト推奨 -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+                <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">🔩 アイボルト（1点あたり）</div>
+                <div id="rc-eyebolt-result" style="font-size:12px;"></div>
+              </div>
+
+              <!-- シャックル推奨 -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+                <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">🪝 シャックル（1点あたり）</div>
+                <div id="rc-shackle-result" style="font-size:12px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ワイヤーロープ ══ -->
+        <div id="stab-rig-wire" class="stab-content">
+          <div class="two-panel">
+            <div class="panel-left">
+              <div class="section-title">検索・絞り込み</div>
+              <div class="field">
+                <label>構成</label>
+                <select id="wire-構成" onchange="wireFilter()">
+                  <option value="all">すべて</option>
+                  <option value="6×7">6×7（IWRC）クレーン主巻き</option>
+                  <option value="6×19">6×19 汎用玉掛け</option>
+                  <option value="6×37">6×37 柔軟性重視</option>
+                </select>
+              </div>
+              <hr class="divider">
+
+              <!-- 外径から概算 -->
+              <div class="section-title" style="margin-bottom:6px;">外径から使用荷重を概算</div>
+              <div class="field">
+                <label>ワイヤー外径 d (mm)　※絞り込みにも連動</label>
+                <input type="number" id="wire-calc-d" value="12" step="1" min="1" oninput="wireQuickCalc(); wireFilterByD();">
+              </div>
+              <div id="wire-quick-result" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;margin-top:2px;line-height:1.8;"></div>
+              <hr class="divider">
+
+              <!-- 玉掛け角度補正 -->
+              <div class="section-title" style="margin-bottom:6px;">玉掛け角度補正</div>
+              <div class="field">
+                <label>吊り角度 θ（片側、鉛直から）</label>
+                <select id="wire-angle" onchange="wireAngleCalc()">
+                  <option value="90">90°（垂直）張力係数 × 1.00</option>
+                  <option value="60">60° 張力係数 × 1.15</option>
+                  <option value="45">45° 張力係数 × 1.41</option>
+                  <option value="30">30° 張力係数 × 2.00</option>
+                  <option value="0">0°（水平）× ∞ 不可</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>吊り点数</label>
+                <select id="wire-points" onchange="wireAngleCalc()">
+                  <option value="1">1点吊り</option>
+                  <option value="2">2点吊り</option>
+                  <option value="4">4点吊り</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>荷重 W (kgf)</label>
+                <input type="number" id="wire-load" value="1000" step="100" min="0" oninput="wireAngleCalc()">
+              </div>
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;margin-top:4px;">
+                <div style="color:var(--muted);margin-bottom:4px;">1本あたり必要安全荷重</div>
+                <div id="wire-req-load" style="font-size:18px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">—</div>
+                <div id="wire-req-unit" style="color:var(--muted);font-size:10px;line-height:1.6;"></div>
+              </div>
+              <hr class="divider">
+              <div class="memo">
+                <b>安全係数：6以上</b>（クレーン等安衛則）<br>
+                60°以内（開き角120°以内）推奨。<br>
+                <b>端末処理：</b>アイスプライス・圧縮止め<br>
+                定期点検・廃棄基準を確認のこと
+              </div>
+            </div>
+            <div class="panel-right">
+              <div class="section-title" style="margin-bottom:6px;">ワイヤーロープ 安全荷重表 <span id="wire-count" style="font-size:11px;color:var(--muted);font-weight:400;"></span></div>
+              <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th>構成</th><th>径<br>(mm)</th><th>断面積<br>(mm²)</th>
+                    <th>破断荷重<br>(kN)</th><th>破断荷重<br>(tf)</th>
+                    <th>安全荷重<br>SF=6(kN)</th><th>安全荷重<br>SF=6(tf)</th>
+                    <th>安全荷重<br>SF=6(kgf)</th>
+                    <th>質量<br>(kg/m)</th><th>用途・特徴</th>
+                  </tr></thead>
+                  <tbody id="wire-tbody"></tbody>
+                </table>
+              </div>
+              <div class="memo" style="margin-top:8px;">※ JIS G 3525 / G 3549 参考値。実際の使用はメーカーカタログで確認してください。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ アイボルト ══ -->
+        <div id="stab-rig-eyebolt" class="stab-content">
+          <div class="two-panel">
+            <div class="panel-left">
+              <div class="section-title">検索・絞り込み</div>
+              <div class="field">
+                <label>規格</label>
+                <select id="eb-type" onchange="eyeboltFilter()">
+                  <option value="all">すべて</option>
+                  <option value="JIS">JIS B 1168（一般）</option>
+                  <option value="SWIVEL">スイベルアイボルト</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>ねじ径で絞り込み</label>
+                <input type="text" id="eb-search" placeholder="例: M12" oninput="eyeboltFilter()" style="text-transform:uppercase;">
+              </div>
+              <hr class="divider">
+              <div class="section-title" style="margin-bottom:6px;">必要ねじ径の逆算</div>
+              <div class="field">
+                <label>必要安全荷重 (kgf)</label>
+                <input type="number" id="eb-req" value="500" step="50" min="0" oninput="eyeboltReverse()">
+              </div>
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;margin-top:4px;">
+                <div style="color:var(--muted);margin-bottom:4px;">推奨最小ねじ径</div>
+                <div id="eb-rec-size" style="font-size:18px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">—</div>
+              </div>
+              <hr class="divider">
+              <div class="memo">
+                <b>⚠ 横引き厳禁</b><br>
+                アイボルトは垂直吊りが原則。<br>
+                横方向荷重がかかると破断リスク。<br>
+                斜め吊りの場合はスイベルタイプ推奨。<br><br>
+                <b>締付け：</b>根元まで完全に締め込む<br>
+                <b>点検：</b>ねじ部の摩耗・変形を確認
+              </div>
+            </div>
+            <div class="panel-right">
+              <div class="section-title" style="margin-bottom:6px;">アイボルト 安全荷重表 <span id="eb-count" style="font-size:11px;color:var(--muted);font-weight:400;"></span></div>
+              <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th>規格</th><th>ねじ径</th>
+                    <th>垂直吊り<br>(kN)</th><th>垂直吊り<br>(kgf)</th>
+                    <th>60°吊り<br>(kgf)</th>
+                    <th>45°吊り<br>(kgf)</th>
+                    <th>質量<br>(kg)</th><th>備考</th>
+                  </tr></thead>
+                  <tbody id="eb-tbody"></tbody>
+                </table>
+              </div>
+              <div class="memo" style="margin-top:8px;">※ JIS B 1168 / メーカーカタログ参考値。斜め吊り時は荷重を大幅に低減してください。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ シャックル ══ -->
+        <div id="stab-rig-shackle" class="stab-content">
+          <div class="two-panel">
+            <div class="panel-left">
+              <div class="section-title">検索・絞り込み</div>
+              <div class="field">
+                <label>形状</label>
+                <select id="sh-type" onchange="shackleFilter()">
+                  <option value="all">すべて</option>
+                  <option value="bow">ボウ型（オメガ型）</option>
+                  <option value="dee">Dee型（D型）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>安全荷重で絞り込み (kgf以上)</label>
+                <input type="number" id="sh-search-wll" placeholder="例: 1000" step="100" min="0" oninput="shackleFilter()">
+              </div>
+              <hr class="divider">
+              <div class="memo">
+                <b>ボウ型</b>：多方向荷重に対応。玉掛け標準。<br>
+                <b>Dee型</b>：一方向荷重に強い。チェーン接続等。<br><br>
+                ピン径はワイヤー径の適合範囲を確認。<br>
+                ピンのネジ部は完全締め込みのこと。
+              </div>
+            </div>
+            <div class="panel-right">
+              <div class="section-title" style="margin-bottom:6px;">シャックル 安全荷重表 <span id="sh-count" style="font-size:11px;color:var(--muted);font-weight:400;"></span></div>
+              <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th>形状</th><th>ピン径<br>(mm)</th><th>呼び</th>
+                    <th>WLL<br>(kN)</th><th>WLL<br>(tf)</th><th>WLL<br>(kgf)</th>
+                    <th>質量<br>(kg)</th><th>適合ワイヤー径<br>(mm)</th><th>備考</th>
+                  </tr></thead>
+                  <tbody id="shackle-tbody"></tbody>
+                </table>
+              </div>
+              <div class="memo" style="margin-top:8px;">※ JIS B 2801 / EN 13889 参考値。WLL = Working Load Limit（使用荷重限界）。安全係数4以上を確認してください。</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /rig-stab-wrap -->
+    </div><!-- /tab-rigging -->
 
     <script>
     /* ══════════════════════════════════════════
@@ -20935,7 +21210,22 @@
       {cat:'A', pclass:'20K', nom:'200A', od:390, pcd:330, boltN:12,boltSize:'M24', boltL:90,  torque:230, packOD:'245×212',packMat:'NBR/FKM',   compatKey:'20K-200A',compatFlag:'ng',   note:'10K-200A(PCD310mm)と混用禁止'},
       {cat:'A', pclass:'20K', nom:'250A', od:445, pcd:385, boltN:16,boltSize:'M24', boltL:90,  torque:230, packOD:'300×262',packMat:'NBR/FKM',   compatKey:'20K-250A',compatFlag:'ng',   note:'10K-250A(PCD370mm)と混用禁止'},
       {cat:'A', pclass:'20K', nom:'300A', od:510, pcd:450, boltN:16,boltSize:'M27', boltL:100, torque:310, packOD:'352×312',packMat:'NBR/FKM',   compatKey:'20K-300A',compatFlag:'ng',   note:'10K-300A(PCD430mm)と混用禁止。大型・高圧設備専用'},
-      // ═══ B: 真空フランジ NW/KF ═══
+      // ═══ A: JIS 16K（蒸気・高圧用） ═══
+      {cat:'A', pclass:'16K', nom:'10A',  od:90,  pcd:60,  boltN:4, boltSize:'M12', boltL:55,  torque:35,  packOD:'30×15',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-10A', compatFlag:'ng',  note:'蒸気配管用高圧クラス。10K-10A(PCD55mm)と混用禁止'},
+      {cat:'A', pclass:'16K', nom:'15A',  od:95,  pcd:65,  boltN:4, boltSize:'M12', boltL:55,  torque:35,  packOD:'36×20',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-15A', compatFlag:'ng',  note:'蒸気・高圧流体配管標準'},
+      {cat:'A', pclass:'16K', nom:'20A',  od:100, pcd:75,  boltN:4, boltSize:'M12', boltL:55,  torque:35,  packOD:'42×26',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-20A', compatFlag:'warn',note:'10K-20AとPCDが同じ(75mm)場合あり。要確認'},
+      {cat:'A', pclass:'16K', nom:'25A',  od:125, pcd:90,  boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'48×32',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-25A', compatFlag:'ok',  note:'10K/20K-25AとPCD同じ(90mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'32A',  od:135, pcd:100, boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'58×40',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-32A', compatFlag:'ok',  note:'10K/20K-32AとPCD同じ(100mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'40A',  od:140, pcd:105, boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'66×46',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-40A', compatFlag:'ok',  note:'10K/20K-40AとPCD同じ(105mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'50A',  od:160, pcd:125, boltN:4, boltSize:'M16', boltL:65,  torque:80,  packOD:'76×58',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-50A', compatFlag:'ng',  note:'10K-50A(PCD120mm)・20K-50A(PCD130mm)と混用禁止 ★要注意'},
+      {cat:'A', pclass:'16K', nom:'65A',  od:180, pcd:150, boltN:8, boltSize:'M16', boltL:65,  torque:80,  packOD:'96×74',  packMat:'NBR/FKM/グラファイト',compatKey:'16K-65A', compatFlag:'ng',  note:'10K-65A(PCD145mm)・20K-65A(PCD155mm)と混用禁止'},
+      {cat:'A', pclass:'16K', nom:'80A',  od:200, pcd:160, boltN:8, boltSize:'M16', boltL:65,  torque:80,  packOD:'110×88', packMat:'NBR/FKM/グラファイト',compatKey:'16K-80A', compatFlag:'ok',  note:'10K-80AとPCD同じ(160mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'100A', od:225, pcd:190, boltN:8, boltSize:'M16', boltL:70,  torque:90,  packOD:'135×112',packMat:'NBR/FKM/グラファイト',compatKey:'16K-100A',compatFlag:'ok',  note:'10K-100AとPCD同じ(190mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'125A', od:270, pcd:220, boltN:8, boltSize:'M20', boltL:75,  torque:140, packOD:'162×138',packMat:'NBR/FKM/グラファイト',compatKey:'16K-125A',compatFlag:'ok',  note:'10K-125AとPCD同じ(220mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'150A', od:305, pcd:250, boltN:8, boltSize:'M20', boltL:75,  torque:140, packOD:'192×164',packMat:'NBR/FKM/グラファイト',compatKey:'16K-150A',compatFlag:'ok',  note:'10K-150AとPCD同じ(250mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'200A', od:370, pcd:310, boltN:12,boltSize:'M22', boltL:85,  torque:190, packOD:'245×212',packMat:'NBR/FKM/グラファイト',compatKey:'16K-200A',compatFlag:'ok',  note:'10K-200AとPCD同じ(310mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'250A', od:430, pcd:370, boltN:12,boltSize:'M24', boltL:90,  torque:220, packOD:'300×262',packMat:'NBR/FKM/グラファイト',compatKey:'16K-250A',compatFlag:'ok',  note:'10K-250AとPCD同じ(370mm)→共通化可'},
+      {cat:'A', pclass:'16K', nom:'300A', od:485, pcd:430, boltN:16,boltSize:'M24', boltL:90,  torque:220, packOD:'352×312',packMat:'NBR/FKM/グラファイト',compatKey:'16K-300A',compatFlag:'ng',  note:'10K-300A(PCD430mm)とPCD同じだがボルト本数・長さが異なる場合あり。要確認'},
       {cat:'B', pclass:'NW',  nom:'NW10', od:21.5,pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'12.5×6',  packMat:'NBR/FKM/Viton',compatKey:'NW-10', compatFlag:'ok',note:'センタリングリング+クランプで接続。ボルト不要'},
       {cat:'B', pclass:'NW',  nom:'NW16', od:28,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'19×12',   packMat:'NBR/FKM',      compatKey:'NW-16', compatFlag:'ok',note:'NW/KF規格はDIN28403準拠。クランプ接続'},
       {cat:'B', pclass:'NW',  nom:'NW25', od:40,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'30×18',   packMat:'NBR/FKM',      compatKey:'NW-25', compatFlag:'ok',note:'最も一般的な真空規格。研究・分析機器に多用'},
@@ -21017,17 +21307,19 @@
       const infoBox = document.getElementById('fl-info-box');
       const FL_INFO = {
         all: `<span style="color:var(--muted);">← カテゴリーを選択すると接続方式の説明が表示されます</span>`,
-        A: `<b style="color:var(--accent);">JISフランジ（水・油・汎用ガス）</b><br>
+        A: `<b style="color:var(--accent);">JISフランジ（水・油・汎用ガス・蒸気）</b><br>
 <span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M12〜M27）<br>
 <span style="color:var(--muted);">シール材</span>　5K/10K：平パッキン（NBR/EPDM）<br>
+　　　　　16K：グラファイト/FKM（蒸気対応）<br>
 　　　　　20K：Oリング（溝型シート M/F）<br>
-<span style="color:var(--muted);">シート面</span>　5K：フラット　10K：ライズドフェイス　20K：溝型<br>
-<span style="color:var(--muted);">特徴</span>　　圧力クラスが上がるほどフランジが厚くなりボルトが太くなる<br>
+<span style="color:var(--muted);">シート面</span>　5K：フラット　10K/16K：ライズドフェイス　20K：溝型<br>
+<span style="color:var(--muted);">16K の特徴</span>　蒸気・高圧用途専用クラス。25A〜100AはPCDが10Kと同じため<br>
+　　　　　ボルト本数・サイズも同一なら共通化可。50A/65Aは要注意。<br>
 <hr style="border:none;border-top:1px solid var(--border);margin:6px 0;">
 <span style="color:var(--bad);">⚠ PCD の罠</span><br>
-同じ呼び径でも 5K・10K・20K でPCDが異なる場合があります。<br>
-例）50A：5K=PCD105mm　10K=PCD120mm　→ 混用禁止<br>
-例）25A：10K=20K=PCD90mm　→ 共通化可`,
+同じ呼び径でも 5K・10K・16K・20K でPCDが異なる場合があります。<br>
+例）50A：5K=105mm　10K=120mm　16K=125mm　20K=130mm<br>
+例）25A：10K=16K=20K=PCD90mm　→ 共通化可`,
 
         B: `<b style="color:#a0c4ff;">真空フランジ</b><br>
 <b style="color:var(--muted);">▍NW/KF（〜10⁻³ Pa）</b><br>
@@ -21116,6 +21408,403 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
     initMatSelector();
     osFilter();
     pkFilter();
-    flFilter();</script>
+    flFilter();
+
+    /* ══════════════════════════════════════════
+       🪝 吊り具選定
+    ══════════════════════════════════════════ */
+
+    const WIRE_DATA = [
+      {構成:'6×7',d:6,   A:13.8, Fb:16.0,  kg:0.13, note:'小型クレーン・ホイスト'},
+      {構成:'6×7',d:8,   A:24.6, Fb:28.7,  kg:0.24, note:''},
+      {構成:'6×7',d:9,   A:31.1, Fb:36.3,  kg:0.30, note:''},
+      {構成:'6×7',d:10,  A:38.4, Fb:44.8,  kg:0.37, note:''},
+      {構成:'6×7',d:12,  A:55.3, Fb:64.5,  kg:0.53, note:'汎用・玉掛け標準'},
+      {構成:'6×7',d:14,  A:75.3, Fb:87.8,  kg:0.73, note:''},
+      {構成:'6×7',d:16,  A:98.4, Fb:115,   kg:0.95, note:''},
+      {構成:'6×7',d:18,  A:124,  Fb:145,   kg:1.20, note:''},
+      {構成:'6×7',d:20,  A:154,  Fb:180,   kg:1.49, note:'重量物吊り'},
+      {構成:'6×7',d:22,  A:186,  Fb:217,   kg:1.80, note:''},
+      {構成:'6×7',d:24,  A:221,  Fb:258,   kg:2.14, note:''},
+      {構成:'6×7',d:26,  A:260,  Fb:304,   kg:2.52, note:''},
+      {構成:'6×7',d:28,  A:302,  Fb:352,   kg:2.92, note:''},
+      {構成:'6×7',d:30,  A:346,  Fb:404,   kg:3.35, note:'大型クレーン'},
+      {構成:'6×19',d:6,  A:13.8, Fb:15.4,  kg:0.13, note:'小型・精密作業'},
+      {構成:'6×19',d:8,  A:24.6, Fb:27.4,  kg:0.24, note:''},
+      {構成:'6×19',d:9,  A:31.1, Fb:34.6,  kg:0.30, note:''},
+      {構成:'6×19',d:10, A:38.4, Fb:42.7,  kg:0.37, note:''},
+      {構成:'6×19',d:12, A:55.3, Fb:61.5,  kg:0.53, note:'★最汎用。玉掛け標準'},
+      {構成:'6×19',d:14, A:75.3, Fb:83.8,  kg:0.73, note:''},
+      {構成:'6×19',d:16, A:98.4, Fb:109,   kg:0.95, note:''},
+      {構成:'6×19',d:18, A:124,  Fb:138,   kg:1.20, note:''},
+      {構成:'6×19',d:20, A:154,  Fb:171,   kg:1.49, note:''},
+      {構成:'6×19',d:22, A:186,  Fb:207,   kg:1.80, note:''},
+      {構成:'6×19',d:24, A:221,  Fb:246,   kg:2.14, note:''},
+      {構成:'6×19',d:26, A:260,  Fb:289,   kg:2.52, note:''},
+      {構成:'6×19',d:28, A:302,  Fb:336,   kg:2.92, note:''},
+      {構成:'6×19',d:30, A:346,  Fb:385,   kg:3.35, note:''},
+      {構成:'6×19',d:32, A:394,  Fb:438,   kg:3.81, note:''},
+      {構成:'6×19',d:36, A:499,  Fb:555,   kg:4.83, note:'大型設備搬入'},
+      {構成:'6×19',d:40, A:616,  Fb:685,   kg:5.96, note:''},
+      {構成:'6×37',d:10, A:38.4, Fb:41.7,  kg:0.37, note:'シーブ多用・ウインチ'},
+      {構成:'6×37',d:12, A:55.3, Fb:60.0,  kg:0.53, note:''},
+      {構成:'6×37',d:14, A:75.3, Fb:81.7,  kg:0.73, note:''},
+      {構成:'6×37',d:16, A:98.4, Fb:107,   kg:0.95, note:''},
+      {構成:'6×37',d:18, A:124,  Fb:135,   kg:1.20, note:''},
+      {構成:'6×37',d:20, A:154,  Fb:167,   kg:1.49, note:''},
+      {構成:'6×37',d:24, A:221,  Fb:240,   kg:2.14, note:''},
+      {構成:'6×37',d:28, A:302,  Fb:328,   kg:2.92, note:''},
+      {構成:'6×37',d:32, A:394,  Fb:428,   kg:3.81, note:''},
+      {構成:'6×37',d:36, A:499,  Fb:541,   kg:4.83, note:'大型クレーン'},
+      {構成:'6×37',d:40, A:616,  Fb:668,   kg:5.96, note:''},
+    ];
+
+    const EYEBOLT_DATA = [
+      {type:'JIS', size:'M8',  v:1.57, a60:0.79, a45:0.49, kg:0.03, note:'小型機器・計器類'},
+      {type:'JIS', size:'M10', v:2.45, a60:1.23, a45:0.76, kg:0.05, note:''},
+      {type:'JIS', size:'M12', v:3.43, a60:1.72, a45:1.07, kg:0.09, note:'★最汎用'},
+      {type:'JIS', size:'M16', v:6.86, a60:3.43, a45:2.13, kg:0.19, note:''},
+      {type:'JIS', size:'M20', v:9.81, a60:4.91, a45:3.05, kg:0.37, note:'中型機器'},
+      {type:'JIS', size:'M24', v:14.7, a60:7.35, a45:4.57, kg:0.61, note:''},
+      {type:'JIS', size:'M30', v:24.5, a60:12.3, a45:7.63, kg:1.20, note:'重量機器'},
+      {type:'JIS', size:'M36', v:34.3, a60:17.2, a45:10.7, kg:2.06, note:''},
+      {type:'JIS', size:'M42', v:49.0, a60:24.5, a45:15.2, kg:3.30, note:'大型設備'},
+      {type:'JIS', size:'M48', v:63.7, a60:31.9, a45:19.8, kg:4.80, note:''},
+      {type:'SWIVEL', size:'M12', v:4.90, a60:4.90, a45:4.90, kg:0.15, note:'斜め吊り対応'},
+      {type:'SWIVEL', size:'M16', v:9.81, a60:9.81, a45:9.81, kg:0.28, note:'360°回転'},
+      {type:'SWIVEL', size:'M20', v:14.7, a60:14.7, a45:14.7, kg:0.52, note:''},
+      {type:'SWIVEL', size:'M24', v:24.5, a60:24.5, a45:24.5, kg:0.85, note:''},
+      {type:'SWIVEL', size:'M30', v:39.2, a60:39.2, a45:39.2, kg:1.70, note:''},
+      {type:'SWIVEL', size:'M36', v:58.8, a60:58.8, a45:58.8, kg:2.90, note:''},
+    ];
+
+    const SHACKLE_DATA = [
+      {shape:'bow', pin:13, nom:'13mm', wll:9.8,  t:1.0,  kg:0.16, wire:'6〜8',   note:''},
+      {shape:'bow', pin:16, nom:'16mm', wll:15.7, t:1.6,  kg:0.30, wire:'8〜10',  note:''},
+      {shape:'bow', pin:19, nom:'19mm', wll:22.6, t:2.3,  kg:0.50, wire:'10〜12', note:'★汎用'},
+      {shape:'bow', pin:22, nom:'22mm', wll:31.9, t:3.25, kg:0.80, wire:'12〜14', note:''},
+      {shape:'bow', pin:25, nom:'25mm', wll:44.1, t:4.5,  kg:1.16, wire:'14〜16', note:''},
+      {shape:'bow', pin:28, nom:'28mm', wll:58.8, t:6.0,  kg:1.65, wire:'16〜18', note:''},
+      {shape:'bow', pin:32, nom:'32mm', wll:78.5, t:8.0,  kg:2.40, wire:'18〜20', note:''},
+      {shape:'bow', pin:35, nom:'35mm', wll:98.1, t:10.0, kg:3.20, wire:'20〜22', note:'重量物'},
+      {shape:'bow', pin:40, nom:'40mm', wll:137,  t:14.0, kg:4.80, wire:'22〜26', note:''},
+      {shape:'bow', pin:45, nom:'45mm', wll:176,  t:18.0, kg:6.90, wire:'26〜30', note:''},
+      {shape:'bow', pin:50, nom:'50mm', wll:216,  t:22.0, kg:9.50, wire:'30〜36', note:'大型吊り'},
+      {shape:'dee', pin:13, nom:'13mm', wll:9.8,  t:1.0,  kg:0.12, wire:'6〜8',   note:''},
+      {shape:'dee', pin:16, nom:'16mm', wll:15.7, t:1.6,  kg:0.22, wire:'8〜10',  note:''},
+      {shape:'dee', pin:19, nom:'19mm', wll:22.6, t:2.3,  kg:0.37, wire:'10〜12', note:'★汎用'},
+      {shape:'dee', pin:22, nom:'22mm', wll:31.9, t:3.25, kg:0.59, wire:'12〜14', note:''},
+      {shape:'dee', pin:25, nom:'25mm', wll:44.1, t:4.5,  kg:0.87, wire:'14〜16', note:''},
+      {shape:'dee', pin:28, nom:'28mm', wll:58.8, t:6.0,  kg:1.22, wire:'16〜18', note:''},
+      {shape:'dee', pin:32, nom:'32mm', wll:78.5, t:8.0,  kg:1.78, wire:'18〜20', note:''},
+      {shape:'dee', pin:35, nom:'35mm', wll:98.1, t:10.0, kg:2.35, wire:'20〜22', note:''},
+      {shape:'dee', pin:40, nom:'40mm', wll:137,  t:14.0, kg:3.50, wire:'22〜26', note:''},
+      {shape:'dee', pin:45, nom:'45mm', wll:176,  t:18.0, kg:5.10, wire:'26〜30', note:''},
+    ];
+
+    function wireFilter() {
+      const 構成 = document.getElementById('wire-構成').value;
+      const d    = parseFloat(document.getElementById('wire-calc-d').value) || null;
+      let rows = WIRE_DATA;
+      if (構成 !== 'all') rows = rows.filter(r => r.構成 === 構成);
+      if (d !== null)     rows = rows.filter(r => r.d === d);
+      document.getElementById('wire-count').textContent = `${rows.length} 件`;
+      const SF = 6;
+      document.getElementById('wire-tbody').innerHTML = rows.map(r => {
+        const wll_kN  = r.Fb / SF;
+        const wll_tf  = wll_kN / 9.807;
+        const wll_kgf = Math.round(wll_tf * 1000);
+        const fb_tf   = r.Fb / 9.807;
+        return `<tr>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.構成}</td>
+          <td style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;">φ${r.d}</td>
+          <td>${r.A}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">${r.Fb.toFixed(1)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--muted);">${fb_tf.toFixed(2)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--good);">${wll_kN.toFixed(2)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--good);">${wll_tf.toFixed(3)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">${wll_kgf.toLocaleString()}</td>
+          <td>${r.kg}</td>
+          <td style="font-size:11px;color:var(--muted);">${r.note}</td>
+        </tr>`;
+      }).join('');
+      wireAngleCalc();
+    }
+
+    function wireFilterByD() { wireFilter(); }
+
+    function wireQuickCalc() {
+      const d = parseFloat(document.getElementById('wire-calc-d').value) || 0;
+      wireFilter();
+      if (!d) { document.getElementById('wire-quick-result').innerHTML = ''; return; }
+      const d2 = d * d;
+      const formulas = [
+        { label:'6×7',  α:16 },
+        { label:'6×19', α:17 },
+        { label:'6×37', α:18 },
+      ];
+      const SF = 6;
+      const quick_kgf  = Math.round(d2 / 100 * 1000);
+      const half_kgf   = Math.round(quick_kgf / 2);
+
+      let html = `<div style="margin-bottom:5px;color:var(--ink);font-weight:700;">d=${d}mm　d²=${d2}</div>`;
+      html += `<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">── 構成別 簡易計算式（SF=${SF}）──</div>`;
+      formulas.forEach(f => {
+        const wll_kgf = Math.round(d2 / f.α / SF * 1000);
+        html += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+          <span style="color:var(--muted);font-size:10px;">${f.label}　d²÷${f.α}÷${SF}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">${wll_kgf.toLocaleString()}kgf</span>
+        </div>`;
+      });
+      html += `<hr style="border:none;border-top:1px solid var(--border);margin:5px 0;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">── 現場概算（型番不明時）──</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">最保守（6×37 SF=6）≒d²÷108 → きりよく<b style="color:var(--ink);">d²÷100</b></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+          <span style="font-size:10px;color:var(--muted);">d²÷100（使用荷重概算）</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn);">${quick_kgf.toLocaleString()}kgf</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span style="font-size:10px;color:var(--muted);">d²÷100÷2（余裕をみた目安）</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">${half_kgf.toLocaleString()}kgf</span>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5;">型番不明でもd²÷100の半分以下なら安全側の根拠になる。</div>`;
+      document.getElementById('wire-quick-result').innerHTML = html;
+    }
+
+    function wireAngleCalc() {
+      const θ     = parseFloat(document.getElementById('wire-angle').value);
+      const n     = parseFloat(document.getElementById('wire-points').value);
+      const W_kgf = parseFloat(document.getElementById('wire-load').value) || 0;
+      const W_kN  = W_kgf * 9.807 / 1000;
+      const SF = 6;
+      if (θ === 0) {
+        document.getElementById('wire-req-load').textContent = '∞';
+        document.getElementById('wire-req-unit').textContent = '水平吊りは不可';
+        return;
+      }
+      const rad    = θ * Math.PI / 180;
+      const T_kN   = W_kN / (n * Math.sin(rad));
+      const T_kgf  = Math.ceil(T_kN * 1000 / 9.807);
+      const fb_kgf = Math.ceil(T_kgf * SF);
+      document.getElementById('wire-req-load').textContent = `${T_kgf.toLocaleString()} kgf`;
+      document.getElementById('wire-req-unit').innerHTML =
+        `= ${(T_kgf/1000).toFixed(3)} tf = ${T_kN.toFixed(2)} kN / 本<br>` +
+        `<span style="color:var(--warn);">必要破断荷重: ${fb_kgf.toLocaleString()} kgf 以上</span>`;
+    }
+
+    function eyeboltFilter() {
+      const type  = document.getElementById('eb-type').value;
+      const query = document.getElementById('eb-search').value.trim().toUpperCase();
+      let rows = EYEBOLT_DATA;
+      if (type !== 'all') rows = rows.filter(r => r.type === type);
+      if (query) rows = rows.filter(r => r.size.toUpperCase().includes(query));
+      document.getElementById('eb-count').textContent = `${rows.length} 件`;
+      document.getElementById('eb-tbody').innerHTML = rows.map(r => {
+        const typeLabel = r.type === 'SWIVEL' ? 'スイベル' : 'JIS B 1168';
+        const nc = r.type === 'SWIVEL' ? 'var(--good)' : 'var(--muted)';
+        const v_kgf   = Math.round(r.v   * 1000 / 9.807);
+        const a60_kgf = Math.round(r.a60 * 1000 / 9.807);
+        const a45_kgf = Math.round(r.a45 * 1000 / 9.807);
+        return `<tr>
+          <td style="font-size:11px;color:${nc};">${typeLabel}</td>
+          <td style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;">${r.size}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.v.toFixed(2)}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">${v_kgf.toLocaleString()}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">${a60_kgf.toLocaleString()}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">${a45_kgf.toLocaleString()}</td>
+          <td>${r.kg}</td>
+          <td style="font-size:11px;color:var(--muted);">${r.note}</td>
+        </tr>`;
+      }).join('');
+      eyeboltReverse();
+    }
+
+    function eyeboltReverse() {
+      const req_kgf = parseFloat(document.getElementById('eb-req').value) || 0;
+      const req_kN  = req_kgf * 9.807 / 1000;
+      const hit = EYEBOLT_DATA.find(r => r.v >= req_kN);
+      document.getElementById('eb-rec-size').textContent = hit ? hit.size : '範囲超';
+    }
+
+    function shackleFilter() {
+      const shape  = document.getElementById('sh-type').value;
+      const minKgf = parseFloat(document.getElementById('sh-search-wll').value) || 0;
+      const minWLL = minKgf * 9.807 / 1000;
+      let rows = SHACKLE_DATA;
+      if (shape !== 'all') rows = rows.filter(r => r.shape === shape);
+      if (minKgf > 0) rows = rows.filter(r => r.wll >= minWLL);
+      document.getElementById('sh-count').textContent = rows.length + ' 件';
+      const tbody = document.getElementById('shackle-tbody');
+      tbody.innerHTML = '';
+      rows.forEach(r => {
+        const shapeLabel = r.shape === 'bow' ? 'ボウ型' : 'Dee型';
+        const kgf = Math.round(r.wll * 1000 / 9.807);
+        const tf  = (r.wll / 9.807).toFixed(2);
+        const tr  = document.createElement('tr');
+        tr.innerHTML =
+          `<td style="font-size:11px;">${shapeLabel}</td>` +
+          `<td style="font-family:'JetBrains Mono',monospace;">${r.pin}</td>` +
+          `<td style="font-family:'JetBrains Mono',monospace;">${r.nom}</td>` +
+          `<td style="font-family:'JetBrains Mono',monospace;">${r.wll.toFixed(1)}</td>` +
+          `<td style="font-family:'JetBrains Mono',monospace;">${tf}</td>` +
+          `<td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">${kgf.toLocaleString()}</td>` +
+          `<td>${r.kg}</td>` +
+          `<td style="font-size:11px;color:var(--muted);">${r.wire}</td>` +
+          `<td style="font-size:11px;color:var(--muted);">${r.note}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* ── 吊り点数・開き角の連動 ── */
+    function rigPointsChanged() {
+      const n = parseFloat(document.getElementById('rc-points').value);
+      const angleEl = document.getElementById('rc-angle');
+      if (n === 1) {
+        // 1点吊り → 開き角0°に固定してdisabled
+        angleEl.value = '0';
+        angleEl.disabled = true;
+        angleEl.style.opacity = '0.5';
+      } else {
+        // 2点/4点吊り → 現在0°なら60°に変更して有効化
+        if (angleEl.value === '0') angleEl.value = '60';
+        angleEl.disabled = false;
+        angleEl.style.opacity = '1';
+      }
+      rigCalc();
+    }
+
+    function rigAngleChanged() {
+      const θ = parseFloat(document.getElementById('rc-angle').value);
+      const pointsEl = document.getElementById('rc-points');
+      if (θ === 0) {
+        // 0°選択 → 1点吊りに戻す・disabled
+        pointsEl.value = '1';
+        document.getElementById('rc-angle').disabled = true;
+        document.getElementById('rc-angle').style.opacity = '0.5';
+      }
+      rigCalc();
+    }
+
+    /* ── 総合選定計算 ── */
+    const RIG_ANGLE_FACTOR = {0:1.00, 30:1.04, 60:1.16, 90:1.41, 120:2.00};
+
+    function rigCalc() {
+      const W_kgf  = parseFloat(document.getElementById('rc-load').value)   || 0;
+      const n      = parseFloat(document.getElementById('rc-points').value)  || 1;
+      const θ      = parseFloat(document.getElementById('rc-angle').value);
+      const factor = RIG_ANGLE_FACTOR[θ] || 1.0;
+      const SF     = 6;
+
+      // 1本あたり張力
+      const T_kgf = W_kgf / n * factor;
+      const T_tf  = T_kgf / 1000;
+      const T_kN  = T_kgf * 9.807 / 1000;
+
+      // 角度警告
+      const angleWarn = θ >= 120
+        ? `<span style="color:var(--bad);">⚠ 開き角120°は上限。超えると使用禁止。</span><br>`
+        : θ >= 90
+        ? `<span style="color:var(--warn);">⚠ 開き角90°以上は張力が大きい。注意。</span><br>`
+        : '';
+
+      document.getElementById('rc-tension-box').innerHTML = `
+        ${angleWarn}
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+          <div><div style="color:var(--muted);font-size:10px;">荷重</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);">${W_kgf.toLocaleString()}<span style="font-size:10px;"> kgf</span></div></div>
+          <div><div style="color:var(--muted);font-size:10px;">${n}点吊り・開き角${θ}°（×${factor}）</div>
+            <div style="color:var(--muted);font-size:11px;">1本あたり張力</div></div>
+          <div><div style="color:var(--muted);font-size:10px;">1本あたり</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--accent);">${Math.ceil(T_kgf).toLocaleString()}<span style="font-size:10px;"> kgf</span></div></div>
+        </div>`;
+
+      // ── ワイヤー推奨 ──
+      const needFb_kN = T_kN * SF;
+      const wireHits = {};
+      ['6×7','6×19','6×37'].forEach(k => {
+        const hit = WIRE_DATA.filter(r => r.構成 === k && r.Fb >= needFb_kN);
+        wireHits[k] = hit.length ? hit[0] : null;
+      });
+      let wireHtml = '';
+      Object.entries(wireHits).forEach(([k, r]) => {
+        if (r) {
+          wireHtml += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--muted);font-size:11px;">${k}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">φ${r.d} mm 以上</span>
+          </div>`;
+        } else {
+          wireHtml += `<div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="color:var(--muted);font-size:11px;">${k}</span>
+            <span style="color:var(--bad);font-size:11px;">範囲超・要確認</span>
+          </div>`;
+        }
+      });
+      document.getElementById('rc-wire-result').innerHTML = wireHtml;
+
+      // ── アイボルト推奨 ──
+      const ebHit = EYEBOLT_DATA.find(r => r.v >= T_kN);
+      document.getElementById('rc-eyebolt-result').innerHTML = ebHit
+        ? `<div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:var(--muted);font-size:11px;">JIS B 1168</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">${ebHit.size} 以上</span>
+           </div>
+           <div style="font-size:10px;color:var(--muted);margin-top:4px;">垂直吊り換算：${Math.ceil(T_kgf).toLocaleString()} kgf 以上</div>`
+        : `<span style="color:var(--bad);">範囲超・スイベルアイボルト等を検討</span>`;
+
+      // ── シャックル推奨 ──
+      const shHit = SHACKLE_DATA.find(r => r.wll >= T_kN);
+      document.getElementById('rc-shackle-result').innerHTML = shHit
+        ? `<div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:var(--muted);font-size:11px;">ボウ型 推奨</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">ピン径 ${shHit.pin} mm 以上</span>
+           </div>
+           <div style="font-size:10px;color:var(--muted);margin-top:4px;">WLL: ${Math.round(shHit.wll*1000/9.807).toLocaleString()} kgf 以上 / 適合ワイヤー: φ${shHit.wire} mm</div>`
+        : `<span style="color:var(--bad);">範囲超・要確認</span>`;
+    }
+
+    /* ── 各タブへ条件反映 ── */
+    function rigApplyToTabs() {
+      const W_kgf = document.getElementById('rc-load').value;
+      const θ     = parseFloat(document.getElementById('rc-angle').value);
+      const n     = document.getElementById('rc-points').value;
+      // 開き角→片側鉛直からの角度（wireAngleCalcはθ=片側角度で計算してるので変換不要）
+      // ワイヤータブへ
+      document.getElementById('wire-load').value   = W_kgf;
+      document.getElementById('wire-points').value = n;
+      // 開き角→鉛直片側角度（開き角の半分）に変換
+      const halfAngle = θ / 2;
+      const wireAngleMap = {0:90, 15:75, 30:60, 45:45, 60:30};
+      // 近似: 鉛直からの角度 = 90 - 開き角/2
+      const vAngle = 90 - halfAngle;
+      // selectのoptionに最も近い値を選ぶ
+      const wireAngleEl = document.getElementById('wire-angle');
+      const opts = [...wireAngleEl.options].map(o => parseFloat(o.value));
+      const closest = opts.reduce((a,b) => Math.abs(b-vAngle)<Math.abs(a-vAngle)?b:a);
+      wireAngleEl.value = closest;
+      wireAngleCalc();
+      // 1本あたり張力(kgf) を計算
+      const T_kgf_apply = Math.ceil(parseFloat(W_kgf) / parseFloat(n) * (RIG_ANGLE_FACTOR[θ]||1));
+      // アイボルトタブへ（1点あたり必要安全荷重）
+      document.getElementById('eb-req').value = T_kgf_apply;
+      eyeboltReverse();
+      // シャックルタブへ（1点あたり必要WLL）
+      document.getElementById('sh-search-wll').value = T_kgf_apply;
+      shackleFilter();
+      alert('各タブへ反映しました。タブを切り替えて確認してください。');
+    }
+
+    function showRigTab(name, btn) {
+      const wrap = document.getElementById('rig-stab-wrap');
+      wrap.querySelectorAll('.stab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('#tab-rigging .stab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('stab-rig-' + name).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    rigCalc();
+    wireFilter();
+    wireQuickCalc();
+    eyeboltFilter();
+    shackleFilter();</script>
   </body>
 </html>
