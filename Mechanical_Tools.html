@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.54 | 20260424 | Mechanical Tools | uk |-->
+    <!-- build: 1.55 | 20260424 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -107,6 +107,37 @@
       }
       .tabbar::-webkit-scrollbar-thumb:hover {
         background: var(--ink);
+      }
+      /* 大分類バー */
+      .catbar {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        background: var(--surface2);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cat-btn {
+        padding: 5px 14px;
+        font-size: 11px;
+        font-family: "Noto Sans JP", sans-serif;
+        color: var(--muted);
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color 0.15s, border-color 0.15s, background 0.15s;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        min-height: 30px;
+      }
+      .cat-btn:hover { color: var(--ink); }
+      .cat-btn.active {
+        color: var(--good);
+        border-bottom-color: var(--good);
+        background: var(--surface);
       }
       .tab-btn {
         padding: 8px 14px;
@@ -1025,121 +1056,54 @@
       <span id="verBadge">ver.--</span>
     </header>
 
+    <!-- 大分類バー -->
+    <div class="catbar">
+      <button class="cat-btn active" onclick="filterCat('all',this)">📋 すべて</button>
+      <button class="cat-btn" onclick="filterCat('A',this)">🔩 機械要素</button>
+      <button class="cat-btn" onclick="filterCat('B',this)">⚙️ 動力・伝達</button>
+      <button class="cat-btn" onclick="filterCat('C',this)">💪 強度・換算</button>
+      <button class="cat-btn" onclick="filterCat('D',this)">🔧 配管・流体・シール・油脂</button>
+    </div>
+
     <div class="tabbar">
-      <button
-        class="tab-btn active"
-        onclick="showTab('shrink', event.currentTarget)"
-      >
-        🔥 焼き嵌め
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('screw', event.currentTarget)"
-      >
-        ⚙️ ネジ
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('insert', event.currentTarget)"
-      >
-        🪛 インサート下穴
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('pipe', event.currentTarget)"
-      >
-        🚿 管用ネジ
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('cbore', event.currentTarget)"
-      >
-        🔩 座グリ
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('gear', event.currentTarget)"
-      >
-        ⚙️ 歯車
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('chain', event.currentTarget)"
-      >
-        ⛓️ チェーン
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('bearing', event.currentTarget)"
-      >
-        🎡 ベアリング
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('snap', event.currentTarget)"
-      >
-        🔗 スナップリング
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('fit', event.currentTarget)"
-      >
-        📏 はめあい公差
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('unit', event.currentTarget)"
-      >
-        📐 単位変換
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('beam', event.currentTarget)"
-      >
-        🏗️ 梁計算
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('keyway', event.currentTarget)"
-      >
-        🗝️ キー溝寸法
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('oil', event.currentTarget)"
-      >
-        🛢️ 油脂類
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('pump', event.currentTarget)"
-      >
-        🔧 ポンプ/エア配管
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('weight', event.currentTarget)"
-      >
-        ⚖️ 重量計算
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('seal', event.currentTarget)"
-      >
-        🔵 Oリング/シール
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('flange', event.currentTarget)"
-      >
-        🔩 配管フランジ
-      </button>
-      <button
-        class="tab-btn"
-        onclick="showTab('rigging', event.currentTarget)"
-      >
-        🪝 吊り具選定
-      </button>
+      <button class="tab-btn active" data-cat="A"
+        onclick="showTab('shrink', event.currentTarget)">🔥 焼き嵌め</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('screw', event.currentTarget)">⚙️ ネジ</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('insert', event.currentTarget)">🪛 インサート下穴</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('pipe', event.currentTarget)">🚿 管用ネジ</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('cbore', event.currentTarget)">🔩 座グリ</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('snap', event.currentTarget)">🔗 スナップリング</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('fit', event.currentTarget)">📏 はめあい公差</button>
+      <button class="tab-btn" data-cat="A"
+        onclick="showTab('keyway', event.currentTarget)">🗝️ キー溝寸法</button>
+      <button class="tab-btn" data-cat="B"
+        onclick="showTab('gear', event.currentTarget)">⚙️ 歯車</button>
+      <button class="tab-btn" data-cat="B"
+        onclick="showTab('chain', event.currentTarget)">⛓️ チェーン</button>
+      <button class="tab-btn" data-cat="B"
+        onclick="showTab('bearing', event.currentTarget)">🎡 ベアリング</button>
+      <button class="tab-btn" data-cat="C"
+        onclick="showTab('beam', event.currentTarget)">🏗️ 梁計算</button>
+      <button class="tab-btn" data-cat="C"
+        onclick="showTab('weight', event.currentTarget)">⚖️ 重量計算</button>
+      <button class="tab-btn" data-cat="C"
+        onclick="showTab('unit', event.currentTarget)">📐 単位変換</button>
+      <button class="tab-btn" data-cat="C"
+        onclick="showTab('rigging', event.currentTarget)">🪝 吊り具選定</button>
+      <button class="tab-btn" data-cat="D"
+        onclick="showTab('pump', event.currentTarget)">🔧 ポンプ/エア配管</button>
+      <button class="tab-btn" data-cat="D"
+        onclick="showTab('flange', event.currentTarget)">🔩 配管フランジ</button>
+      <button class="tab-btn" data-cat="D"
+        onclick="showTab('seal', event.currentTarget)">🔵 Oリング/シール</button>
+      <button class="tab-btn" data-cat="D"
+        onclick="showTab('oil', event.currentTarget)">🛢️ 油脂類</button>
     </div>
 
     <!-- ══════ TAB: 焼き嵌め ══════ -->
@@ -8100,6 +8064,23 @@
           btn || event?.currentTarget || event?.target;
         if (target && target.classList)
           target.classList.add("active");
+      }
+
+      function filterCat(cat, btn) {
+        // 大分類ボタンのactive切り替え
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // タブボタンの表示/非表示
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(b => {
+          b.style.display = (cat === 'all' || b.dataset.cat === cat) ? '' : 'none';
+        });
+        // 現在activeなタブが非表示になる場合、表示中の最初のタブに切り替え
+        const activeBtn = document.querySelector('.tab-btn.active');
+        if (activeBtn && activeBtn.style.display === 'none') {
+          const firstVisible = document.querySelector('.tab-btn[style=""],.tab-btn:not([style])');
+          if (firstVisible) firstVisible.click();
+        }
       }
 
       // ════════════════════════════════════════
