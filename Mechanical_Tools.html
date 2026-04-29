@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.55 | 20260424 | Mechanical Tools | uk |-->
+    <!-- build: 1.56 | 20260429 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -311,7 +311,8 @@
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 10px;
-        overflow: hidden;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
       table {
         width: 100%;
@@ -1099,6 +1100,8 @@
         onclick="showTab('unit', event.currentTarget)">📐 単位変換</button>
       <button class="tab-btn" data-cat="C"
         onclick="showTab('rigging', event.currentTarget)">🪝 吊り具選定</button>
+      <button class="tab-btn" data-cat="C"
+        onclick="showTab('anchor', event.currentTarget)">🪨 アンカー選定</button>
       <button class="tab-btn" data-cat="D"
         onclick="showTab('pump', event.currentTarget)">🔧 ポンプ/エア配管</button>
       <button class="tab-btn" data-cat="D"
@@ -20276,6 +20279,198 @@
       </div><!-- /rig-stab-wrap -->
     </div><!-- /tab-rigging -->
 
+    <!-- ══════════════════════════════════════════════════════
+         🪨 アンカー選定タブ
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-anchor" class="tab-content" style="flex-direction:column;">
+      <div class="subtabbar">
+        <button class="stab-btn active" id="sbtn-anc-dim"   onclick="showAnchorTab('dim',this)">📐 下穴・施工寸法</button>
+        <button class="stab-btn"        id="sbtn-anc-calc"  onclick="showAnchorTab('calc',this)">💪 許容荷重・本数計算</button>
+      </div>
+      <div id="anc-stab-wrap" style="flex:1;overflow:auto;display:flex;flex-direction:column;">
+
+        <!-- ══ サブタブ①：下穴・施工寸法 ══ -->
+        <div id="stab-anc-dim" class="stab-content active">
+          <div class="two-panel">
+            <div class="panel-left">
+              <div class="section-title">絞り込み条件</div>
+              <div class="field">
+                <label>アンカー種別</label>
+                <select id="anc-type" onchange="ancFilter()">
+                  <option value="all">すべて</option>
+                  <option value="chem">ケミカルアンカー（接着系・一般）</option>
+                  <option value="mu">旭化成 MUアンカー（カプセル打込み型）</option>
+                  <option value="all-anc">オールアンカー（拡張式）</option>
+                  <option value="wedge">ウェッジアンカー</option>
+                  <option value="female">メスネジアンカー（ドロップイン）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>アンカー径 / ねじ径で絞り込み</label>
+                <input type="text" id="anc-search" placeholder="例: M12 または 12" oninput="ancFilter()" style="text-transform:uppercase;">
+              </div>
+              <hr class="divider">
+              <div id="anc-type-info" style="font-size:11px;line-height:1.7;"></div>
+              <hr class="divider">
+              <div class="memo">
+                <b>📐 施工寸法の注意</b><br>
+                ※ 寸法はJIS・JCAA認定品参考値。<br>
+                <b style="color:var(--warn);">ケミカルは必ずメーカーカタログで確認。</b><br>
+                下穴径はメーカー・品番で異なります。<br><br>
+                <b>🧹 穿孔後の清掃（重要）</b><br>
+                ① 圧縮空気で2〜3回ブロー<br>
+                ② ブラシで2〜3回清掃<br>
+                ③ 再度エアブロー<br>
+                <span style="color:var(--bad);">粉塵残留 → 強度大幅低下の原因！</span><br>
+                掃除機単独はNG。エアブロー必須。<br><br>
+                <b>🌡️ ケミカル硬化時間目安（MUアンカー）</b><br>
+                -5℃:360分　0℃:180分　5℃:120分<br>
+                10℃:70分　15℃:45分　20℃:30分<br>
+                25℃:25分　30℃:20分<br>
+                ※外気・躯体・カプセルの最低温を基準に。<br>
+                5℃以下：打込み後5回転以上回すこと。<br>
+                -5℃以下：使用禁止。硬化前に荷重厳禁。<br><br>
+                <b>📏 コンクリート強度：</b>Fc21以上推奨<br>
+                <b>端距離・へりあき：</b>埋込長の2倍以上<br>
+                <b>アンカー間隔：</b>埋込長の3倍以上
+              </div>
+            </div>
+            <div class="panel-right">
+              <div class="section-title" style="margin-bottom:6px;">
+                アンカー 下穴・施工寸法表
+                <span id="anc-count" style="font-size:11px;color:var(--muted);font-weight:400;"></span>
+              </div>
+              <div class="data-table-wrap" style="max-height:540px;overflow-y:auto;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th>種別</th>
+                    <th>ねじ径/<br>呼び径</th>
+                    <th>下穴径<br>(mm)</th>
+                    <th>下穴深さ<br>(mm)</th>
+                    <th>埋込長<br>(mm)</th>
+                    <th>端距離<br>最小(mm)</th>
+                    <th>間隔<br>最小(mm)</th>
+                    <th>参考<br>トルク(N·m)</th>
+                    <th>備考</th>
+                  </tr></thead>
+                  <tbody id="anc-tbody"></tbody>
+                </table>
+              </div>
+              <div class="memo" style="margin-top:8px;">
+                ※ ケミカルアンカーの硬化時間は温度により異なります（20℃目安：30〜60分）。荷重負荷は完全硬化後。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ サブタブ②：許容荷重・本数計算 ══ -->
+        <div id="stab-anc-calc" class="stab-content">
+          <div class="two-panel">
+            <div class="panel-left">
+              <div class="section-title">計算条件</div>
+              <div class="field">
+                <label>アンカー種別</label>
+                <select id="calc-anc-type" onchange="ancCalc()">
+                  <option value="chem">ケミカルアンカー（一般）</option>
+                  <option value="mu">旭化成 MUアンカー</option>
+                  <option value="all-anc">オールアンカー</option>
+                  <option value="wedge">ウェッジアンカー</option>
+                  <option value="female">メスネジアンカー</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>ねじ径</label>
+                <select id="calc-anc-size" onchange="ancCalc()">
+                  <option value="M6">M6</option>
+                  <option value="M8">M8</option>
+                  <option value="M10">M10</option>
+                  <option value="M12" selected>M12</option>
+                  <option value="M16">M16</option>
+                  <option value="M20">M20</option>
+                  <option value="M22">M22</option>
+                  <option value="M24">M24</option>
+                  <option value="M30">M30</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>コンクリート強度 Fc (N/mm²)</label>
+                <select id="calc-fc" onchange="ancCalc()">
+                  <option value="18">Fc18</option>
+                  <option value="21" selected>Fc21</option>
+                  <option value="24">Fc24</option>
+                  <option value="27">Fc27</option>
+                  <option value="30">Fc30</option>
+                </select>
+              </div>
+              <hr class="divider">
+              <div class="section-title">作用荷重</div>
+              <div class="field">
+                <label>引張荷重 N (kgf)</label>
+                <input type="number" id="calc-tension" value="500" step="50" min="0" oninput="ancCalc()">
+              </div>
+              <div class="field">
+                <label>せん断荷重 Q (kgf)</label>
+                <input type="number" id="calc-shear" value="300" step="50" min="0" oninput="ancCalc()">
+              </div>
+              <hr class="divider">
+              <div class="memo" style="font-size:11px;">
+                <b>安全率：</b>引張 SF=4、せん断 SF=4<br>
+                <b>組み合わせ：</b>N/Na + Q/Qa ≤ 1.0<br>
+                <b>参考規格：</b>JCAA・建築技術指針
+              </div>
+            </div>
+            <div class="panel-right" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="section-title">計算結果</div>
+
+              <!-- 許容荷重カード -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="card accent">
+                  <div class="card-label">許容引張力 Na</div>
+                  <div class="card-value" id="anc-r-tension">—</div>
+                </div>
+                <div class="card">
+                  <div class="card-label">許容せん断力 Qa</div>
+                  <div class="card-value" id="anc-r-shear">—</div>
+                </div>
+              </div>
+
+              <!-- 組み合わせ検定 -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">組み合わせ検定（1本あたり）</div>
+                <div id="anc-r-combo" style="font-size:13px;"></div>
+              </div>
+
+              <!-- 必要本数 -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">必要本数（安全率考慮済み）</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+                  <div>
+                    <div style="font-size:10px;color:var(--muted);">引張のみ</div>
+                    <div id="anc-r-n-tension" style="font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);">—</div>
+                    <div style="font-size:10px;color:var(--muted);">本</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;color:var(--muted);">せん断のみ</div>
+                    <div id="anc-r-n-shear" style="font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);">—</div>
+                    <div style="font-size:10px;color:var(--muted);">本</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;color:var(--muted);">組み合わせ</div>
+                    <div id="anc-r-n-combo" style="font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">—</div>
+                    <div style="font-size:10px;color:var(--muted);">本</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 施工寸法参照 -->
+              <div id="anc-r-dim" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /anc-stab-wrap -->
+    </div><!-- /tab-anchor -->
+
     <script>
     /* ══════════════════════════════════════════
        重量計算
@@ -21794,6 +21989,238 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
     wireFilter();
     wireQuickCalc();
     eyeboltFilter();
-    shackleFilter();</script>
+    shackleFilter();
+
+    /* ══════════════════════════════════════════
+       🪨 アンカー選定
+    ══════════════════════════════════════════ */
+    /*
+      ANC_DATA: [種別, ねじ径, 下穴径, 下穴深さ, 埋込長, 端距離最小, 間隔最小, トルク, 備考]
+      許容荷重データ: [種別, ねじ径, 基準引張(kN), 基準せん断(kN), Fc補正係数]
+    */
+
+    const ANC_TYPE_INFO = {
+      chem:   { label:'ケミカルアンカー（一般）', color:'var(--accent)',
+                desc:'接着剤（エポキシ・ビニルエステル）をホールに充填しボルトを挿入。<br>高強度・既存躯体向き。硬化時間が必要。後施工アンカーで最高強度クラス。' },
+      mu:     { label:'旭化成 MUアンカー（カプセル打込み型）', color:'#ff9966',
+                desc:'エポキシアクリレート樹脂カプセルをハンマーで打込むだけで施工完了。<br>撹拌不要のためL字筋・U字筋も施工可。<br>' +
+                     '<b style="color:var(--warn);">M16はカプセル長と全長が異なるため注意。</b><br>' +
+                     'ボルト先端は寸切り or Vカット必須（片面カット・丸棒は不可）。<br>' +
+                     '5℃以下：打込み後すぐボルトを5回転以上回すこと。<br>' +
+                     '-5℃以下は使用禁止。製品保存期限：製造から3年。' },
+      'all-anc':{ label:'オールアンカー', color:'var(--good)',
+                desc:'先端が拡張して噛み合う拡張式。施工簡単・即荷重OK。<br>貫通孔不可。引張より振動・衝撃に弱い。小〜中型設備の固定に多用。' },
+      wedge:  { label:'ウェッジアンカー', color:'var(--warn)',
+                desc:'打ち込み型拡張式。先端くさびが広がり固定。<br>施工スピード重視。大きな引張力に対応。重量物アンカーに使用。' },
+      female: { label:'メスネジアンカー（ドロップイン）', color:'#a0c4ff',
+                desc:'穴の中にめねじが残る埋め込み式。ボルトを完全に取り外し可能。<br>専用セッティングツールが必要。見た目スッキリ。設備基礎に多用。' },
+    };
+
+    // [種別, ねじ径, 下穴径, 下穴深さ, 埋込長, 端距離最小, 間隔最小, トルク(Nm), 備考]
+    const ANC_DATA = [
+      // ── ケミカルアンカー（一般標準値）──
+      ['chem','M6',  8,  55, 50, 60, 75,  5,  'エポキシ系標準埋込長'],
+      ['chem','M8',  10, 70, 65, 80, 100, 10, ''],
+      ['chem','M10', 12, 85, 80, 100,125, 20, ''],
+      ['chem','M12', 14, 110,100,120,150, 35, '★最多使用サイズ'],
+      ['chem','M16', 19, 130,125,150,188, 80, 'φ18〜19（メーカー差あり・要確認）'],
+      ['chem','M20', 24, 165,155,186,233, 150,''],
+      ['chem','M22', 25, 175,165,198,248, 200,''],
+      ['chem','M24', 28, 200,190,228,285, 250,'重量機器基礎'],
+      ['chem','M30', 33, 250,240,288,360, 400,'大型設備・鉄骨柱脚'],
+      // ── 旭化成 ARケミカルセッター MUアンカー（カプセル打込み型）──
+      ['mu',  'M8',  10, 70, 65, 78, 100, 10, 'MU-8 / 打込み型・撹拌不要'],
+      ['mu',  'M10', 12, 90, 80, 96, 120, 20, 'MU-10 / L字・U字筋も施工可'],
+      ['mu',  'M12', 14, 110,100,120,150, 35, 'MU-12 / ★最多使用サイズ'],
+      ['mu',  'M16', 19, 130,125,150,188, 80, 'MU-16 / φ19確定。カプセル長と全長が異なる点に注意'],
+      ['mu',  'M20', 22, 170,155,186,233, 150,'MU-20 / 重量機器・鉄骨柱脚'],
+      // ── オールアンカー ──
+      ['all-anc','M6',  8,  35, 30, 40, 50,  5,  ''],
+      ['all-anc','M8',  10, 45, 40, 50, 65,  10, ''],
+      ['all-anc','M10', 12, 55, 50, 65, 80,  20, ''],
+      ['all-anc','M12', 14, 65, 60, 75, 95,  35, '★最多使用サイズ'],
+      ['all-anc','M16', 18, 80, 75, 95, 120, 80, ''],
+      ['all-anc','M20', 22, 100,95, 115,150, 150,''],
+      ['all-anc','M24', 28, 120,115,138,180, 250,''],
+      ['all-anc','M30', 33, 150,145,174,225, 400,''],
+      // ── ウェッジアンカー ──
+      ['wedge','M8',  10, 70, 60, 80, 100, 20, '打ち込み型'],
+      ['wedge','M10', 12, 80, 70, 95, 120, 35, ''],
+      ['wedge','M12', 14, 95, 80, 110,140, 60, '★重量物固定の主力'],
+      ['wedge','M16', 18, 120,105,140,175, 120,''],
+      ['wedge','M20', 22, 145,130,170,215, 230,''],
+      ['wedge','M24', 28, 170,155,200,255, 400,'大型重量物'],
+      ['wedge','M30', 33, 210,195,250,318, 600,''],
+      // ── メスネジアンカー（ドロップイン） ──
+      ['female','M6',  10, 25, 22, 35, 45,  null,'専用ツール必要'],
+      ['female','M8',  12, 30, 27, 40, 55,  null,''],
+      ['female','M10', 15, 35, 32, 50, 65,  null,''],
+      ['female','M12', 18, 42, 38, 60, 80,  null,'★最多使用サイズ'],
+      ['female','M16', 22, 50, 46, 75, 100, null,''],
+      ['female','M20', 28, 60, 55, 90, 120, null,'設備基礎・機械固定'],
+      ['female','M24', 33, 72, 67, 110,145, null,''],
+    ];
+
+    // 許容荷重データ [種別, ねじ径, 許容引張(kN/Fc21基準), 許容せん断(kN/Fc21基準)]
+    const ANC_ALLOW = {
+      chem: {
+        M6: [3.2, 2.1], M8: [6.5, 4.0], M10: [10.5, 6.5], M12: [16.0, 10.0],
+        M16: [28.0, 17.5], M20: [45.0, 28.0], M22: [54.0, 33.5], M24: [63.0, 39.0], M30: [98.0, 61.0],
+      },
+      mu: {
+        M8: [6.5, 4.0], M10: [10.5, 6.5], M12: [16.0, 10.0],
+        M16: [28.0, 17.5], M20: [45.0, 28.0],
+      },
+      'all-anc': {
+        M6: [2.0, 1.5], M8: [4.0, 3.0], M10: [6.5, 5.0], M12: [10.0, 7.5],
+        M16: [18.0, 13.5], M20: [28.0, 21.0], M24: [40.0, 30.0], M30: [63.0, 47.0],
+      },
+      wedge: {
+        M8: [5.0, 3.8], M10: [8.0, 6.0], M12: [12.5, 9.5],
+        M16: [22.0, 16.5], M20: [35.0, 26.0], M24: [50.0, 37.5], M30: [78.0, 58.5],
+      },
+      female: {
+        M6: [2.5, 1.8], M8: [5.0, 3.5], M10: [8.0, 5.5], M12: [12.0, 8.5],
+        M16: [22.0, 15.5], M20: [34.0, 24.0], M24: [48.0, 34.0],
+      },
+    };
+
+    // Fc補正係数（Fc21基準=1.0）
+    const FC_FACTOR = {18:0.85, 21:1.00, 24:1.12, 27:1.22, 30:1.32};
+
+    const ANC_TYPE_LABEL = {
+      chem:'ケミカル（一般）', mu:'旭化成MU', 'all-anc':'オールアンカー', wedge:'ウェッジ', female:'メスネジ'
+    };
+    const ANC_TYPE_COLOR = {
+      chem:'var(--accent)', mu:'#ff9966', 'all-anc':'var(--good)', wedge:'var(--warn)', female:'#a0c4ff'
+    };
+
+    function ancFilter() {
+      const type   = document.getElementById('anc-type').value;
+      const query  = document.getElementById('anc-search').value.trim().toUpperCase();
+      let rows = ANC_DATA;
+      if (type !== 'all') rows = rows.filter(r => r[0] === type);
+      if (query) rows = rows.filter(r => r[1].toUpperCase().includes(query) ||
+                                         String(r[2]).includes(query));
+      document.getElementById('anc-count').textContent = `${rows.length} 件`;
+
+      // 種別説明更新
+      const infoEl = document.getElementById('anc-type-info');
+      if (type !== 'all' && ANC_TYPE_INFO[type]) {
+        const info = ANC_TYPE_INFO[type];
+        infoEl.innerHTML = `<b style="color:${info.color};">${info.label}</b><br>${info.desc}`;
+      } else {
+        infoEl.innerHTML = `<span style="color:var(--muted);">種別を選択すると説明が表示されます</span>`;
+      }
+
+      document.getElementById('anc-tbody').innerHTML = rows.map(r => {
+        const [t, size, dHole, dDepth, embed, edge, pitch, torque, note] = r;
+        const color = ANC_TYPE_COLOR[t] || 'var(--ink)';
+        const torqueTxt = torque ? `${torque}` : '専用ツール';
+        return `<tr>
+          <td style="font-size:11px;color:${color};white-space:nowrap;">${ANC_TYPE_LABEL[t]}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);">${size}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">φ${dHole}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">${dDepth}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--good);font-weight:700;">${embed}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">${edge}</td>
+          <td style="font-family:'JetBrains Mono',monospace;">${pitch}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${torqueTxt}</td>
+          <td style="font-size:11px;color:var(--muted);">${note}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function ancCalc() {
+      const type   = document.getElementById('calc-anc-type').value;
+      const size   = document.getElementById('calc-anc-size').value;
+      const fc     = parseInt(document.getElementById('calc-fc').value);
+      const N_kgf  = parseFloat(document.getElementById('calc-tension').value) || 0;
+      const Q_kgf  = parseFloat(document.getElementById('calc-shear').value)   || 0;
+      const N_kN   = N_kgf * 9.807 / 1000;
+      const Q_kN   = Q_kgf * 9.807 / 1000;
+      const fcF    = FC_FACTOR[fc] || 1.0;
+
+      const allow = ANC_ALLOW[type]?.[size];
+      if (!allow) {
+        ['anc-r-tension','anc-r-shear'].forEach(id =>
+          document.getElementById(id).textContent = '—');
+        document.getElementById('anc-r-combo').innerHTML =
+          `<span style="color:var(--muted);">この種別・サイズの組み合わせはデータがありません</span>`;
+        ['anc-r-n-tension','anc-r-n-shear','anc-r-n-combo'].forEach(id =>
+          document.getElementById(id).textContent = '—');
+        return;
+      }
+
+      const Na_kN  = +(allow[0] * fcF).toFixed(2);
+      const Qa_kN  = +(allow[1] * fcF).toFixed(2);
+      const Na_kgf = Math.round(Na_kN * 1000 / 9.807);
+      const Qa_kgf = Math.round(Qa_kN * 1000 / 9.807);
+
+      // カード表示（kgfメイン・kN換算）
+      document.getElementById('anc-r-tension').innerHTML =
+        `<span style="font-size:22px;">${Na_kgf.toLocaleString()}</span>
+         <span style="font-size:11px;color:var(--muted);"> kgf</span><br>
+         <span style="font-size:11px;color:var(--muted);">(${Na_kN} kN)</span>`;
+      document.getElementById('anc-r-shear').innerHTML =
+        `<span style="font-size:22px;">${Qa_kgf.toLocaleString()}</span>
+         <span style="font-size:11px;color:var(--muted);"> kgf</span><br>
+         <span style="font-size:11px;color:var(--muted);">(${Qa_kN} kN)</span>`;
+
+      // 組み合わせ検定
+      const ratio = (N_kN > 0 ? N_kN/Na_kN : 0) + (Q_kN > 0 ? Q_kN/Qa_kN : 0);
+      const ratioColor = ratio <= 1.0 ? 'var(--good)' : 'var(--bad)';
+      const ratioJudge = ratio <= 1.0
+        ? `<span style="color:var(--good);">✓ OK</span>`
+        : `<span style="color:var(--bad);">✕ NG（本数を増やしてください）</span>`;
+      document.getElementById('anc-r-combo').innerHTML = `
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;">
+          N/Na + Q/Qa<br>
+          = ${N_kN > 0 ? (N_kN/Na_kN).toFixed(3) : '0.000'}
+          + ${Q_kN > 0 ? (Q_kN/Qa_kN).toFixed(3) : '0.000'}
+          = <b style="color:${ratioColor};">${ratio.toFixed(3)}</b> ≤ 1.0 ${ratioJudge}
+        </div>`;
+
+      // 必要本数
+      const nTension = N_kN > 0 ? Math.ceil(N_kN / Na_kN) : 0;
+      const nShear   = Q_kN > 0 ? Math.ceil(Q_kN / Qa_kN) : 0;
+      const nCombo   = N_kN > 0 || Q_kN > 0 ? Math.ceil(ratio) : 0;
+      document.getElementById('anc-r-n-tension').textContent = nTension || '—';
+      document.getElementById('anc-r-n-shear').textContent   = nShear   || '—';
+      document.getElementById('anc-r-n-combo').textContent   = Math.max(nTension, nShear, nCombo) || '—';
+
+      // 施工寸法参照
+      const dimRow = ANC_DATA.find(r => r[0] === type && r[1] === size);
+      if (dimRow) {
+        const [,, dHole, dDepth, embed, edge, pitch, torque] = dimRow;
+        document.getElementById('anc-r-dim').innerHTML = `
+          <div style="color:var(--muted);font-size:10px;margin-bottom:6px;">施工寸法参照（${ANC_TYPE_LABEL[type]} ${size}）</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px;">
+            <div><span style="color:var(--muted);">下穴径</span><br>
+              <b style="font-family:'JetBrains Mono',monospace;color:var(--accent);">φ${dHole} mm</b></div>
+            <div><span style="color:var(--muted);">下穴深さ</span><br>
+              <b style="font-family:'JetBrains Mono',monospace;">${dDepth} mm</b></div>
+            <div><span style="color:var(--muted);">埋込長</span><br>
+              <b style="font-family:'JetBrains Mono',monospace;color:var(--good);">${embed} mm</b></div>
+            <div><span style="color:var(--muted);">端距離最小</span><br>
+              <b style="font-family:'JetBrains Mono',monospace;">${edge} mm</b></div>
+            <div><span style="color:var(--muted);">間隔最小</span><br>
+              <b style="font-family:'JetBrains Mono',monospace;">${pitch} mm</b></div>
+            <div><span style="color:var(--muted);">締付トルク</span><br>
+              <b style="font-family:'JetBrains Mono',monospace;">${torque ? torque+' N·m' : '専用ツール'}</b></div>
+          </div>`;
+      }
+    }
+
+    function showAnchorTab(name, btn) {
+      const wrap = document.getElementById('anc-stab-wrap');
+      wrap.querySelectorAll('.stab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('#tab-anchor .stab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('stab-anc-' + name).classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    ancFilter();
+    ancCalc();</script>
   </body>
 </html>
