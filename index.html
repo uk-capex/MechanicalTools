@@ -218,6 +218,7 @@
     .main-card.card-mech  { border-left: 3px solid var(--accent); }
     .main-card.card-lathe { border-left: 3px solid var(--good); }
     .main-card.card-elec  { border-left: 3px solid var(--estimate); }
+    .main-card.card-heat  { border-left: 3px solid #f97316; }
 
     .main-card-body {
       padding: 18px 16px;
@@ -251,6 +252,7 @@
     .cta-mech  { color: var(--accent); }
     .cta-lathe { color: var(--good); }
     .cta-elec  { color: var(--estimate); }
+    .cta-heat  { color: #f97316; }
 
     /* ── フッター ── */
     footer {
@@ -289,6 +291,7 @@
       .main-card.card-mech  { border-left: none; border-top: 3px solid var(--accent); }
       .main-card.card-lathe { border-left: none; border-top: 3px solid var(--good); }
       .main-card.card-elec  { border-left: none; border-top: 3px solid var(--estimate); }
+      .main-card.card-heat  { border-left: none; border-top: 3px solid #f97316; }
       .main-card:hover {
         background: var(--surface2);
         transform: translateY(-3px);
@@ -296,6 +299,7 @@
       .main-card.card-mech:hover  { box-shadow: 0 6px 24px rgba(56,139,253,0.10); }
       .main-card.card-lathe:hover { box-shadow: 0 6px 24px rgba(63,185,80,0.10); }
       .main-card.card-elec:hover  { box-shadow: 0 6px 24px rgba(227,179,65,0.10); }
+      .main-card.card-heat:hover  { box-shadow: 0 6px 24px rgba(249,115,22,0.10); }
       .main-card-body {
         flex-direction: column; align-items: flex-start; gap: 10px;
         padding: 24px 22px 16px; flex: 1;
@@ -330,6 +334,7 @@
       <span class="hero-badge badge-blue">🔧 機械保全 16ツール</span>
       <span class="hero-badge badge-green">🔵 切削計算</span>
       <span class="hero-badge badge-yellow">⚡ 電気保全</span>
+      <span class="hero-badge badge-gray">🌡️ 熱中症リスク</span>
       <span class="hero-badge badge-gray">ブラウザ完結</span>
     </div>
   </section>
@@ -379,6 +384,18 @@
           </div>
         </div>
         <span class="main-card-cta cta-elec">→</span>
+      </a>
+
+      <!-- 熱中症リスクチェッカー -->
+      <a href="work-heat-risk.html" class="main-card card-heat">
+        <div class="main-card-body">
+          <div class="main-card-icon">🌡️</div>
+          <div class="main-card-text">
+            <h2 class="main-card-title">屋外作業 熱中症リスクチェッカー</h2>
+            <p class="main-card-desc">WBGT指数・作業種別・時間帯別リスク判定</p>
+          </div>
+        </div>
+        <span class="main-card-cta cta-heat">→</span>
       </a>
 
     </div>
