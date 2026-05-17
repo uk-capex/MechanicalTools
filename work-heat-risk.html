@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>屋外作業 熱中症リスクチェッカー</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg:      #0a0e14;
+  --bg2:     #111720;
+  --bg3:     #1a2230;
+  --border:  rgba(255,255,255,0.07);
+  --accent:  #00d4ff;
+  --text:    #dce8f0;
+  --text2:   #7a9bb5;
+  --muted:   #445566;
+  --safe:    #22c55e;
+  --caution: #eab308;
+  --warn:    #f97316;
+  --danger:  #ef4444;
+  --severe:  #dc2626;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  padding: 0 0 40px;
+}
+
+/* ヘッダー */
+.header {
+  background: linear-gradient(135deg, #0a0e14 0%, #111a2e 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-badge {
+  background: var(--accent);
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+}
+.header h1 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+.header-sub {
+  font-size: 0.65rem;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.wrap { padding: 14px; }
+
+/* カード */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 場所選択 */
+.location-info {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 10px;
+}
+.preset-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.preset-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text2);
+  font-size: 0.72rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.15s;
+}
+.preset-btn.active {
+  background: rgba(0,212,255,0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.gps-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: opacity 0.2s;
+}
+.gps-btn:active { opacity: 0.7; }
+
+/* 作業種別 */
+.work-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.work-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.work-btn.active {
+  background: rgba(0,212,255,0.1);
+  border-color: var(--accent);
+}
+.work-btn .work-icon { font-size: 1.3rem; margin-bottom: 4px; }
+.work-btn .work-label { font-size: 0.72rem; font-weight: 600; color: var(--text); }
+.work-btn .work-desc  { font-size: 0.6rem; color: var(--text2); margin-top: 2px; }
+.work-btn.active .work-label { color: var(--accent); }
+
+/* 今日の総合判定 */
+.summary-card {
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.summary-level {
+  font-size: 1.4rem;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.summary-desc {
+  font-size: 0.75rem;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.summary-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.summary-chip {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.65rem;
+  color: var(--text2);
+}
+.summary-chip strong { color: var(--text); }
+
+/* タイムライン */
+.timeline-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+}
+.timeline-row {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+}
+.tl-item {
+  width: 68px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 4px;
+  text-align: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+  position: relative;
+}
+.tl-item.now {
+  border-color: var(--accent);
+  background: rgba(0,212,255,0.06);
+}
+.tl-now-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #000;
+  font-size: 0.5rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.tl-time  { font-size: 0.65rem; color: var(--text2); margin-bottom: 3px; }
+.tl-sun   { font-size: 0.7rem; margin-bottom: 2px; }
+.tl-icon  { font-size: 1rem; margin-bottom: 3px; }
+.tl-wbgt  {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.tl-risk  {
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 2px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+/* グラフ */
+.chart-wrap { height: 180px; position: relative; }
+
+/* 作業ガイド */
+.guide-list { display: flex; flex-direction: column; gap: 6px; }
+.guide-item {
+  background: var(--bg3);
+  border-left: 3px solid;
+  border-radius: 0 8px 8px 0;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.guide-item .g-time { font-size: 0.65rem; color: var(--text2); margin-bottom: 2px; }
+.guide-item .g-msg  { font-weight: 600; }
+
+/* 注意書き */
+.notice {
+  background: rgba(239,68,68,0.06);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.65rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.notice strong { color: #f87171; }
+
+/* ローディング */
+.loading-msg {
+  text-align: center;
+  color: var(--text2);
+  font-size: 0.75rem;
+  padding: 20px;
+}
+.dot-anim::after {
+  content: '';
+  animation: dots 1.2s infinite;
+}
+@keyframes dots {
+  0%,20%  { content: ''; }
+  40%     { content: '.'; }
+  60%     { content: '..'; }
+  80%,100%{ content: '...'; }
+}
+
+.hidden { display: none !important; }
+
+/* エラー */
+.error-msg {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.72rem;
+  color: #f87171;
+  text-align: center;
+}
+
+/* ドロップダウン候補 */
+.city-candidate {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.city-candidate:hover { background: rgba(0,212,255,0.08); color: var(--accent); }
+.city-candidate:last-child { border-bottom: none; }
+
+/* 日付ボタン */
+.date-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: 0.7rem;
+  padding: 8px 4px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.15s;
+  text-align: center;
+  line-height: 1.4;
+}
+.date-btn.active {
+  background: rgba(0,212,255,0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* 日の出/入りバッジ */
+.sun-event {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <span class="header-badge">WBGT</span>
+    <div>
+      <h1>屋外作業 熱中症リスクチェッカー</h1>
+      <div class="header-sub">製造業・建設業・物流など屋外作業向け</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- 場所選択 -->
+  <div class="card">
+    <div class="card-title">📍 場所を選ぶ</div>
+    <button class="gps-btn" onclick="useGPS()" style="margin-bottom:10px;">📡 現在地から取得する</button>
+    <div style="font-size:0.65rem;color:var(--text2);margin-bottom:8px;text-align:center;">または地域を検索</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <select id="prefSelect" onchange="onPrefChange()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.75rem;padding:7px 10px;font-family:'Noto Sans JP',sans-serif;outline:none;">
+        <option value="">都道府県を選択</option>
+      </select>
+    </div>
+    <div style="margin-bottom:8px;">
+      <select id="citySelect" onchange="onCitySelect()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.75rem;padding:7px 10px;font-family:'Noto Sans JP',sans-serif;outline:none;" disabled>
+        <option value="">── 都道府県を先に選択 ──</option>
+      </select>
+    </div>
+    <div class="location-info" id="locationInfo" style="font-size:0.78rem;color:var(--text2);text-align:center;min-height:20px;"></div>
+  </div>
+
+  <!-- 日付選択 -->
+  <div class="card">
+    <div class="card-title">📅 日付を選ぶ</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="dateBtns"></div>
+  </div>
+
+  <!-- 作業種別 -->
+  <div class="card">
+    <div class="card-title">🦺 作業種別を選ぶ</div>
+    <div class="work-grid">
+      <div class="work-btn active" id="work-light" onclick="selectWork('light')">
+        <div class="work-icon">🪑</div>
+        <div class="work-label">軽作業</div>
+        <div class="work-desc">監視・点検・軽い組立</div>
+      </div>
+      <div class="work-btn" id="work-medium" onclick="selectWork('medium')">
+        <div class="work-icon">🔧</div>
+        <div class="work-label">中程度</div>
+        <div class="work-desc">機械操作・一般作業</div>
+      </div>
+      <div class="work-btn" id="work-heavy" onclick="selectWork('heavy')">
+        <div class="work-icon">⚙️</div>
+        <div class="work-label">重作業</div>
+        <div class="work-desc">重い資材運搬・掘削</div>
+      </div>
+      <div class="work-btn" id="work-intense" onclick="selectWork('intense')">
+        <div class="work-icon">🏗️</div>
+        <div class="work-label">激しい作業</div>
+        <div class="work-desc">高強度・持続的重労働</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ローディング -->
+  <div id="loadingMsg" class="loading-msg hidden">
+    <span class="dot-anim">データ取得中</span>
+  </div>
+  <div id="errorMsg" class="error-msg hidden"></div>
+
+  <!-- 今日の総合判定 -->
+  <div id="summaryCard" class="summary-card hidden"></div>
+
+  <!-- タイムライン -->
+  <div id="timelineCard" class="card hidden">
+    <div class="card-title">🕐 時間別リスク（6時〜20時）</div>
+    <div class="timeline-wrap">
+      <div class="timeline-row" id="timelineRow"></div>
+    </div>
+  </div>
+
+  <!-- グラフ -->
+  <div id="graphCard" class="card hidden">
+    <div class="card-title">📈 WBGT推移</div>
+    <div class="chart-wrap">
+      <canvas id="wbgtChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 作業ガイド -->
+  <div id="guideCard" class="card hidden">
+    <div class="card-title">📋 作業ガイド（時間帯別）</div>
+    <div class="guide-list" id="guideList"></div>
+  </div>
+
+  <!-- 週間WBGTグラフ -->
+  <div id="weekCard" class="card hidden">
+    <div class="card-title">📊 週間WBGT最大値予報</div>
+    <div style="font-size:0.65rem;color:var(--text2);margin-bottom:8px;">各日6〜20時のWBGT最大値（作業種別リスク閾値付き）</div>
+    <div class="chart-wrap" style="height:160px;">
+      <canvas id="weekChart"></canvas>
+    </div>
+  </div>
+
+  <!-- 判定基準 -->
+  <div class="card">
+    <div class="card-title">📋 WBGT判定基準（作業種別別）</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.65rem;">
+        <thead>
+          <tr style="color:var(--text2);border-bottom:1px solid var(--border);">
+            <th style="padding:6px 4px;text-align:left;">レベル</th>
+            <th style="padding:6px 4px;text-align:center;">軽作業</th>
+            <th style="padding:6px 4px;text-align:center;">中程度</th>
+            <th style="padding:6px 4px;text-align:center;">重作業</th>
+            <th style="padding:6px 4px;text-align:center;">激しい</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:6px 4px;color:#22c55e;font-weight:700;">✅ 安全</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">&lt;28°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">&lt;26°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">&lt;24°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">&lt;23°</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:6px 4px;color:#eab308;font-weight:700;">⚠️ 注意</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">28〜30°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">26〜28°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">24〜26°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">23〜25°</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:6px 4px;color:#f97316;font-weight:700;">🔶 警戒</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">30〜31°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">28〜30°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">26〜28°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">25〜27°</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:6px 4px;color:#ef4444;font-weight:700;">🚨 厳重警戒</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">31〜34°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">30〜33°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">28〜31°</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">27〜30°</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 4px;color:#dc2626;font-weight:700;">🛑 危険</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">34°〜</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">33°〜</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">31°〜</td>
+            <td style="padding:6px 4px;text-align:center;color:var(--text2);">30°〜</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:0.6rem;color:var(--muted);margin-top:8px;">※ 厚生労働省「職場における熱中症予防対策マニュアル」を参考に作成</div>
+  </div>
+
+  <!-- 注意書き -->
+  <div class="notice">
+    <strong>⚠️ 重要なお知らせ</strong><br>
+    本ツールの数値は気象データからの<strong>概算値</strong>です。
+    実際の作業環境の暑さ指数（WBGT）は、<strong>必ず計測器で確認</strong>してください。
+    風・輻射熱・作業服の素材・個人差により実際のリスクは大きく異なります。
+    本ツールは作業計画の参考情報としてご活用ください。
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ======= 都道府県リスト =======
+const PREFECTURES = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+
+// ======= 市区町村データ（主要都市） =======
+const CITIES = {
+  '北海道': [['札幌市',43.062,141.354],['函館市',41.769,140.729],['旭川市',43.771,142.365],['釧路市',42.985,144.382],['帯広市',42.924,143.196],['北見市',43.803,143.890],['小樽市',43.191,140.995],['苫小牧市',42.635,141.605]],
+  '青森県': [['青森市',40.824,140.740],['弘前市',40.603,140.464],['八戸市',40.512,141.488],['十和田市',40.613,141.207]],
+  '岩手県': [['盛岡市',39.703,141.154],['花巻市',39.389,141.117],['北上市',39.269,141.118],['一関市',38.934,141.127]],
+  '宮城県': [['仙台市青葉区',38.269,140.869],['仙台市宮城野区',38.261,140.921],['仙台市若林区',38.236,140.900],['仙台市太白区',38.208,140.867],['仙台市泉区',38.320,140.881],['石巻市',38.434,141.303],['塩竈市',38.314,141.022],['大崎市',38.574,140.955],['登米市',38.692,141.197]],
+  '秋田県': [['秋田市',39.718,140.102],['横手市',39.310,140.565],['大仙市',39.458,140.475],['能代市',40.212,140.024]],
+  '山形県': [['山形市',38.240,140.363],['鶴岡市',38.734,139.826],['酒田市',38.914,139.836],['上山市',38.149,140.268]],
+  '福島県': [['福島市',37.760,140.474],['郡山市',37.400,140.368],['いわき市',37.050,140.888],['会津若松市',37.494,139.930]],
+  '茨城県': [['水戸市',36.366,140.471],['つくば市',36.082,140.112],['日立市',36.599,140.652],['土浦市',36.078,140.204],['古河市',36.193,139.707]],
+  '栃木県': [['宇都宮市',36.555,139.883],['足利市',36.340,139.451],['栃木市',36.389,139.727],['小山市',36.315,139.800]],
+  '群馬県': [['前橋市',36.391,139.061],['高崎市',36.323,139.001],['桐生市',36.411,139.377],['太田市',36.292,139.375]],
+  '埼玉県': [['さいたま市',35.861,139.645],['川越市',35.925,139.485],['熊谷市',36.147,139.389],['川口市',35.807,139.724],['越谷市',35.891,139.791]],
+  '千葉県': [['千葉市',35.608,140.123],['船橋市',35.694,139.983],['市川市',35.721,139.931],['松戸市',35.787,139.903],['柏市',35.868,139.975]],
+  '東京都': [['千代田区',35.694,139.753],['新宿区',35.693,139.703],['渋谷区',35.661,139.698],['港区',35.658,139.751],['品川区',35.609,139.730],['江東区',35.672,139.817],['墨田区',35.710,139.801],['八王子市',35.667,139.316],['町田市',35.549,139.446]],
+  '神奈川県': [['横浜市',35.448,139.642],['川崎市',35.531,139.703],['相模原市',35.571,139.373],['横須賀市',35.281,139.672],['藤沢市',35.338,139.490],['平塚市',35.329,139.353]],
+  '新潟県': [['新潟市',37.916,139.036],['長岡市',37.448,138.851],['上越市',37.147,138.236],['三条市',37.636,138.958]],
+  '富山県': [['富山市',36.695,137.213],['高岡市',36.754,137.027],['射水市',36.700,137.091]],
+  '石川県': [['金沢市',36.561,136.656],['白山市',36.512,136.566],['小松市',36.406,136.450]],
+  '福井県': [['福井市',36.065,136.222],['敦賀市',35.645,136.056],['越前市',35.903,136.168]],
+  '山梨県': [['甲府市',35.664,138.568],['富士吉田市',35.487,138.808],['甲斐市',35.699,138.519]],
+  '長野県': [['長野市',36.648,138.194],['松本市',36.238,137.972],['上田市',36.402,138.249],['飯田市',35.515,137.822]],
+  '岐阜県': [['岐阜市',35.423,136.760],['大垣市',35.360,136.619],['高山市',36.146,137.252],['各務原市',35.398,136.849]],
+  '静岡県': [['静岡市',34.977,138.383],['浜松市',34.711,137.727],['沼津市',35.096,138.865],['富士市',35.162,138.677]],
+  '愛知県': [['名古屋市',35.181,136.907],['豊橋市',34.769,137.392],['岡崎市',34.948,137.174],['豊田市',35.084,137.156],['一宮市',35.304,136.801]],
+  '三重県': [['津市',34.730,136.509],['四日市市',34.965,136.624],['伊勢市',34.487,136.706],['松阪市',34.578,136.527]],
+  '滋賀県': [['大津市',35.004,135.869],['彦根市',35.274,136.262],['長浜市',35.381,136.268],['草津市',35.015,135.961]],
+  '京都府': [['京都市',35.021,135.754],['宇治市',34.888,135.799],['長岡京市',34.926,135.685],['舞鶴市',35.474,135.396]],
+  '大阪府': [['大阪市',34.694,135.502],['堺市',34.574,135.483],['東大阪市',34.680,135.601],['枚方市',34.815,135.652],['豊中市',34.781,135.469]],
+  '兵庫県': [['神戸市',34.691,135.183],['姫路市',34.816,134.686],['尼崎市',34.735,135.407],['西宮市',34.737,135.342],['明石市',34.645,134.997]],
+  '奈良県': [['奈良市',34.685,135.805],['橿原市',34.508,135.789],['生駒市',34.694,135.703]],
+  '和歌山県': [['和歌山市',34.226,135.168],['田辺市',33.733,135.375],['橋本市',34.310,135.611]],
+  '鳥取県': [['鳥取市',35.501,134.235],['米子市',35.428,133.330],['倉吉市',35.430,133.820]],
+  '島根県': [['松江市',35.468,133.050],['出雲市',35.367,132.755],['浜田市',34.899,132.082]],
+  '岡山県': [['岡山市',34.655,133.919],['倉敷市',34.585,133.772],['津山市',35.069,133.999]],
+  '広島県': [['広島市',34.396,132.460],['福山市',34.486,133.362],['呉市',34.249,132.566],['東広島市',34.426,132.744]],
+  '山口県': [['山口市',34.186,131.471],['下関市',33.950,130.920],['周南市',34.055,131.805]],
+  '徳島県': [['徳島市',34.070,134.555],['鳴門市',34.175,134.607],['阿南市',33.921,134.660]],
+  '香川県': [['高松市',34.340,134.043],['丸亀市',34.289,133.797],['坂出市',34.315,133.859]],
+  '愛媛県': [['松山市',33.839,132.766],['今治市',34.066,132.998],['新居浜市',33.960,133.284]],
+  '高知県': [['高知市',33.560,133.531],['南国市',33.585,133.647],['四万十市',32.991,132.934]],
+  '福岡県': [['福岡市',33.606,130.418],['北九州市',33.884,130.879],['久留米市',33.319,130.508],['飯塚市',33.646,130.691]],
+  '佐賀県': [['佐賀市',33.249,130.300],['唐津市',33.447,129.968],['鳥栖市',33.378,130.509]],
+  '長崎県': [['長崎市',32.750,129.877],['佐世保市',33.179,129.716],['諫早市',32.843,130.054]],
+  '熊本県': [['熊本市',32.790,130.742],['八代市',32.506,130.601],['天草市',32.459,130.198]],
+  '大分県': [['大分市',33.238,131.613],['別府市',33.284,131.491],['中津市',33.598,131.188]],
+  '宮崎県': [['宮崎市',31.911,131.424],['都城市',31.719,131.062],['延岡市',32.581,131.666]],
+  '鹿児島県': [['鹿児島市',31.560,130.558],['霧島市',31.740,130.763],['鹿屋市',31.379,130.852]],
+  '沖縄県': [['那覇市',26.212,127.681],['沖縄市',26.334,127.804],['うるま市',26.380,127.858],['宮古島市',24.805,125.281]],
+};
+
+// ======= 定数 =======
+const WORK_TYPES = {
+  light:   { label:'軽作業',     limits: { safe:28, caution:30, warn:31, danger:34 }, rest:'60分作業・15分休憩', water:'1時間あたり250ml' },
+  medium:  { label:'中程度',     limits: { safe:26, caution:28, warn:30, danger:33 }, rest:'45分作業・15分休憩', water:'1時間あたり500ml' },
+  heavy:   { label:'重作業',     limits: { safe:24, caution:26, warn:28, danger:31 }, rest:'30分作業・10分休憩', water:'1時間あたり500ml' },
+  intense: { label:'激しい作業', limits: { safe:23, caution:25, warn:27, danger:30 }, rest:'25分作業・10分休憩', water:'1時間あたり500ml以上' },
+};
+
+const PRESETS = [
+  { name:'青葉区', lat:38.269, lon:140.869 },
+  { name:'宮城野区', lat:38.261, lon:140.921 },
+  { name:'若林区', lat:38.236, lon:140.900 },
+  { name:'太白区', lat:38.208, lon:140.867 },
+  { name:'泉区', lat:38.320, lon:140.881 },
+  { name:'東京', lat:35.689, lon:139.692 },
+];
+
+let currentLat = null, currentLon = null, currentName = '';
+let currentWork = 'light';
+let chartInstance = null;
+let weekChartInstance = null;
+let lastData = null;
+let selectedDate = null;  // YYYY-MM-DD
+let citySearchTimer = null;
+
+// ======= WBGT計算 =======
+function calcWBGT(temp, humidity, windspeed, radiation) {
+  if (temp == null || humidity == null) return null;
+  const ws = windspeed || 0;
+  const sr = (radiation || 0) / 1000;
+  const wbgt = 0.735 * temp + 0.0374 * humidity
+    + 0.00292 * temp * humidity
+    + 7.619 * sr - 4.557 * sr * sr
+    - 0.0572 * ws - 4.064;
+  return Math.round(wbgt * 10) / 10;
+}
+
+// ======= リスクレベル =======
+function getRiskLevel(wbgt, workType) {
+  const lim = WORK_TYPES[workType].limits;
+  if (wbgt == null) return null;
+  if (wbgt < lim.safe)    return { level:'安全',     color:'#22c55e', bg:'rgba(34,197,94,0.12)',   text:'作業可能', emoji:'✅' };
+  if (wbgt < lim.caution) return { level:'注意',     color:'#eab308', bg:'rgba(234,179,8,0.12)',   text:'こまめに休憩', emoji:'⚠️' };
+  if (wbgt < lim.warn)    return { level:'警戒',     color:'#f97316', bg:'rgba(249,115,22,0.12)',  text:'休憩を増やす', emoji:'🔶' };
+  if (wbgt < lim.danger)  return { level:'厳重警戒', color:'#ef4444', bg:'rgba(239,68,68,0.12)',   text:'作業制限を検討', emoji:'🚨' };
+  return                         { level:'危険',     color:'#dc2626', bg:'rgba(220,38,38,0.18)',   text:'作業停止を検討', emoji:'🛑' };
+}
+
+// ======= 日の出/日の入り判定 =======
+function isNight(hour, sunriseStr, sunsetStr) {
+  if (!sunriseStr || !sunsetStr) return false;
+  const [srH] = sunriseStr.split(':').map(Number);
+  const [ssH] = sunsetStr.split(':').map(Number);
+  return hour < srH || hour >= ssH;
+}
+
+function getSunIcon(hour, sunriseStr, sunsetStr) {
+  if (!sunriseStr || !sunsetStr) return '☀️';
+  const [srH, srM] = sunriseStr.split(':').map(Number);
+  const [ssH, ssM] = sunsetStr.split(':').map(Number);
+  if (hour === srH) return '🌅';
+  if (hour === ssH) return '🌇';
+  if (isNight(hour, sunriseStr, sunsetStr)) return '🌙';
+  return '☀️';
+}
+
+// ======= 場所選択 =======
+function selectPreset(name, lat, lon) {
+  currentLat = lat; currentLon = lon; currentName = name;
+  document.getElementById('locationInfo').textContent = '📍 ' + name;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  fetchData();
+}
+
+async function useGPS() {
+  if (!navigator.geolocation) { showError('位置情報が使えません'); return; }
+  showLoading(true);
+  navigator.geolocation.getCurrentPosition(async pos => {
+    currentLat = pos.coords.latitude;
+    currentLon = pos.coords.longitude;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${currentLat}&lon=${currentLon}&format=json&accept-language=ja`);
+      const d = await res.json();
+      const a = d.address || {};
+      const parts = [a.state||'', a.city||a.town||'', a.suburb||a.neighbourhood||''].filter(Boolean);
+      currentName = parts.join(' ') || '現在地';
+    } catch(e) { currentName = '現在地'; }
+    document.getElementById('locationInfo').textContent = '📍 ' + currentName;
+    fetchData();
+  }, () => { showLoading(false); showError('位置情報の取得に失敗しました'); });
+}
+
+// ======= 作業種別選択 =======
+function selectWork(type) {
+  currentWork = type;
+  document.querySelectorAll('.work-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('work-' + type).classList.add('active');
+  if (lastData) renderView();
+}
+
+// ======= データ取得 =======
+async function fetchData() {
+  if (!currentLat) return;
+  showLoading(true);
+  showError('');
+  try {
+    const [resHourly, resDaily] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&hourly=temperature_2m,weathercode,relativehumidity_2m,windspeed_10m,shortwave_radiation&timezone=Asia%2FTokyo&forecast_days=7&past_days=0`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&daily=sunrise,sunset&timezone=Asia%2FTokyo&forecast_days=7`)
+    ]);
+    const data = await resHourly.json();
+    const dataDaily = await resDaily.json();
+    if (!data.hourly) throw new Error('データ取得失敗');
+    data.daily = dataDaily.daily || {};
+    lastData = data;
+    renderView();
+  } catch(e) {
+    showLoading(false);
+    showError('気象データの取得に失敗しました。しばらくしてから再試行してください。');
+  }
+}
+
+// ======= 描画 =======
+function renderView() {
+  showLoading(false);
+  const { time: times, temperature_2m: temps, weathercode: codes,
+          relativehumidity_2m: hums, windspeed_10m: winds, shortwave_radiation: rads } = lastData.hourly;
+  const sunrises = (lastData.daily && lastData.daily.sunrise) ? lastData.daily.sunrise : [];
+  const sunsets  = (lastData.daily && lastData.daily.sunset)  ? lastData.daily.sunset  : [];
+
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const targetStr = selectedDate || `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+
+  // 選択日の6〜20時のインデックスを取得
+  const slots = [];
+  times.forEach((t, i) => {
+    if (!t.startsWith(targetStr)) return;
+    const h = new Date(t).getHours();
+    if (h < 6 || h > 20) return;
+    const wbgt = calcWBGT(temps[i], hums ? hums[i] : null, winds ? winds[i] : null, rads ? rads[i] : null);
+    const risk = getRiskLevel(wbgt, currentWork);
+    const dateStr = t.substring(0,10);
+    const srIdx = sunrises.findIndex(s => s && s.startsWith(dateStr));
+    const ssIdx = sunsets.findIndex(s => s && s.startsWith(dateStr));
+    const srStr = srIdx >= 0 ? sunrises[srIdx].substring(11,16) : null;
+    const ssStr = ssIdx >= 0 ? sunsets[ssIdx].substring(11,16)  : null;
+    const isToday = targetStr === todayStr;
+    slots.push({ hour: h, temp: temps[i], wbgt, risk, code: codes[i], srStr, ssStr, isNow: isToday && h === now.getHours() });
+  });
+
+  if (slots.length === 0) { showError('本日のデータがありません'); return; }
+
+  renderSummary(slots);
+  renderTimeline(slots);
+  renderChart(slots);
+  renderGuide(slots);
+
+  document.getElementById('summaryCard').classList.remove('hidden');
+  document.getElementById('timelineCard').classList.remove('hidden');
+  document.getElementById('graphCard').classList.remove('hidden');
+  document.getElementById('guideCard').classList.remove('hidden');
+
+  renderWeekChart(times, temps, hums, winds, rads);
+  document.getElementById('weekCard').classList.remove('hidden');
+}
+
+// ======= 総合判定 =======
+function renderSummary(slots) {
+  const wt = WORK_TYPES[currentWork];
+  const wbgts = slots.map(s => s.wbgt).filter(w => w !== null);
+  const maxWbgt = Math.max(...wbgts);
+  const minWbgt = Math.min(...wbgts);
+  const peakSlot = slots.find(s => s.wbgt === maxWbgt);
+  const risk = getRiskLevel(maxWbgt, currentWork);
+  const dangerSlots = slots.filter(s => {
+    const r = getRiskLevel(s.wbgt, currentWork);
+    return r && (r.level === '厳重警戒' || r.level === '危険');
+  });
+
+  const card = document.getElementById('summaryCard');
+  card.style.background = risk.bg;
+  card.style.borderColor = risk.color;
+
+  let dangerTxt = dangerSlots.length > 0
+    ? `<strong style="color:${risk.color}">${dangerSlots.map(s=>`${s.hour}時`).join('・')}</strong>は${dangerSlots[0].risk.level}レベル。`
+    : '本日は危険・厳重警戒レベルの時間帯はありません。';
+
+  card.innerHTML = `
+    <div class="summary-level" style="color:${risk.color}">${risk.emoji} 最大リスク：${risk.level}</div>
+    <div class="summary-desc">
+      ${dangerTxt}<br>
+      WBGT最高 <strong style="color:${risk.color}">${maxWbgt}°C</strong>（${peakSlot.hour}時頃）、最低 <strong>${minWbgt}°C</strong>。
+    </div>
+    <div class="summary-meta">
+      <div class="summary-chip">🦺 ${wt.label}</div>
+      <div class="summary-chip">⏱️ ${wt.rest}</div>
+      <div class="summary-chip">💧 ${wt.water}</div>
+    </div>
+  `;
+}
+
+// ======= タイムライン =======
+function renderTimeline(slots) {
+  const row = document.getElementById('timelineRow');
+  row.innerHTML = '';
+  slots.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'tl-item' + (s.isNow ? ' now' : '');
+
+    const sunIcon = getSunIcon(s.hour, s.srStr, s.ssStr);
+    const wbgtTxt = s.wbgt !== null ? s.wbgt : '--';
+    const riskColor = s.risk ? s.risk.color : '#445566';
+    const riskBg    = s.risk ? s.risk.bg    : 'transparent';
+    const riskLv    = s.risk ? s.risk.level : '--';
+    const wIcon     = weatherIcon(s.code);
+
+    div.style.borderColor = s.risk ? s.risk.color + '66' : 'var(--border)';
+
+    div.innerHTML = `
+      ${s.isNow ? '<div class="tl-now-badge">NOW</div>' : ''}
+      <div class="tl-time">${String(s.hour).padStart(2,'0')}:00</div>
+      <div class="tl-sun">${sunIcon}</div>
+      <div class="tl-icon">${wIcon}</div>
+      <div class="tl-wbgt" style="color:${riskColor}">${wbgtTxt}</div>
+      <div class="tl-risk" style="color:${riskColor};background:${riskBg}">${riskLv}</div>
+    `;
+    row.appendChild(div);
+  });
+}
+
+// ======= グラフ =======
+function renderChart(slots) {
+  const labels = slots.map(s => `${s.hour}時`);
+  const wbgts  = slots.map(s => s.wbgt);
+  const colors = slots.map(s => s.risk ? s.risk.color : '#445566');
+  const wt = WORK_TYPES[currentWork].limits;
+
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById('wbgtChart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'WBGT',
+        data: wbgts,
+        borderColor: '#00d4ff',
+        backgroundColor: 'rgba(0,212,255,0.06)',
+        borderWidth: 2,
+        pointBackgroundColor: colors,
+        pointBorderColor: colors,
+        pointRadius: 5,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        annotation: {},
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a9bb5', font: { size: 9 }, maxRotation: 0 } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#7a9bb5', font: { size: 9 }, callback: v => v + '°' },
+          min: Math.min(...wbgts.filter(w=>w!==null)) - 3,
+        }
+      }
+    },
+    plugins: [{
+      id: 'riskLines',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales: { y } } = chart;
+        if (!y) return;
+        const lines = [
+          { val: wt.safe,    color: '#22c55e', label: '安全' },
+          { val: wt.caution, color: '#eab308', label: '注意' },
+          { val: wt.warn,    color: '#f97316', label: '警戒' },
+          { val: wt.danger,  color: '#ef4444', label: '厳重警戒' },
+        ];
+        ctx.save();
+        lines.forEach(l => {
+          if (l.val < y.min || l.val > y.max) return;
+          const yPx = y.getPixelForValue(l.val);
+          ctx.strokeStyle = l.color + '66';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, yPx);
+          ctx.lineTo(chartArea.right, yPx);
+          ctx.stroke();
+          ctx.fillStyle = l.color;
+          ctx.font = '9px Noto Sans JP';
+          ctx.textAlign = 'right';
+          ctx.fillText(l.label, chartArea.right - 2, yPx - 3);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// ======= 作業ガイド =======
+function renderGuide(slots) {
+  const wt = WORK_TYPES[currentWork];
+  const list = document.getElementById('guideList');
+  list.innerHTML = '';
+
+  // 連続した同じリスクレベルをグループ化
+  const groups = [];
+  let cur = null;
+  slots.forEach(s => {
+    const lv = s.risk ? s.risk.level : '--';
+    if (!cur || cur.level !== lv) {
+      cur = { level: lv, color: s.risk ? s.risk.color : '#445566', bg: s.risk ? s.risk.bg : 'transparent',
+              emoji: s.risk ? s.risk.emoji : '', text: s.risk ? s.risk.text : '', start: s.hour, end: s.hour };
+      groups.push(cur);
+    } else {
+      cur.end = s.hour;
+    }
+  });
+
+  groups.forEach(g => {
+    const timeStr = g.start === g.end ? `${g.start}時` : `${g.start}時〜${g.end}時`;
+    const div = document.createElement('div');
+    div.className = 'guide-item';
+    div.style.borderLeftColor = g.color;
+    div.style.background = g.bg;
+
+    let msg = `${g.emoji} <strong style="color:${g.color}">${g.level}</strong>：${g.text}`;
+    if (g.level === '安全') {
+      msg += `。${wt.rest}を目安に。`;
+    } else if (g.level === '注意') {
+      msg += `。${wt.rest}を守り、${wt.water}補給。`;
+    } else if (g.level === '警戒') {
+      msg += `。休憩を増やし、作業強度を下げることを検討。`;
+    } else if (g.level === '厳重警戒' || g.level === '危険') {
+      msg += `。<strong>作業停止・屋内退避を強く推奨。</strong>`;
+    }
+
+    div.innerHTML = `<div class="g-time">${timeStr}</div><div class="g-msg">${msg}</div>`;
+    list.appendChild(div);
+  });
+}
+
+// ======= 週間グラフ =======
+function renderWeekChart(times, temps, hums, winds, rads) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+
+  const weekData = [];
+  for (let d = 0; d < 7; d++) {
+    const dt = new Date(now);
+    dt.setDate(now.getDate() + d);
+    const dateStr = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+    const dayNames = ['日','月','火','水','木','金','土'];
+    const label = d === 0 ? '今日' : `${dt.getMonth()+1}/${dt.getDate()}(${dayNames[dt.getDay()]})`;
+
+    let maxWbgt = null;
+    times.forEach((t, i) => {
+      if (!t.startsWith(dateStr)) return;
+      const h = new Date(t).getHours();
+      if (h < 6 || h > 20) return;
+      const w = calcWBGT(temps[i], hums?.[i], winds?.[i], rads?.[i]);
+      if (w !== null && (maxWbgt === null || w > maxWbgt)) maxWbgt = w;
+    });
+    weekData.push({ label, maxWbgt, dateStr });
+  }
+
+  const labels = weekData.map(d => d.label);
+  const values = weekData.map(d => d.maxWbgt);
+  const colors = weekData.map(d => {
+    const r = getRiskLevel(d.maxWbgt, currentWork);
+    return r ? r.color : '#445566';
+  });
+  const wt = WORK_TYPES[currentWork].limits;
+
+  if (weekChartInstance) weekChartInstance.destroy();
+  const ctx = document.getElementById('weekChart').getContext('2d');
+  weekChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'WBGT最大値',
+        data: values,
+        backgroundColor: colors.map(c => c + '99'),
+        borderColor: colors,
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a9bb5', font: { size: 9 } } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#7a9bb5', font: { size: 9 }, callback: v => v + '°' },
+          min: Math.max(0, Math.min(...values.filter(v=>v!==null)) - 3),
+        }
+      }
+    },
+    plugins: [{
+      id: 'weekRiskLines',
+      beforeDraw(chart) {
+        const { ctx, chartArea, scales: { y } } = chart;
+        if (!y) return;
+        const lines = [
+          { val: wt.safe,    color: '#22c55e', label: '安全' },
+          { val: wt.caution, color: '#eab308', label: '注意' },
+          { val: wt.warn,    color: '#f97316', label: '警戒' },
+          { val: wt.danger,  color: '#ef4444', label: '厳重警戒' },
+        ];
+        ctx.save();
+        lines.forEach(l => {
+          if (l.val < y.min || l.val > y.max) return;
+          const yPx = y.getPixelForValue(l.val);
+          ctx.strokeStyle = l.color + '55';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, yPx);
+          ctx.lineTo(chartArea.right, yPx);
+          ctx.stroke();
+          ctx.fillStyle = l.color;
+          ctx.font = '9px Noto Sans JP';
+          ctx.textAlign = 'right';
+          ctx.fillText(l.label, chartArea.right - 2, yPx - 3);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// ======= 天気アイコン =======
+function weatherIcon(code) {
+  if (code == null) return '—';
+  if (code === 0) return '☀️';
+  if (code <= 2)  return '🌤️';
+  if (code <= 3)  return '☁️';
+  if (code <= 49) return '🌫️';
+  if (code <= 59) return '🌦️';
+  if (code <= 69) return '🌧️';
+  if (code <= 79) return '❄️';
+  if (code <= 84) return '🌧️';
+  if (code <= 94) return '⛈️';
+  return '🌩️';
+}
+
+// ======= UI =======
+function showLoading(show) {
+  document.getElementById('loadingMsg').classList.toggle('hidden', !show);
+}
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.toggle('hidden', !msg);
+}
+
+// ======= 都道府県セレクト初期化 =======
+function initPrefSelect() {
+  const sel = document.getElementById('prefSelect');
+  PREFECTURES.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    sel.appendChild(opt);
+  });
+}
+
+function onPrefChange() {
+  const pref = document.getElementById('prefSelect').value;
+  const sel = document.getElementById('citySelect');
+  currentLat = null; currentLon = null;
+  document.getElementById('locationInfo').textContent = '';
+  if (!pref || !CITIES[pref]) {
+    sel.innerHTML = '<option value="">── 都道府県を先に選択 ──</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.innerHTML = '<option value="">市区町村を選択</option>';
+  CITIES[pref].forEach(([name, lat, lon]) => {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({ lat, lon, name });
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  sel.disabled = false;
+}
+
+function onCitySelect() {
+  const val = document.getElementById('citySelect').value;
+  if (!val) return;
+  const { lat, lon, name } = JSON.parse(val);
+  currentLat = lat; currentLon = lon; currentName = name;
+  document.getElementById('locationInfo').textContent = '📍 ' + name;
+  if (selectedDate) fetchData();
+}
+
+// ======= 日付ボタン初期化 =======
+function initDateBtns() {
+  const container = document.getElementById('dateBtns');
+  container.innerHTML = '';
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    const dateStr = `${y}-${m}-${day}`;
+    const dayNames = ['日','月','火','水','木','金','土'];
+    const dayName = dayNames[d.getDay()];
+    const btn = document.createElement('button');
+    btn.className = 'date-btn' + (i === 0 ? ' active' : '');
+    btn.dataset.date = dateStr;
+    btn.innerHTML = i === 0 ? `今日<br>${m}/${day}` : `${dayName}<br>${m}/${day}`;
+    btn.onclick = () => {
+      document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedDate = dateStr;
+      if (currentLat) fetchData();
+    };
+    if (i === 0) selectedDate = dateStr;
+    container.appendChild(btn);
+  }
+}
+
+// ======= 初期表示 =======
+window.onload = () => {
+  initPrefSelect();
+  initDateBtns();
+};
+</script>
+</body>
+</html>
