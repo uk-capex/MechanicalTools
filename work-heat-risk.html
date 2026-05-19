@@ -360,6 +360,34 @@ body {
   padding: 1px 4px;
   white-space: nowrap;
 }
+
+  /* ── PC表示：フォントサイズ拡大 ── */
+  @media (min-width: 640px) {
+    body { font-size: 18px; }
+    .wrap { padding: 20px 32px; }
+    .card { border-radius: 14px; padding: 20px; }
+    .card-title { font-size: 1.05rem; margin-bottom: 14px; }
+    .summary-level { font-size: 1.6rem; }
+    .summary-desc { font-size: 1rem; line-height: 1.8; }
+    .summary-chip { font-size: 0.95rem; padding: 6px 14px; }
+    .tl-item { width: 96px; padding: 12px 6px; border-radius: 12px; }
+    .tl-time { font-size: 0.82rem; }
+    .tl-sun  { font-size: 0.85rem; }
+    .tl-icon { font-size: 1.3rem; }
+    .tl-wbgt { font-size: 1.15rem; }
+    .tl-risk { font-size: 0.72rem; padding: 3px 6px; }
+    .tl-meta { font-size: 0.68rem; margin-top: 6px; }
+    .tl-now-badge { font-size: 0.6rem; padding: 2px 7px; }
+    .work-btn { padding: 14px 10px; border-radius: 12px; }
+    .work-icon  { font-size: 1.6rem; }
+    .work-label { font-size: 1rem; }
+    .work-desc  { font-size: 0.8rem; }
+    .guide-item { font-size: 0.95rem; padding: 12px 14px; }
+    .notice { font-size: 0.9rem; padding: 18px; }
+    select { font-size: 0.95rem; padding: 10px 14px; }
+    .gps-btn { font-size: 0.95rem; padding: 12px; }
+    .chart-wrap { height: 240px; }
+  }
 </style>
 </head>
 <body>
@@ -775,13 +803,25 @@ function renderSummary(slots) {
     return r && (r.level === '厳重警戒' || r.level === '危険');
   });
 
+  // 日付ラベル生成：今日なら「本日」、それ以外は「5/19(月)」形式
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const days = ['日','月','火','水','木','金','土'];
+  let dateLbl;
+  if (!selectedDate || selectedDate === todayStr) {
+    dateLbl = '本日';
+  } else {
+    const d = new Date(selectedDate);
+    dateLbl = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+  }
+
   const card = document.getElementById('summaryCard');
   card.style.background = risk.bg;
   card.style.borderColor = risk.color;
 
   let dangerTxt = dangerSlots.length > 0
     ? `<strong style="color:${risk.color}">${dangerSlots.map(s=>`${s.hour}時`).join('・')}</strong>は${dangerSlots[0].risk.level}レベル。`
-    : '本日は危険・厳重警戒レベルの時間帯はありません。';
+    : `${dateLbl}の【${currentName}】は危険・厳重警戒レベルの時間帯はありません。`;
 
   card.innerHTML = `
     <div class="summary-level" style="color:${risk.color}">${risk.emoji} 最大リスク：${risk.level}</div>
@@ -841,6 +881,11 @@ function renderChart(slots) {
   const colors = slots.map(s => s.risk ? s.risk.color : '#445566');
   const wt = WORK_TYPES[currentWork].limits;
 
+  const isPC = window.innerWidth >= 640;
+  const axisFontSize   = isPC ? 13 : 9;
+  const legendFontSize = isPC ? 14 : 10;
+  const riskLineFontSize = isPC ? '13px' : '9px';
+
   if (chartInstance) chartInstance.destroy();
   const ctx = document.getElementById('wbgtChart').getContext('2d');
   chartInstance = new Chart(ctx, {
@@ -853,10 +898,10 @@ function renderChart(slots) {
           data: wbgts,
           borderColor: '#00d4ff',
           backgroundColor: 'rgba(0,212,255,0.06)',
-          borderWidth: 2,
+          borderWidth: isPC ? 3 : 2,
           pointBackgroundColor: colors,
           pointBorderColor: colors,
-          pointRadius: 5,
+          pointRadius: isPC ? 7 : 5,
           tension: 0.4,
           fill: true,
           yAxisID: 'y',
@@ -866,12 +911,12 @@ function renderChart(slots) {
           data: temps,
           borderColor: '#f97316',
           backgroundColor: 'transparent',
-          borderWidth: 1.5,
+          borderWidth: isPC ? 2 : 1.5,
           borderDash: [6, 3],
           pointBackgroundColor: 'transparent',
           pointBorderColor: '#f97316',
-          pointRadius: 4,
-          pointBorderWidth: 1.5,
+          pointRadius: isPC ? 6 : 4,
+          pointBorderWidth: isPC ? 2 : 1.5,
           tension: 0.4,
           fill: false,
           yAxisID: 'y',
@@ -881,12 +926,12 @@ function renderChart(slots) {
           data: hums,
           borderColor: '#818cf8',
           backgroundColor: 'transparent',
-          borderWidth: 1.5,
+          borderWidth: isPC ? 2 : 1.5,
           borderDash: [2, 3],
           pointBackgroundColor: 'transparent',
           pointBorderColor: '#818cf8',
-          pointRadius: 3,
-          pointBorderWidth: 1.5,
+          pointRadius: isPC ? 5 : 3,
+          pointBorderWidth: isPC ? 2 : 1.5,
           tension: 0.4,
           fill: false,
           yAxisID: 'y2',
@@ -904,15 +949,15 @@ function renderChart(slots) {
           align: 'end',
           labels: {
             color: '#7a9bb5',
-            font: { size: 10 },
-            boxWidth: 16,
-            boxHeight: 2,
-            padding: 12,
+            font: { size: legendFontSize },
+            boxWidth: isPC ? 24 : 16,
+            boxHeight: isPC ? 3 : 2,
+            padding: isPC ? 16 : 12,
             usePointStyle: false,
             generateLabels: chart => [
-              { text: 'WBGT',  fillStyle: '#00d4ff', strokeStyle: '#00d4ff', lineWidth: 2, hidden: false, datasetIndex: 0 },
-              { text: '気温',  fillStyle: '#f97316', strokeStyle: '#f97316', lineWidth: 2, hidden: false, datasetIndex: 1 },
-              { text: '湿度',  fillStyle: '#818cf8', strokeStyle: '#818cf8', lineWidth: 2, hidden: false, datasetIndex: 2 },
+              { text: 'WBGT',  fillStyle: '#00d4ff', strokeStyle: '#00d4ff', fontColor: '#7a9bb5', lineWidth: 2, hidden: false, datasetIndex: 0 },
+              { text: '気温',  fillStyle: '#f97316', strokeStyle: '#f97316', fontColor: '#7a9bb5', lineWidth: 2, hidden: false, datasetIndex: 1 },
+              { text: '湿度',  fillStyle: '#818cf8', strokeStyle: '#818cf8', fontColor: '#7a9bb5', lineWidth: 2, hidden: false, datasetIndex: 2 },
             ],
           },
         },
@@ -923,7 +968,9 @@ function renderChart(slots) {
           borderWidth: 1,
           titleColor: '#7a9bb5',
           bodyColor: '#dce8f0',
-          padding: 10,
+          padding: isPC ? 14 : 10,
+          titleFont: { size: isPC ? 14 : 11 },
+          bodyFont:  { size: isPC ? 13 : 11 },
           callbacks: {
             title: items => items[0].label,
             beforeBody: () => '',
@@ -943,17 +990,17 @@ function renderChart(slots) {
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a9bb5', font: { size: 9 }, maxRotation: 0 } },
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a9bb5', font: { size: axisFontSize }, maxRotation: 0 } },
         y: {
           position: 'left',
           grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#7a9bb5', font: { size: 9 }, callback: v => v + '℃' },
+          ticks: { color: '#7a9bb5', font: { size: axisFontSize }, callback: v => v + '℃' },
           min: Math.min(...wbgts.filter(w=>w!==null)) - 3,
         },
         y2: {
           position: 'right',
           grid: { drawOnChartArea: false },
-          ticks: { color: '#818cf8', font: { size: 9 }, callback: v => v + '%' },
+          ticks: { color: '#818cf8', font: { size: axisFontSize }, callback: v => v + '%' },
           min: 0,
           max: 100,
         },
@@ -982,7 +1029,7 @@ function renderChart(slots) {
           ctx.lineTo(chartArea.right, yPx);
           ctx.stroke();
           ctx.fillStyle = l.color;
-          ctx.font = '9px Noto Sans JP';
+          ctx.font = riskLineFontSize + ' Noto Sans JP';
           ctx.textAlign = 'right';
           ctx.fillText(l.label, chartArea.right - 2, yPx - 3);
         });
