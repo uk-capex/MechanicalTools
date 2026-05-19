@@ -396,7 +396,7 @@ body {
   <div class="header-inner">
     <span class="header-badge">WBGT</span>
     <h1>屋外作業 熱中症リスクチェッカー</h1>
-    <span id="verBadge" style="margin-left:auto;font-size:0.6rem;font-family:'Share Tech Mono',monospace;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0;"></span>
+    <a href="index.html" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);text-decoration:none;white-space:nowrap;flex-shrink:0;transition:color .2s;" onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='var(--text2)'">← HOME</a>
   </div>
 </div>
 
@@ -1270,7 +1270,7 @@ function initDateBtns() {
 
 // ======= 初期表示 =======
 window.onload = () => {
-  document.getElementById('verBadge').textContent = 'ver.' + VERSION;
+  const vb = document.getElementById('verBadge'); if (vb) vb.textContent = 'ver.' + VERSION;
   initPrefSelect();
   initDateBtns();
 
