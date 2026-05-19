@@ -285,6 +285,10 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 14px;
       }
+      /* 5枚目（土浦）を中央に */
+      .main-card:last-child:nth-child(3n+2) {
+        grid-column: 2 / 3;
+      }
       .main-card {
         flex-direction: column;
       }
@@ -386,16 +390,28 @@
         <span class="main-card-cta cta-elec">→</span>
       </a>
 
-      <!-- 熱中症リスクチェッカー -->
+      <!-- 熱中症リスクチェッカー（村田） -->
       <a href="work-heat-risk.html" class="main-card card-heat">
         <div class="main-card-body">
           <div class="main-card-icon">🌡️</div>
           <div class="main-card-text">
-            <h2 class="main-card-title">屋外作業 熱中症リスクチェッカー</h2>
+            <h2 class="main-card-title">熱中症リスクチェッカー<br><span style="font-size:11px;font-weight:400;color:#f97316;">（東北特殊鋼_村田）</span></h2>
             <p class="main-card-desc">WBGT指数・作業種別・時間帯別リスク判定</p>
           </div>
         </div>
         <span class="main-card-cta cta-heat">→</span>
+      </a>
+
+      <!-- 熱中症リスクチェッカー（土浦） -->
+      <a href="Work_heat_risk_thk_tsune.html" class="main-card card-heat">
+        <div class="main-card-body">
+          <div class="main-card-icon">🌡️</div>
+          <div class="main-card-text">
+            <h2 class="main-card-title">熱中症リスクチェッカー<br><span style="font-size:11px;font-weight:400;color:#f97316;">（東北特殊鋼_土浦）</span></h2>
+            <p class="main-card-desc">WBGT指数・作業種別・時間帯別リスク判定</p>
+          </div>
+        </div>
+        <span class="main-card-cta ctu-heat">→</span>
       </a>
 
     </div>
