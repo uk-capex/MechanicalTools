@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.56 | 20260429 | Mechanical Tools | uk |-->
+    <!-- build: 1.57 | 20260527 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -2290,6 +2290,13 @@
         >
           ⚙️ テーパーころ寿命
         </button>
+        <button
+          class="stab-btn"
+          id="btab-ndldb"
+          onclick="showBearingTab('bndldb', this)"
+        >
+          🪡 ニードルころ型式
+        </button>
       </div>
 
       <!-- ── サブタブ: 検索 ── -->
@@ -3690,6 +3697,96 @@
         </div>
       </div>
       <!-- /stab-btplife -->
+
+      <!-- ── サブタブ: ニードルころ型式DB ── -->
+      <div id="stab-bndldb" class="stab-content">
+        <div class="two-panel">
+          <div class="panel-left">
+            <div class="section-title">型式検索</div>
+            <div class="field">
+              <label>型式（例: NA4908, HK2016, SL4-5008）</label>
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="ndl-query" placeholder="型式を入力..."
+                  oninput="filterNeedle()" style="text-transform:uppercase;">
+              </div>
+              <div class="bearing-result-info" id="ndl-hit-info"></div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>内径 d (mm)</label>
+                <input type="number" id="ndl-bore" placeholder="例: 40" oninput="filterNeedle()">
+              </div>
+              <div class="field">
+                <label>外径 D (mm)</label>
+                <input type="number" id="ndl-od" placeholder="例: 68" oninput="filterNeedle()">
+              </div>
+            </div>
+            <div class="field">
+              <label>系列</label>
+              <select id="ndl-series" onchange="filterNeedle()">
+                <option value="all">すべて</option>
+                <option value="NA">NA系（フランジ付・内輪あり）</option>
+                <option value="RNA">RNA系（フランジ付・内輪なし）</option>
+                <option value="HK">HK系（シェル型・底なし）</option>
+                <option value="BK">BK系（シェル型・底付き）</option>
+                <option value="SL">SL系（複列・内輪あり）</option>
+                <option value="NKI">NKI系（内輪付・止め輪溝なし）</option>
+              </select>
+            </div>
+            <hr class="divider">
+            <div class="memo" style="font-size:11px;">
+              <b>型式の読み方</b><br>
+              <b style="color:var(--accent);">NA4908</b>　→　NA49 + 08(内径40mm)<br>
+              <b style="color:var(--accent);">RNA4908</b>　→　内輪なし版<br>
+              <b style="color:var(--accent);">HK2016</b>　→　内径20mm・幅16mm<br>
+              <b style="color:var(--accent);">SL4-5008NR</b>　→　複列・5008・止め輪溝付<br><br>
+              <b>サフィックス</b><br>
+              <b>NR</b>：止め輪溝付き<br>
+              <b>ZW</b>：複列<br>
+              <b>RS</b>：接触シール<br>
+              <b>ZZ</b>：シールド<br><br>
+              <b style="color:var(--warn);">内輪なし（RNA/HK/BK）</b>は<br>
+              軸面をそのまま軌道面として使用。<br>
+              軸硬さ HRC58以上・Ra0.2以下推奨。<br><br>
+              クリックで寿命計算タブに初期値をセット
+            </div>
+          </div>
+          <div class="panel-right">
+            <div class="data-table-wrap" style="overflow-x:auto;">
+              <table style="min-width:640px;">
+                <thead>
+                  <tr>
+                    <th>型式</th>
+                    <th>系列</th>
+                    <th>d<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
+                    <th>D<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
+                    <th>B<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
+                    <th>Cr<br><span style="font-weight:400;font-size:10px;">(kN)</span></th>
+                    <th>C0r<br><span style="font-weight:400;font-size:10px;">(kN)</span></th>
+                    <th>限界回転<br><span style="font-weight:400;font-size:10px;">(rpm)</span></th>
+                    <th>質量<br><span style="font-weight:400;font-size:10px;">(kg)</span></th>
+                    <th>備考</th>
+                  </tr>
+                </thead>
+                <tbody id="ndl-tbody">
+                  <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px;">
+                    型式または内径を入力してください
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top:10px;padding:10px;background:var(--surface);border-radius:6px;font-size:12px;color:var(--muted);line-height:1.8;">
+              <b>ニードルベアリングの特徴</b><br>
+              <b>高ラジアル剛性</b>：ころが長く断面が薄いため、同じ外径で高い負荷容量<br>
+              <b>アキシャル荷重不可</b>：ラジアル専用。アキシャルは別途スラスト軸受で受ける<br>
+              <b>内輪なし型（RNA/HK/BK）</b>：軸を直接軌道として使用。軸硬度・粗さが性能に直結<br>
+              <b>複列型（SL）</b>：モーメント荷重に強い。コンロッド・クランク等に多用
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /stab-bndldb -->
     </div>
     <!-- /tab-bearing -->
     <div id="tab-snap" class="tab-content">
@@ -19023,6 +19120,185 @@
 
       let filteredTapers = [];
       let selectedTaper = null;
+
+      // ════════════════════════════════════════════════════
+      // 🪡 ニードルころ型式DB
+      // [型式, 系列, d, D, B, Cr(kN), C0r(kN), 限界rpm, 質量(kg), 備考]
+      // ════════════════════════════════════════════════════
+      const NEEDLE_DB = [
+        // ── NA49系（フランジ付・内輪あり） ──
+        ['NA4900', 'NA', 10, 22, 13,  6.55,  5.85, 16000, 0.025, ''],
+        ['NA4901', 'NA', 12, 24, 13,  7.35,  6.60, 14000, 0.028, ''],
+        ['NA4902', 'NA', 15, 28, 13,  8.80,  8.15, 12000, 0.033, ''],
+        ['NA4903', 'NA', 17, 30, 13,  9.55,  9.15, 11000, 0.038, ''],
+        ['NA4904', 'NA', 20, 37, 17, 15.9,  15.3,  9000, 0.075, ''],
+        ['NA4905', 'NA', 25, 42, 17, 18.0,  17.6,  8000, 0.088, ''],
+        ['NA4906', 'NA', 30, 47, 17, 20.0,  20.0,  7000, 0.102, ''],
+        ['NA4907', 'NA', 35, 55, 20, 28.0,  28.5,  6000, 0.165, ''],
+        ['NA4908', 'NA', 40, 62, 22, 34.5,  36.5,  5500, 0.228, ''],
+        ['NA4909', 'NA', 45, 68, 22, 37.5,  40.5,  5000, 0.265, ''],
+        ['NA4910', 'NA', 50, 72, 22, 39.0,  43.5,  4800, 0.288, ''],
+        ['NA4911', 'NA', 55, 80, 25, 49.5,  57.0,  4300, 0.420, ''],
+        ['NA4912', 'NA', 60, 85, 25, 52.0,  61.5,  4000, 0.458, ''],
+        ['NA4913', 'NA', 65, 90, 25, 54.0,  65.5,  3800, 0.498, ''],
+        ['NA4914', 'NA', 70,100, 30, 72.0,  90.0,  3500, 0.742, ''],
+        ['NA4916', 'NA', 80,110, 30, 78.0, 100.0,  3200, 0.835, ''],
+        ['NA4918', 'NA', 90,125, 35, 104.0,135.0,  2800, 1.27,  ''],
+        ['NA4920', 'NA',100,140, 40, 128.0,170.0,  2500, 1.83,  ''],
+        ['NA4922', 'NA',110,150, 40, 138.0,188.0,  2300, 2.06,  ''],
+        ['NA4924', 'NA',120,165, 45, 170.0,238.0,  2100, 2.92,  ''],
+        ['NA4926', 'NA',130,180, 50, 202.0,292.0,  1900, 3.92,  ''],
+        ['NA4928', 'NA',140,190, 50, 212.0,312.0,  1800, 4.28,  ''],
+        ['NA4930', 'NA',150,210, 60, 270.0,415.0,  1700, 6.60,  ''],
+        // ── RNA49系（フランジ付・内輪なし） ──
+        ['RNA4900', 'RNA', 14, 22, 13,  6.55,  5.85, 16000, 0.015, '軸HRC58以上推奨'],
+        ['RNA4901', 'RNA', 16, 24, 13,  7.35,  6.60, 14000, 0.017, ''],
+        ['RNA4902', 'RNA', 20, 28, 13,  8.80,  8.15, 12000, 0.020, ''],
+        ['RNA4903', 'RNA', 22, 30, 13,  9.55,  9.15, 11000, 0.023, ''],
+        ['RNA4904', 'RNA', 25, 37, 17, 15.9,  15.3,  9000, 0.050, ''],
+        ['RNA4905', 'RNA', 30, 42, 17, 18.0,  17.6,  8000, 0.058, ''],
+        ['RNA4906', 'RNA', 35, 47, 17, 20.0,  20.0,  7000, 0.066, ''],
+        ['RNA4907', 'RNA', 40, 55, 20, 28.0,  28.5,  6000, 0.110, ''],
+        ['RNA4908', 'RNA', 45, 62, 22, 34.5,  36.5,  5500, 0.155, ''],
+        ['RNA4909', 'RNA', 50, 68, 22, 37.5,  40.5,  5000, 0.178, ''],
+        ['RNA4910', 'RNA', 55, 72, 22, 39.0,  43.5,  4800, 0.192, ''],
+        ['RNA4911', 'RNA', 60, 80, 25, 49.5,  57.0,  4300, 0.285, ''],
+        ['RNA4912', 'RNA', 65, 85, 25, 52.0,  61.5,  4000, 0.310, ''],
+        ['RNA4914', 'RNA', 75,100, 30, 72.0,  90.0,  3500, 0.510, ''],
+        ['RNA4916', 'RNA', 85,110, 30, 78.0, 100.0,  3200, 0.572, ''],
+        ['RNA4918', 'RNA', 95,125, 35,104.0, 135.0,  2800, 0.880, ''],
+        ['RNA4920', 'RNA',105,140, 40,128.0, 170.0,  2500, 1.28,  ''],
+        // ── HK系（シェル型・底なし） ──
+        ['HK0306', 'HK',  3,  6.5, 6,  1.27,  0.88, 32000, 0.001, '超小型'],
+        ['HK0408', 'HK',  4,  8,   8,  2.00,  1.45, 26000, 0.002, ''],
+        ['HK0509', 'HK',  5,  9,   9,  2.40,  1.85, 22000, 0.002, ''],
+        ['HK0608', 'HK',  6, 10,   8,  2.55,  2.10, 20000, 0.003, ''],
+        ['HK0709', 'HK',  7, 11,   9,  3.10,  2.60, 18000, 0.003, ''],
+        ['HK0810', 'HK',  8, 12,  10,  3.90,  3.35, 16000, 0.004, ''],
+        ['HK1010', 'HK', 10, 14,  10,  4.75,  4.25, 14000, 0.005, ''],
+        ['HK1012', 'HK', 10, 14,  12,  5.60,  5.10, 14000, 0.006, ''],
+        ['HK1210', 'HK', 12, 16,  10,  5.50,  5.10, 12000, 0.006, ''],
+        ['HK1212', 'HK', 12, 16,  12,  6.55,  6.20, 12000, 0.007, ''],
+        ['HK1516', 'HK', 15, 21,  16,  9.50,  9.50, 10000, 0.015, ''],
+        ['HK1522', 'HK', 15, 21,  22, 11.5,  12.0,  10000, 0.020, ''],
+        ['HK1614', 'HK', 16, 22,  14,  9.35,  9.50,  9500, 0.016, ''],
+        ['HK2010', 'HK', 20, 26,  10,  7.20,  7.65,  8500, 0.014, ''],
+        ['HK2012', 'HK', 20, 26,  12,  8.50,  9.30,  8500, 0.017, ''],
+        ['HK2016', 'HK', 20, 26,  16, 11.0,  12.5,   8500, 0.022, '汎用'],
+        ['HK2020', 'HK', 20, 26,  20, 12.5,  14.5,   8500, 0.027, ''],
+        ['HK2516', 'HK', 25, 32,  16, 13.5,  16.0,   7500, 0.032, ''],
+        ['HK2520', 'HK', 25, 32,  20, 15.5,  19.0,   7500, 0.040, ''],
+        ['HK3016', 'HK', 30, 37,  16, 15.5,  19.5,   6500, 0.042, ''],
+        ['HK3020', 'HK', 30, 37,  20, 18.0,  23.5,   6500, 0.052, ''],
+        ['HK3520', 'HK', 35, 42,  20, 19.5,  26.0,   6000, 0.063, ''],
+        ['HK4020', 'HK', 40, 48,  20, 22.0,  30.5,   5500, 0.090, ''],
+        ['HK4025', 'HK', 40, 48,  25, 26.5,  38.5,   5500, 0.112, ''],
+        ['HK5020', 'HK', 50, 58,  20, 26.0,  38.0,   4800, 0.138, ''],
+        ['HK5025', 'HK', 50, 58,  25, 30.5,  46.5,   4800, 0.172, ''],
+        // ── BK系（シェル型・底付き） ──
+        ['BK0408', 'BK',  4,  8,   8,  1.90,  1.38, 26000, 0.002, '底付き・位置決め用途'],
+        ['BK0609', 'BK',  6, 10,   9,  2.65,  2.25, 20000, 0.003, ''],
+        ['BK0810', 'BK',  8, 12,  10,  3.90,  3.40, 16000, 0.004, ''],
+        ['BK1010', 'BK', 10, 14,  10,  4.75,  4.30, 14000, 0.005, ''],
+        ['BK1012', 'BK', 10, 14,  12,  5.60,  5.20, 14000, 0.006, ''],
+        ['BK1210', 'BK', 12, 16,  10,  5.50,  5.15, 12000, 0.006, ''],
+        ['BK1212', 'BK', 12, 16,  12,  6.55,  6.30, 12000, 0.007, ''],
+        ['BK1516', 'BK', 15, 21,  16,  9.50,  9.65, 10000, 0.015, ''],
+        ['BK2016', 'BK', 20, 26,  16, 11.0,  12.7,   8500, 0.022, ''],
+        ['BK2520', 'BK', 25, 32,  20, 15.5,  19.5,   7500, 0.040, ''],
+        ['BK3020', 'BK', 30, 37,  20, 18.0,  24.0,   6500, 0.052, ''],
+        // ── SL4系（複列・内輪あり） ──
+        ['SL4-5004', 'SL', 20, 42, 30, 28.5,  28.0,  9000, 0.150, 'NR=止め輪溝付き'],
+        ['SL4-5005', 'SL', 25, 47, 30, 32.5,  33.5,  8000, 0.180, ''],
+        ['SL4-5006', 'SL', 30, 55, 34, 45.0,  48.0,  7000, 0.295, ''],
+        ['SL4-5007', 'SL', 35, 62, 35, 55.0,  60.5,  6000, 0.395, ''],
+        ['SL4-5008', 'SL', 40, 68, 38, 65.0,  74.5,  5500, 0.525, 'NR付き型：SL4-5008NR'],
+        ['SL4-5009', 'SL', 45, 75, 40, 76.5,  90.0,  5000, 0.680, ''],
+        ['SL4-5010', 'SL', 50, 80, 40, 80.0,  96.5,  4800, 0.745, ''],
+        ['SL4-5012', 'SL', 60, 95, 46,109.0, 138.0,  4000, 1.20,  ''],
+        ['SL4-5014', 'SL', 70,110, 54,145.0, 192.0,  3500, 1.95,  ''],
+        ['SL4-5016', 'SL', 80,125, 60,180.0, 248.0,  3200, 2.81,  ''],
+        ['SL4-5018', 'SL', 90,140, 67,222.0, 318.0,  2800, 4.02,  ''],
+        ['SL4-5020', 'SL',100,150, 67,238.0, 348.0,  2500, 4.60,  ''],
+        // ── NKI系（内輪付・つば付） ──
+        ['NKI15/16', 'NKI', 15, 27, 16, 13.2, 13.5, 10000, 0.028, ''],
+        ['NKI17/16', 'NKI', 17, 29, 16, 14.0, 14.5,  9500, 0.032, ''],
+        ['NKI20/16', 'NKI', 20, 33, 16, 16.5, 17.8,  8500, 0.042, ''],
+        ['NKI22/16', 'NKI', 22, 35, 16, 17.5, 19.3,  8000, 0.048, ''],
+        ['NKI25/20', 'NKI', 25, 38, 20, 22.5, 25.5,  7500, 0.072, ''],
+        ['NKI28/20', 'NKI', 28, 42, 20, 25.5, 29.5,  7000, 0.086, ''],
+        ['NKI30/20', 'NKI', 30, 45, 20, 28.5, 33.5,  6500, 0.098, ''],
+        ['NKI32/20', 'NKI', 32, 47, 20, 30.0, 36.0,  6200, 0.108, ''],
+        ['NKI35/20', 'NKI', 35, 52, 20, 34.5, 42.5,  6000, 0.134, ''],
+        ['NKI40/20', 'NKI', 40, 58, 20, 38.5, 49.0,  5500, 0.170, ''],
+        ['NKI40/30', 'NKI', 40, 58, 30, 53.0, 70.5,  5500, 0.252, ''],
+        ['NKI45/25', 'NKI', 45, 62, 25, 45.5, 60.5,  5000, 0.215, ''],
+        ['NKI50/25', 'NKI', 50, 68, 25, 50.0, 68.5,  4800, 0.258, ''],
+        ['NKI55/25', 'NKI', 55, 75, 25, 57.5, 81.5,  4300, 0.330, ''],
+        ['NKI60/25', 'NKI', 60, 80, 25, 60.5, 87.5,  4000, 0.368, ''],
+        ['NKI65/25', 'NKI', 65, 85, 25, 63.5, 93.5,  3800, 0.408, ''],
+        ['NKI70/25', 'NKI', 70, 92, 25, 70.5,106.0,  3500, 0.482, ''],
+      ];
+
+      let filteredNeedles = [];
+
+      function filterNeedle() {
+        const query  = $('ndl-query').value.trim().toUpperCase();
+        const bore   = parseFloat($('ndl-bore').value) || null;
+        const od     = parseFloat($('ndl-od').value)   || null;
+        const series = $('ndl-series').value;
+
+        filteredNeedles = NEEDLE_DB.filter(b => {
+          if (series !== 'all' && b[1] !== series) return false;
+          if (bore !== null && b[2] !== bore)       return false;
+          if (od   !== null && b[3] !== od)         return false;
+          if (query && !b[0].includes(query))       return false;
+          return true;
+        });
+
+        $('ndl-hit-info').textContent = filteredNeedles.length
+          ? `${filteredNeedles.length} 件ヒット`
+          : query || bore || od ? '該当なし' : '';
+
+        const SERIES_COLOR = {
+          NA:'var(--accent)', RNA:'var(--good)', HK:'var(--warn)',
+          BK:'#a0c4ff', SL:'#ff9966', NKI:'var(--muted)'
+        };
+
+        $('ndl-tbody').innerHTML = filteredNeedles.length
+          ? filteredNeedles.map((b, idx) => `
+            <tr onclick="needleRowClick(${idx})" style="cursor:pointer;">
+              <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);">${b[0]}</td>
+              <td style="color:${SERIES_COLOR[b[1]]||'var(--muted)'};font-size:11px;font-weight:700;">${b[1]}</td>
+              <td>${b[2]}</td>
+              <td>${b[3]}</td>
+              <td>${b[4]}</td>
+              <td style="color:var(--accent);font-weight:700;">${b[5]}</td>
+              <td>${b[6]}</td>
+              <td style="color:var(--muted);">${b[7].toLocaleString()}</td>
+              <td>${b[8]}</td>
+              <td style="font-size:11px;color:var(--muted);">${b[9]}</td>
+            </tr>`).join('')
+          : `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px;">
+              ${query || bore || od ? '該当なし' : '型式または内径を入力してください'}
+            </td></tr>`;
+      }
+
+      function needleRowClick(idx) {
+        const b = filteredNeedles[idx];
+        if (!b) return;
+        // 寿命計算タブに初期値セット
+        $('bl-type').value = 'roller';  // ころ軸受（p=10/3）
+        $('bl-cr').value   = b[5];
+        $('bl-c0r').value  = b[6];
+        $('bl-fr').value   = parseFloat((b[5] / 10).toFixed(2));
+        $('bl-fa').value   = 0;         // ラジアル専用なのでFa=0
+        $('bl-n').value    = Math.floor(b[7] / 2 / 10) * 10;
+        $('bl-fw').value   = 1.2;
+        // 寿命計算タブへ切り替え
+        showBearingTab('blife', document.getElementById('btab-blife'));
+        calcBearingLife?.();
+      }
 
       function filterTaper() {
         const q = ($("tp-query").value || "")
