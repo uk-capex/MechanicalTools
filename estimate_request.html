@@ -157,22 +157,20 @@
     @media(max-width:768px){
       /* アプリ全体をシングルカラムに */
       .app{flex-direction:column;overflow:visible;height:auto}
+      body{overflow-y:auto;height:auto;min-height:100vh}
 
-      /* 左パネル非表示 → タブ+チップで代替 */
-      .left-panel{display:none}
-      /* 見積依頼情報はカートタブ内で表示 */
-      .mail-meta-section{display:block;background:var(--surface);border-top:1px solid var(--border)}
-      .cart-panel.sp-active .mail-meta-section{display:none}
+      /* 左パネルごと非表示（mail-meta-sectionも含め全部隠す） */
+      .left-panel{display:none!important}
 
       /* カートパネルを全幅・非固定に */
       .cart-panel{width:100%;border-left:none;border-top:1px solid var(--border);
         display:none;flex-direction:column;overflow:visible;max-height:none}
       .cart-panel.sp-active{display:flex}
-      /* スマホでは左パネルの見積依頼情報をカートタブ下部に追従させる */
-      .mail-meta-section{border-top:1px solid var(--border);padding-top:4px}
+      /* スマホ専用の依頼情報フッター */
+      .sp-meta-footer{display:flex;flex-direction:column;gap:7px;
+        padding:12px 12px;border-top:2px solid var(--border);
+        background:var(--surface);position:sticky;bottom:0;z-index:50}
       .cart-items{max-height:none;overflow:visible}
-      .cart-footer{position:sticky;bottom:0;background:var(--surface);z-index:50;
-        border-top:1px solid var(--border)}
 
       /* 商品メインを全幅に */
       .main{display:none;padding:10px 12px}
@@ -190,6 +188,7 @@
         border-bottom:1px solid var(--border);
         flex-shrink:0;
         position:sticky;top:0;z-index:90;
+        box-shadow:0 2px 8px rgba(0,0,0,.2);
       }
       .sp-tab{
         flex:1;padding:10px 0;text-align:center;
@@ -275,6 +274,7 @@
       .sp-cat-bar{display:none}
       .sp-supplier-bar{display:none}
       .sp-search-bar{display:none}
+      .sp-meta-footer{display:none!important}
       /* PCでは.main/.cart-panelは常に表示 */
       .main{display:flex!important}
       .cart-panel{display:flex!important}
@@ -366,7 +366,24 @@
       <div class="cart-items" id="cartItems">
         <div class="cart-empty">品目カードをクリックして追加</div>
       </div>
-
+      <!-- スマホ専用: 依頼情報フッター -->
+      <div class="sp-meta-footer" id="spMetaFooter" style="display:none">
+        <div class="meta-row">
+          <span class="meta-label">依頼者名</span>
+          <input class="meta-input" id="spRequesterName" type="text" placeholder="施設管理課　山田">
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">希望納期</span>
+          <input class="meta-input" id="spDeliveryDate" type="date">
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">備考</span>
+          <input class="meta-input" id="spGlobalNote" type="text" placeholder="現場保管・至急 等">
+        </div>
+        <button class="generate-btn" id="spGenerateBtn" onclick="generateMail()" disabled>
+          📧 見積依頼メールを作成
+        </button>
+      </div>
     </div>
 
     <div class="mail-panel" id="mailPanel">
@@ -694,6 +711,7 @@
         renderItems();
         document.getElementById('itemsMain').classList.add('sp-active');
       }
+      document.getElementById('spMetaFooter').style.display = 'flex';
     }
 
     function init(){
@@ -971,6 +989,8 @@
     function updateBtn(){
       var d=Object.keys(cart).length===0;
       document.getElementById('generateBtn').disabled=d;
+      var spBtn = document.getElementById('spGenerateBtn');
+      if(spBtn) spBtn.disabled=d;
       updateSpBadge();
     }
 
@@ -978,10 +998,15 @@
     function generateMail(){
       var keys=Object.keys(cart);
       if(!keys.length) return;
-      var requester=document.getElementById('requesterName').value||'（依頼者名未入力）';
-      var deliveryRaw=document.getElementById('deliveryDate').value;
+      var isSp = isMobile();
+      var requester=(isSp
+        ? document.getElementById('spRequesterName').value
+        : document.getElementById('requesterName').value) || '（依頼者名未入力）';
+      var deliveryRaw = isSp
+        ? document.getElementById('spDeliveryDate').value
+        : document.getElementById('deliveryDate').value;
       var delivery=deliveryRaw?new Date(deliveryRaw).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'（希望納期未入力）';
-      var globalNote=document.getElementById('globalNote').value;
+      var globalNote = isSp ? document.getElementById('spGlobalNote').value : document.getElementById('globalNote').value;
       var bySupplier={};
       keys.forEach(function(key){
         var c=cart[key], s=c.item.supplier||'（発注先未設定）';
