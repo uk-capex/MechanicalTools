@@ -97,6 +97,11 @@
     .dim-sep{color:var(--muted);font-size:12px;flex-shrink:0;padding:0 3px;background:var(--input-bg)}
     .dim-half{width:64px!important}
     .dim-input{background:var(--input-bg);border:none;width:100%;color:var(--ink);font-size:11px;font-family:'JetBrains Mono',monospace;outline:none;padding:4px 5px}
+    .dim-row.error{border-color:var(--bad)!important}
+    .dim-row.error .dim-label{background:rgba(248,81,73,.15);color:var(--bad)}
+    .dim-row.error .dim-input{color:var(--bad)}
+    .dim-error-msg{display:none;font-size:10px;color:var(--bad);padding:2px 4px 4px;font-family:'JetBrains Mono',monospace}
+    .dim-error-msg.show{display:block}
     .note-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-size:11px;color:var(--ink);font-family:'Noto Sans JP',sans-serif;resize:none;outline:none;transition:border-color .15s}
     .note-input::placeholder{color:var(--muted)}
     .note-input:focus{border-color:var(--accent)}
@@ -752,8 +757,60 @@
       renderCart(); renderItems();
     }
     function updateNote(key,val){        if(cart[key]) cart[key].note=val; }
-    function updateCutLength(key,val){   if(cart[key]) cart[key].cutLength=val; }
-    function updateCutWidth(key,val){    if(cart[key]) cart[key].cutWidth=val; }
+
+    // ── 寸法バリデーション ──
+    // 入力欄のdim-rowにerrorクラス、下のdim-error-msgにメッセージを表示
+    function validateDim(inputEl, val, maxVal, label) {
+      var row = inputEl.closest('.dim-row');
+      var errEl = row ? row.nextElementSibling : null;
+      if (!row) return true;
+      var num = parseFloat(val);
+      if (!val || isNaN(num)) {
+        // 未入力はエラーなし
+        row.classList.remove('error');
+        if (errEl && errEl.classList.contains('dim-error-msg')) errEl.classList.remove('show');
+        return true;
+      }
+      if (num <= 0) {
+        row.classList.add('error');
+        if (errEl && errEl.classList.contains('dim-error-msg')) {
+          errEl.textContent = '⚠ 0より大きい値を入力してください';
+          errEl.classList.add('show');
+        }
+        return false;
+      }
+      if (maxVal > 0 && num > maxVal) {
+        row.classList.add('error');
+        if (errEl && errEl.classList.contains('dim-error-msg')) {
+          errEl.textContent = '⚠ 定尺 ' + maxVal + 'mm を超えています（入力値: ' + num + 'mm）';
+          errEl.classList.add('show');
+        }
+        return false;
+      }
+      row.classList.remove('error');
+      if (errEl && errEl.classList.contains('dim-error-msg')) errEl.classList.remove('show');
+      return true;
+    }
+
+    function updateCutLength(key, val, inputEl) {
+      if (!cart[key]) return;
+      cart[key].cutLength = val;
+      if (!inputEl) return;
+      var d = cart[key].item;
+      // 最大値: 鋼板=短辺(w)、棒系=定尺長さ
+      var maxVal = (d.cat === 'plate') ? d.w : parseInt(d.teishaku) || 0;
+      validateDim(inputEl, val, maxVal, d.cat === 'plate' ? '縦（短辺）' : '切断長さ');
+    }
+
+    function updateCutWidth(key, val, inputEl) {
+      if (!cart[key]) return;
+      cart[key].cutWidth = val;
+      if (!inputEl) return;
+      var d = cart[key].item;
+      // 鋼板のみ: 長辺(h)
+      var maxVal = d.h || 0;
+      validateDim(inputEl, val, maxVal, '横（長辺）');
+    }
     function updateSpecMode(key,val){    if(!cart[key]) return; cart[key].specMode=val; renderCart(); }
     function updatePaintMode(key,val){   if(!cart[key]) return; cart[key].paintMode=val; renderCart(); }
     function updateStainless(key,el){    if(!cart[key]) return; cart[key].stainless=el.checked; el.closest('.check-row').classList.toggle('checked',el.checked); }
@@ -821,18 +878,22 @@
           html+='</div>';
           if(c.specMode==='cut'){
             if(d.cat==='plate'){
-              html+='<div class="dim-row"><span class="dim-label">切断寸法</span>';
-              html+='<input class="dim-input dim-half" type="text" placeholder="縦" value="'+(c.cutLength||'')+'"';
-              html+=' oninput="updateCutLength(\''+key+'\',this.value)">';
-              html+='<span class="dim-sep">×</span>';
-              html+='<input class="dim-input dim-half" type="text" placeholder="横" value="'+(c.cutWidth||'')+'"';
-              html+=' oninput="updateCutWidth(\''+key+'\',this.value)">';
+              html+='<div class="dim-row"><span class="dim-label">縦（短辺）</span>';
+              html+='<input class="dim-input" type="text" placeholder="例）500" value="'+(c.cutLength||'')+'"';
+              html+=' oninput="updateCutLength(\''+key+'\',this.value,this)">';
               html+='<span class="dim-unit-label">mm</span></div>';
+              html+='<div class="dim-error-msg"></div>';
+              html+='<div class="dim-row"><span class="dim-label">横（長辺）</span>';
+              html+='<input class="dim-input" type="text" placeholder="例）900" value="'+(c.cutWidth||'')+'"';
+              html+=' oninput="updateCutWidth(\''+key+'\',this.value,this)">';
+              html+='<span class="dim-unit-label">mm</span></div>';
+              html+='<div class="dim-error-msg"></div>';
             } else {
               html+='<div class="dim-row"><span class="dim-label">切断長さ</span>';
               html+='<input class="dim-input" type="text" placeholder="例）500" value="'+(c.cutLength||'')+'"';
-              html+=' oninput="updateCutLength(\''+key+'\',this.value)">';
+              html+=' oninput="updateCutLength(\''+key+'\',this.value,this)">';
               html+='<span class="dim-unit-label">mm</span></div>';
+              html+='<div class="dim-error-msg"></div>';
             }
           }
           if(PAINT_CATS.indexOf(d.cat)>=0){
