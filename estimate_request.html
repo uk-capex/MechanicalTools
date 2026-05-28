@@ -155,26 +155,41 @@
 
     /* ══════ スマホ用 (≤768px) ══════ */
     @media(max-width:768px){
-      /* アプリ全体をシングルカラムに */
-      .app{flex-direction:column;overflow:visible;height:auto}
-      body{overflow-y:auto;height:auto;min-height:100vh}
+      /* アプリ全体: タブ式シングルカラム */
+      body{overflow:hidden;height:100vh}
+      .app{flex-direction:column;overflow:hidden;
+        height:calc(100vh - 44px - 33px);  /* ヘッダー・homebar分を引く */
+        position:relative}
 
       /* 左パネルごと非表示（mail-meta-sectionも含め全部隠す） */
       .left-panel{display:none!important}
 
-      /* カートパネルを全幅・非固定に */
-      .cart-panel{width:100%;border-left:none;border-top:1px solid var(--border);
-        display:none;flex-direction:column;overflow:visible;max-height:none}
-      .cart-panel.sp-active{display:flex}
+      /* カートパネルをabsoluteで重ねてタブ切替 */
+      .cart-panel{
+        position:absolute;top:0;left:0;right:0;bottom:0;
+        width:100%;border-left:none;border-top:none;
+        display:flex;flex-direction:column;
+        overflow:hidden;
+        opacity:0;pointer-events:none;
+        transition:opacity .15s;
+      }
+      .cart-panel.sp-active{opacity:1;pointer-events:auto;}
       /* スマホ専用の依頼情報フッター */
       .sp-meta-footer{display:flex;flex-direction:column;gap:7px;
-        padding:12px 12px;border-top:2px solid var(--border);
-        background:var(--surface);position:sticky;bottom:0;z-index:50}
-      .cart-items{max-height:none;overflow:visible}
+        padding:10px 12px;border-top:2px solid var(--border);
+        background:var(--surface);flex-shrink:0;}
+      .cart-items{flex:1;overflow-y:auto;}
 
-      /* 商品メインを全幅に */
-      .main{display:none;padding:10px 12px}
-      .main.sp-active{display:flex}
+      /* 商品メイン・カートパネルをabsoluteで重ねてタブ切替 */
+      .main{
+        position:absolute;top:0;left:0;right:0;bottom:0;
+        padding:10px 12px;
+        overflow-y:auto;
+        display:flex;
+        opacity:0;pointer-events:none;
+        transition:opacity .15s;
+      }
+      .main.sp-active{opacity:1;pointer-events:auto;}
 
       /* アイテムグリッドを2列に */
       .items-grid{grid-template-columns:repeat(2,1fr);gap:6px}
@@ -624,6 +639,17 @@
       document.getElementById('spTabCart').classList.toggle('active', tab==='cart');
       document.getElementById('itemsMain').classList.toggle('sp-active', tab==='items');
       document.getElementById('cartPanel').classList.toggle('sp-active', tab==='cart');
+      // タブ切替時にappの高さを再計算
+      adjustSpAppHeight();
+    }
+
+    function adjustSpAppHeight(){
+      if(!isMobile()) return;
+      var app = document.getElementById('app');
+      if(!app) return;
+      // appの上端座標 = ビュー内の残り高さ
+      var rect = app.getBoundingClientRect();
+      app.style.height = (window.innerHeight - rect.top) + 'px';
     }
 
     // ══════ スマホ: 発注先セレクト ══════
@@ -712,6 +738,7 @@
         document.getElementById('itemsMain').classList.add('sp-active');
       }
       document.getElementById('spMetaFooter').style.display = 'flex';
+      adjustSpAppHeight();
     }
 
     function init(){
@@ -1102,7 +1129,8 @@
     init();
     // リサイズ時にスマホUI再初期化
     window.addEventListener('resize', function(){
-      if(isMobile()) initSpUI();
+      if(isMobile()){ adjustSpAppHeight(); }
+      else { initSpUI(); }
     });
   </script>
 </body>
