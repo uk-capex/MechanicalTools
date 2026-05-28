@@ -26,7 +26,9 @@
     @media(max-width:480px){header{padding:6px 10px;gap:6px}header h1{font-size:12px}#verBadge{display:none}}
     .app{display:flex;flex:1;overflow:hidden}
     /* 左 */
-    .left-panel{width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+    .left-panel{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+    .left-meta-wrap{padding:0 10px 12px;display:flex;flex-direction:column;gap:7px}
+    .mail-meta-section{flex:1;display:flex;flex-direction:column}
     .panel-section{padding:12px 0 4px;border-bottom:1px solid var(--border)}
     .panel-section:last-child{border-bottom:none;flex:1}
     .panel-label{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--muted);padding:0 14px 6px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
@@ -106,7 +108,6 @@
     .note-input::placeholder{color:var(--muted)}
     .note-input:focus{border-color:var(--accent)}
     /* フッター */
-    .cart-footer{padding:12px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
     .export-btn{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--muted);padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;width:100%;text-align:left}
     .export-btn:hover{border-color:var(--good);color:var(--good)}
     .meta-row{display:flex;align-items:center;gap:8px;font-size:12px}
@@ -136,11 +137,16 @@
 
       /* 左パネル非表示 → タブ+チップで代替 */
       .left-panel{display:none}
+      /* 見積依頼情報はカートタブ内で表示 */
+      .mail-meta-section{display:block;background:var(--surface);border-top:1px solid var(--border)}
+      .cart-panel.sp-active .mail-meta-section{display:none}
 
       /* カートパネルを全幅・非固定に */
       .cart-panel{width:100%;border-left:none;border-top:1px solid var(--border);
         display:none;flex-direction:column;overflow:visible;max-height:none}
       .cart-panel.sp-active{display:flex}
+      /* スマホでは左パネルの見積依頼情報をカートタブ下部に追従させる */
+      .mail-meta-section{border-top:1px solid var(--border);padding-top:4px}
       .cart-items{max-height:none;overflow:visible}
       .cart-footer{position:sticky;bottom:0;background:var(--surface);z-index:50;
         border-top:1px solid var(--border)}
@@ -302,6 +308,26 @@
           <input class="search-input" id="searchInput" type="text" placeholder="寸法・品番を検索…" oninput="filterItems()">
         </div>
       </div>
+      <div class="panel-section mail-meta-section">
+        <div class="panel-label">見積依頼情報</div>
+        <div class="left-meta-wrap">
+          <div class="meta-row">
+            <span class="meta-label">依頼者名</span>
+            <input class="meta-input" id="requesterName" type="text" placeholder="施設管理課　山田">
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">希望納期</span>
+            <input class="meta-input" id="deliveryDate" type="date">
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">備考</span>
+            <input class="meta-input" id="globalNote" type="text" placeholder="現場保管・至急 等">
+          </div>
+          <button class="generate-btn" id="generateBtn" onclick="generateMail()" disabled>
+            📧 メールを作成
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="main" id="itemsMain">
@@ -311,30 +337,12 @@
     <div class="cart-panel" id="cartPanel">
       <div class="cart-head">
         <span class="cart-head-title">🛒 カート</span>
-        <button class="generate-btn-top" id="generateBtnTop" onclick="generateMail()" disabled>📧 メール作成</button>
         <span class="cart-count-badge" id="cartCountBadge">0</span>
       </div>
       <div class="cart-items" id="cartItems">
         <div class="cart-empty">品目カードをクリックして追加</div>
       </div>
-      <div class="cart-footer">
-        <button class="export-btn" onclick="exportData()">⬇ データをJSONで保存（編集用）</button>
-        <div class="meta-row">
-          <span class="meta-label">依頼者名</span>
-          <input class="meta-input" id="requesterName" type="text" placeholder="例）施設管理課　山田">
-        </div>
-        <div class="meta-row">
-          <span class="meta-label">希望納期</span>
-          <input class="meta-input" id="deliveryDate" type="date">
-        </div>
-        <div class="meta-row">
-          <span class="meta-label">備考</span>
-          <input class="meta-input" id="globalNote" type="text" placeholder="例）現場保管・至急 等">
-        </div>
-        <button class="generate-btn" id="generateBtn" onclick="generateMail()" disabled>
-          📧 見積依頼メールを作成
-        </button>
-      </div>
+
     </div>
 
     <div class="mail-panel" id="mailPanel">
@@ -415,8 +423,8 @@
 
       // ─── 鋼管（SGP黒）────
       {no:'J04940003', cat:'pipe', spec:'SGP黒 8A',  teishaku:'5500', w:0, h:0, unit:'本', price:1320, supplier:'小川真功商店'},
-      {no:'',          cat:'pipe', spec:'SGP黒 10A', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
-      {no:'',          cat:'pipe', spec:'SGP黒 15A', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'pipe', spec:'SGP黒 10A', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'pipe', spec:'SGP黒 15A', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
       {no:'J04940001', cat:'pipe', spec:'SGP黒 20A', teishaku:'5500', w:0, h:0, unit:'本', price:1346, supplier:'小川真功商店'},
       {no:'J04940002', cat:'pipe', spec:'SGP黒 25A', teishaku:'5500', w:0, h:0, unit:'本', price:1934, supplier:'小川真功商店'},
       // ─── 鋼管（SGP白）────
@@ -433,12 +441,12 @@
       {no:'J04900001', cat:'channel', spec:'75×40×t5',    teishaku:'5500', w:0, h:0, unit:'本', price:3810, supplier:'小川真功商店'},
       {no:'J04900002', cat:'channel', spec:'100×50×t5',   teishaku:'5500', w:0, h:0, unit:'本', price:4664, supplier:'小川真功商店'},
       {no:'J04900003', cat:'channel', spec:'125×65×t6',   teishaku:'5500', w:0, h:0, unit:'本', price:6744, supplier:'小川真功商店'},
-      {no:'',          cat:'channel', spec:'150×75×t6.5', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
-      {no:'',          cat:'channel', spec:'150×75×t9',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
-      {no:'',          cat:'channel', spec:'180×75×t7',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
-      {no:'',          cat:'channel', spec:'200×80×t7.5', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
-      {no:'',          cat:'channel', spec:'200×90×t8',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
-      {no:'',          cat:'channel', spec:'250×90×t8',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'channel', spec:'150×75×t6.5', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'channel', spec:'150×75×t9',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'channel', spec:'180×75×t7',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'channel', spec:'200×80×t7.5', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'channel', spec:'200×90×t8',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'channel', spec:'250×90×t8',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
 
       // ─── 平鋼（フラットバー）────
       {no:'J05120001', cat:'flat', spec:'t4.5×38',  teishaku:'5500', w:0, h:0, unit:'本', price:801,  supplier:'小川真功商店'},
@@ -500,15 +508,15 @@
     var CATEGORIES = [
       {key:'all',     label:'すべて',             icon:'📦'},
       {key:'plate',   label:'鋼板（定尺）',        icon:'🟫'},
+      {key:'flat',    label:'平鋼（フラットバー）', icon:'▬'},
       {key:'angle',   label:'等辺山形鋼',           icon:'📐'},
-      {key:'hbeam',  label:'H形鋼',                icon:'⌶'},
+      {key:'channel', label:'溝形鋼（チャンネル）', icon:'⊓'},
+      {key:'hbeam',   label:'H形鋼',               icon:'⌶'},
       {key:'sq',      label:'角形鋼管',             icon:'⬜'},
       {key:'pipe',    label:'配管（鋼管）',          icon:'🔩'},
-      {key:'channel', label:'溝形鋼（チャンネル）', icon:'⊓'},
-      {key:'flat',    label:'平鋼（フラットバー）', icon:'▬'},
       {key:'round',   label:'丸棒',                 icon:'⬤'},
     ];
-    var CAT_ORDER = ['plate','angle','hbeam','sq','pipe','channel','flat','round'];
+    var CAT_ORDER = ['plate','flat','angle','channel','hbeam','sq','pipe','round'];
     var PAINT_CATS = ['angle','hbeam','channel']; // 塗装トグルを出すカテゴリ
 
     function getCategory(d){ return d.cat || 'other'; }
@@ -525,7 +533,7 @@
         var ka = specNums(a.spec), kb = specNums(b.spec);
         // pipeはSGP黒→白の順を保持するためspec文字列も考慮
         if (a.cat==='pipe') {
-          var aw = a.spec.includes('白')?1:0, bw = b.spec.includes('白')?1:0;
+          var aw = a.spec.includes('白')?0:1, bw = b.spec.includes('白')?0:1;
           if (aw!==bw) return aw-bw;
         }
         for (var i=0;i<Math.max(ka.length,kb.length);i++){
@@ -697,7 +705,7 @@
     function renderItems(){
       var main=document.getElementById('itemsMain');
       var items=RAW_DATA.filter(function(d){
-        if(d.supplier!==selectedSupplier) return false;
+        if(d.supplier && d.supplier!==selectedSupplier) return false;
         if(selectedCat!=='all'&&d.cat!==selectedCat) return false;
         if(searchQuery&&d.spec.indexOf(searchQuery)<0&&d.no.indexOf(searchQuery)<0&&d.teishaku.indexOf(searchQuery)<0) return false;
         return true;
@@ -920,7 +928,6 @@
     function updateBtn(){
       var d=Object.keys(cart).length===0;
       document.getElementById('generateBtn').disabled=d;
-      document.getElementById('generateBtnTop').disabled=d;
       updateSpBadge();
     }
 
@@ -1008,19 +1015,6 @@
       });
     }
     function closeMail(){ document.getElementById('mailPanel').classList.remove('visible'); }
-
-    // ══════ JSONエクスポート ══════
-    function exportData(){
-      var out=RAW_DATA.map(function(d){
-        return {no:d.no,cat:d.cat,spec:d.spec,teishaku:d.teishaku,w:d.w,h:d.h,unit:d.unit,price:d.price,supplier:d.supplier};
-      });
-      var json=JSON.stringify(out,null,2);
-      var blob=new Blob([json],{type:'application/json'});
-      var a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='estimate_items_'+new Date().toISOString().slice(0,10)+'.json';
-      a.click();
-    }
 
     // ══════ バージョン ══════
     window.addEventListener('DOMContentLoaded',function(){
