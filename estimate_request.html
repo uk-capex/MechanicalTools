@@ -1108,15 +1108,14 @@
           } else {
             // specだけ（定尺サイズは含まない）+ カテゴリ名
             var catInfo=CATEGORIES.find(function(cat){ return cat.key===d.cat; });
-            var catLabel=catInfo?catInfo.label:d.cat;
-            // 寸法指定時は「（定尺）」表記を除去
-            if(c.specMode==='cut') catLabel=catLabel.replace('（定尺）','');
+            // カテゴリラベルから「（定尺）」は常に除去
+            var catLabel=(catInfo?catInfo.label:d.cat).replace('（定尺）','');
             line=catLabel+'　'+d.spec;
             if(c.specMode==='cut'){
               if(d.cat==='plate') line+='\n　　切断寸法：'+(c.cutLength||'?')+'mm × '+(c.cutWidth||'?')+'mm';
-              else if(c.cutLength) line+='\n　　切断長さ：'+c.cutLength+'mm';
+              else line+='\n　　切断寸法：'+(c.cutLength ? c.cutLength+'mm' : '（未入力）');
             } else {
-              line+='\n　　指定：定尺（'+d.teishaku+(d.cat==='plate'?'':' mm')+')';
+              line+='\n　　寸法：定尺（'+d.teishaku+(d.cat==='plate'?'':' mm')+')';
             }
             if(PAINT_CATS.indexOf(d.cat)>=0){
               line+='\n　　塗装：'+(c.paintMode==='color'?'カラー（錆止め）':'塗装無');
