@@ -351,8 +351,12 @@
         <div class="panel-label">見積依頼情報</div>
         <div class="left-meta-wrap">
           <div class="meta-row">
+            <span class="meta-label">自社名</span>
+            <input class="meta-input" id="companyName" type="text" placeholder="東北特殊鋼（株）" value="東北特殊鋼（株）" oninput="saveMetaLocal()">
+          </div>
+          <div class="meta-row">
             <span class="meta-label">依頼者名</span>
-            <input class="meta-input" id="requesterName" type="text" placeholder="施設管理課　山田">
+            <input class="meta-input" id="requesterName" type="text" placeholder="施設管理課　山田" oninput="saveMetaLocal()">
           </div>
           <div class="meta-row">
             <span class="meta-label">希望納期</span>
@@ -384,8 +388,12 @@
       <!-- スマホ専用: 依頼情報フッター -->
       <div class="sp-meta-footer" id="spMetaFooter" style="display:none">
         <div class="meta-row">
+          <span class="meta-label">自社名</span>
+          <input class="meta-input" id="spCompanyName" type="text" placeholder="東北特殊鋼（株）" oninput="syncMetaFromSp()">
+        </div>
+        <div class="meta-row">
           <span class="meta-label">依頼者名</span>
-          <input class="meta-input" id="spRequesterName" type="text" placeholder="施設管理課　山田">
+          <input class="meta-input" id="spRequesterName" type="text" placeholder="施設管理課　山田" oninput="saveMetaLocal()">
         </div>
         <div class="meta-row">
           <span class="meta-label">希望納期</span>
@@ -609,6 +617,47 @@
     var cart={};
 
     // ══════ 初期化 ══════
+    // ══════ 依頼情報のローカル保存 ══════
+    function saveMetaLocal(){
+      var company   = document.getElementById('companyName')   ? document.getElementById('companyName').value   : '';
+      var requester = document.getElementById('requesterName') ? document.getElementById('requesterName').value : '';
+      if(!company && !requester) return;
+      localStorage.setItem('estimateMeta', JSON.stringify({company:company, requester:requester}));
+      // スマホ側も同期
+      var spC = document.getElementById('spCompanyName');
+      var spR = document.getElementById('spRequesterName');
+      if(spC && document.activeElement !== spC) spC.value = company;
+      if(spR && document.activeElement !== spR) spR.value = requester;
+    }
+    function loadMetaLocal(){
+      var DEFAULT_COMPANY = '東北特殊鋼（株）';
+      var saved = localStorage.getItem('estimateMeta');
+      var data  = saved ? JSON.parse(saved) : {};
+      var company   = data.company   !== undefined ? data.company   : DEFAULT_COMPANY;
+      var requester = data.requester !== undefined ? data.requester : '';
+      // PC
+      var cEl = document.getElementById('companyName');
+      var rEl = document.getElementById('requesterName');
+      if(cEl) cEl.value = company;
+      if(rEl) rEl.value = requester;
+      // スマホ
+      var spC = document.getElementById('spCompanyName');
+      var spR = document.getElementById('spRequesterName');
+      if(spC) spC.value = company;
+      if(spR) spR.value = requester;
+    }
+
+    // スマホ側入力もPC側と同期
+    function syncMetaFromSp(){
+      var spC = document.getElementById('spCompanyName');
+      var spR = document.getElementById('spRequesterName');
+      var cEl = document.getElementById('companyName');
+      var rEl = document.getElementById('requesterName');
+      if(spC && cEl && document.activeElement===spC) cEl.value = spC.value;
+      if(spR && rEl && document.activeElement===spR) rEl.value = spR.value;
+      saveMetaLocal();
+    }
+
     // ══════ テーマ切替 ══════
     var currentTheme = localStorage.getItem('estimateTheme') || 'dark';
 
@@ -1081,8 +1130,12 @@
           itemLines+='\n';
         });
 
+        var companyVal = (isSp
+          ? (document.getElementById('spCompanyName')?document.getElementById('spCompanyName').value:'')
+          : (document.getElementById('companyName')?document.getElementById('companyName').value:'')
+        ) || '東北特殊鋼（株）';
         mailText+=supplier+' ご担当者様\n\n';
-        mailText+='お世話になっております。\n'+requester+' でございます。\n\n';
+        mailText+='お世話になっております。\n'+companyVal+'　'+requester+' でございます。\n\n';
         mailText+='下記につきまして、お見積りをお願いいたします。\n\n';
         mailText+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
         mailText+='■ 見積依頼日：'+today+'\n';
@@ -1116,6 +1169,7 @@
     // ══════ バージョン ══════
     window.addEventListener('DOMContentLoaded',function(){
       applyTheme(currentTheme);
+      loadMetaLocal();
       for(var n of document.head.childNodes){
         if(n.nodeType===Node.COMMENT_NODE&&n.nodeValue.includes('build:')){
           var parts=n.nodeValue.trim().replace('build:','').split('|').map(function(s){ return s.trim(); }).filter(Boolean);
