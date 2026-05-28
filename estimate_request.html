@@ -1,666 +1,319 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- build: 1.0 | 20260528 | 見積依頼ツール | uk |-->
+  <!-- build: 1.3 | 20260528 | 見積依頼ツール | uk |-->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>見積依頼ツール</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0c1117;
-      --surface: #161b22;
-      --surface2: #1c2230;
-      --input-bg: #263148;
-      --border: #2a3444;
-      --ink: #cdd9e5;
-      --muted: #768390;
-      --accent: #388bfd;
-      --good: #3fb950;
-      --warn: #d29922;
-      --bad: #f85149;
-      --orange: #f97316;
+      --bg:#0c1117; --surface:#161b22; --surface2:#1c2230;
+      --input-bg:#263148; --border:#2a3444;
+      --ink:#cdd9e5; --muted:#768390;
+      --accent:#388bfd; --good:#3fb950; --warn:#d29922; --bad:#f85149; --orange:#f97316;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;font-size:14px;-webkit-text-size-adjust:100%}
+    .home-bar{background:var(--bg);border-bottom:1px solid var(--border);padding:4px 16px;display:flex;align-items:center}
+    .home-bar a{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;transition:color .2s}
+    .home-bar a:hover{color:var(--accent)}
+    header{border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;background:var(--surface);flex-shrink:0;flex-wrap:nowrap;overflow:hidden;min-height:44px}
+    header h1{font-size:13px;font-weight:700;letter-spacing:.02em;white-space:nowrap;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+    .badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:999px;border:1px solid;white-space:nowrap;flex-shrink:0}
+    .badge-orange{border-color:var(--orange);color:var(--orange)}
+    #verBadge{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;white-space:nowrap;margin-left:auto;flex-shrink:0}
+    @media(max-width:480px){header{padding:6px 10px;gap:6px}header h1{font-size:12px}#verBadge{display:none}}
+    .app{display:flex;flex:1;overflow:hidden}
+    /* 左 */
+    .left-panel{width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+    .panel-section{padding:12px 0 4px;border-bottom:1px solid var(--border)}
+    .panel-section:last-child{border-bottom:none;flex:1}
+    .panel-label{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--muted);padding:0 14px 6px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+    .company-item{padding:8px 14px;cursor:pointer;font-size:12px;border-left:3px solid transparent;transition:all .15s;color:var(--muted)}
+    .company-item:hover{background:var(--surface2);color:var(--ink)}
+    .company-item.active{background:var(--surface2);border-left-color:var(--orange);color:var(--orange);font-weight:600}
+    .cat-item{padding:7px 14px;cursor:pointer;font-size:12px;border-left:3px solid transparent;transition:all .15s;color:var(--muted);display:flex;align-items:center;gap:6px}
+    .cat-item:hover{background:var(--surface2);color:var(--ink)}
+    .cat-item.active{background:rgba(56,139,253,.07);border-left-color:var(--accent);color:var(--accent);font-weight:600}
+    .cat-count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface2);border-radius:3px;padding:1px 4px}
+    .search-wrap{padding:8px 10px}
+    .search-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;padding:6px 8px;font-size:11px;color:var(--ink);font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .15s}
+    .search-input:focus{border-color:var(--accent)}
+    .search-input::placeholder{color:var(--muted)}
+    /* 中 */
+    .main{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:18px}
+    .section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .section-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+    .section-line{flex:1;height:1px;background:var(--border)}
+    .item-count{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)}
+    .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+    .item-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .15s;position:relative}
+    .item-card:hover{background:var(--surface2);border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(56,139,253,.08)}
+    .item-card.in-cart{border-color:var(--good);background:rgba(63,185,80,.04)}
+    .item-no{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px}
+    .item-spec{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+    .item-teishaku{font-size:10px;color:var(--muted);margin-bottom:8px}
+    .item-meta{display:flex;justify-content:space-between;align-items:center}
+    .item-unit{color:var(--muted);font-size:10px}
+    .cart-badge-card{position:absolute;top:8px;right:8px;background:var(--good);color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace}
+    .no-results{color:var(--muted);font-size:12px;text-align:center;padding:40px 0}
+    /* 右: カート */
+    .cart-panel{width:360px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .cart-head{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+    .cart-head-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;flex:1}
+    .cart-count-badge{background:var(--orange);color:white;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace}
+    .generate-btn-top{background:none;border:1px solid var(--border);border-radius:4px;color:var(--muted);padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .15s;white-space:nowrap}
+    .generate-btn-top:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+    .generate-btn-top:disabled{opacity:.35;cursor:not-allowed}
+    .cart-items{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+    .cart-empty{color:var(--muted);font-size:12px;text-align:center;padding:40px 0}
+    .cart-item{background:var(--surface2);border-radius:6px;padding:10px 12px;border:1px solid var(--border)}
+    .cart-item-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px}
+    .cart-item-spec{font-size:12px;font-weight:700;color:var(--ink);flex:1;line-height:1.4}
+    .cart-item-teishaku{font-size:10px;color:var(--muted)}
+    .cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0;line-height:1;flex-shrink:0;transition:color .1s}
+    .cart-item-remove:hover{color:var(--bad)}
+    .cart-item-controls{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .qty-ctrl{display:flex;align-items:center;gap:2px;background:var(--bg);border-radius:4px;padding:2px 4px;border:1px solid var(--border)}
+    .qty-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:3px;transition:all .1s}
+    .qty-btn:hover{background:var(--border);color:var(--ink)}
+    .qty-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;min-width:22px;text-align:center;color:var(--ink)}
+    .qty-unit{font-size:10px;color:var(--muted)}
+    /* トグル行 */
+    .toggle-row{display:flex;gap:0;border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:6px;font-size:11px}
+    .toggle-row input[type="radio"]{display:none}
+    .toggle-row label{flex:1;text-align:center;padding:4px 6px;cursor:pointer;color:var(--muted);background:var(--surface2);transition:all .15s;user-select:none;font-size:11px;border-right:1px solid var(--border)}
+    .toggle-row label:last-child{border-right:none}
+    .toggle-row input[type="radio"]:checked+label{background:var(--input-bg);color:var(--ink);font-weight:600}
+    /* チェック行 */
+    .check-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--muted);cursor:pointer}
+    .check-row input[type="checkbox"]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;flex-shrink:0}
+    .check-row.checked{background:rgba(56,139,253,.08);border-color:var(--accent);color:var(--accent)}
+    /* 寸法行 */
+    .dim-row{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:6px;font-size:11px}
+    .dim-label{background:var(--surface2);color:var(--muted);white-space:nowrap;font-size:10px;padding:4px 7px;border-right:1px solid var(--border);flex-shrink:0}
+    .dim-unit-label{background:var(--surface2);color:var(--muted);font-size:10px;white-space:nowrap;flex-shrink:0;padding:4px 6px;border-left:1px solid var(--border)}
+    .dim-sep{color:var(--muted);font-size:12px;flex-shrink:0;padding:0 3px;background:var(--input-bg)}
+    .dim-half{width:64px!important}
+    .dim-input{background:var(--input-bg);border:none;width:100%;color:var(--ink);font-size:11px;font-family:'JetBrains Mono',monospace;outline:none;padding:4px 5px}
+    .note-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-size:11px;color:var(--ink);font-family:'Noto Sans JP',sans-serif;resize:none;outline:none;transition:border-color .15s}
+    .note-input::placeholder{color:var(--muted)}
+    .note-input:focus{border-color:var(--accent)}
+    /* フッター */
+    .cart-footer{padding:12px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+    .export-btn{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--muted);padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;width:100%;text-align:left}
+    .export-btn:hover{border-color:var(--good);color:var(--good)}
+    .meta-row{display:flex;align-items:center;gap:8px;font-size:12px}
+    .meta-label{color:var(--muted);width:66px;flex-shrink:0;font-size:10px}
+    .meta-input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-size:12px;color:var(--ink);font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .15s}
+    .meta-input:focus{border-color:var(--accent)}
+    .generate-btn{background:var(--accent);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:.04em;transition:all .15s;width:100%}
+    .generate-btn:hover{background:#2d7df0}
+    .generate-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+    /* メールパネル */
+    .mail-panel{position:fixed;bottom:0;left:0;right:0;height:420px;background:var(--surface);border-top:2px solid var(--accent);display:none;flex-direction:column;overflow:hidden;z-index:200;box-shadow:0 -8px 32px rgba(0,0,0,.5)}
+    .mail-panel.visible{display:flex}
+    .mail-head{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+    .mail-head-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;flex:1}
+    .copy-btn{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--ink);padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .15s}
+    .copy-btn:hover,.copy-btn.copied{background:var(--good);border-color:var(--good);color:white}
+    .close-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;line-height:1;transition:color .1s}
+    .close-btn:hover{color:var(--bad)}
+    .mail-body{flex:1;overflow-y:auto;padding:10px 16px}
+    .mail-textarea{width:100%;min-height:280px;height:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:11px;line-height:1.8;color:var(--ink);font-family:'JetBrains Mono',monospace;resize:none;outline:none}
+    .mail-textarea:focus{border-color:var(--accent)}
+
+    /* ══════ スマホ用 (≤768px) ══════ */
+    @media(max-width:768px){
+      /* アプリ全体をシングルカラムに */
+      .app{flex-direction:column;overflow:visible;height:auto}
+
+      /* 左パネル非表示 → タブ+チップで代替 */
+      .left-panel{display:none}
+
+      /* カートパネルを全幅・非固定に */
+      .cart-panel{width:100%;border-left:none;border-top:1px solid var(--border);
+        display:none;flex-direction:column;overflow:visible;max-height:none}
+      .cart-panel.sp-active{display:flex}
+      .cart-items{max-height:none;overflow:visible}
+      .cart-footer{position:sticky;bottom:0;background:var(--surface);z-index:50;
+        border-top:1px solid var(--border)}
+
+      /* 商品メインを全幅に */
+      .main{display:none;padding:10px 12px}
+      .main.sp-active{display:flex}
+
+      /* アイテムグリッドを2列に */
+      .items-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+      .item-card{padding:10px 10px}
+      .item-spec{font-size:12px}
+
+      /* ── スマホタブバー ── */
+      .sp-tabs{
+        display:flex;
+        background:var(--surface);
+        border-bottom:1px solid var(--border);
+        flex-shrink:0;
+        position:sticky;top:0;z-index:90;
+      }
+      .sp-tab{
+        flex:1;padding:10px 0;text-align:center;
+        font-size:12px;font-weight:600;color:var(--muted);
+        cursor:pointer;border-bottom:2px solid transparent;
+        transition:all .15s;position:relative;
+        background:var(--surface);
+      }
+      .sp-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+      .sp-tab-badge{
+        position:absolute;top:6px;right:calc(50% - 22px);
+        background:var(--orange);color:white;
+        font-size:9px;font-weight:700;
+        width:16px;height:16px;border-radius:50%;
+        display:none;align-items:center;justify-content:center;
+        font-family:'JetBrains Mono',monospace;
+      }
+      .sp-tab-badge.show{display:flex}
+
+      /* ── スマホ大分類チップ ── */
+      .sp-cat-bar{
+        display:flex;gap:6px;
+        overflow-x:auto;padding:8px 12px;
+        background:var(--surface);
+        border-bottom:1px solid var(--border);
+        flex-shrink:0;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .sp-cat-bar::-webkit-scrollbar{display:none}
+      .sp-chip{
+        flex-shrink:0;
+        padding:4px 10px;border-radius:20px;
+        font-size:11px;font-weight:600;
+        border:1px solid var(--border);
+        color:var(--muted);background:var(--surface2);
+        cursor:pointer;white-space:nowrap;transition:all .15s;
+      }
+      .sp-chip.active{background:rgba(56,139,253,.12);border-color:var(--accent);color:var(--accent)}
+
+      /* ── スマホ発注先セレクト ── */
+      .sp-supplier-bar{
+        display:flex;align-items:center;gap:8px;
+        padding:8px 12px;
+        background:var(--surface);
+        border-bottom:1px solid var(--border);
+        flex-shrink:0;
+      }
+      .sp-supplier-label{font-size:10px;color:var(--muted);white-space:nowrap}
+      .sp-supplier-select{
+        flex:1;background:var(--input-bg);border:1px solid var(--border);
+        border-radius:5px;padding:5px 8px;font-size:12px;color:var(--ink);
+        font-family:'Noto Sans JP',sans-serif;outline:none;
+      }
+      .sp-search{
+        flex-shrink:0;width:36px;height:32px;
+        background:var(--surface2);border:1px solid var(--border);
+        border-radius:5px;display:flex;align-items:center;justify-content:center;
+        cursor:pointer;font-size:14px;
+      }
+
+      /* ── スマホ検索バー（展開式）── */
+      .sp-search-bar{
+        display:none;padding:6px 12px;
+        background:var(--surface);border-bottom:1px solid var(--border);
+      }
+      .sp-search-bar.open{display:block}
+      .sp-search-input{
+        width:100%;background:var(--input-bg);border:1px solid var(--border);
+        border-radius:5px;padding:7px 10px;font-size:12px;color:var(--ink);
+        font-family:'Noto Sans JP',sans-serif;outline:none;
+      }
+      .sp-search-input:focus{border-color:var(--accent)}
+      .sp-search-input::placeholder{color:var(--muted)}
+
+      /* メールパネルの高さをスマホ向けに */
+      .mail-panel{height:85vh}
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Noto Sans JP', sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      font-size: 14px;
-      -webkit-text-size-adjust: 100%;
+    /* PC: スマホ専用要素を非表示 */
+    @media(min-width:769px){
+      .sp-tabs{display:none}
+      .sp-cat-bar{display:none}
+      .sp-supplier-bar{display:none}
+      .sp-search-bar{display:none}
+      /* PCでは.main/.cart-panelは常に表示 */
+      .main{display:flex!important}
+      .cart-panel{display:flex!important}
     }
 
-    /* ── HOME バー ── */
-    .home-bar {
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      padding: 4px 16px;
-      display: flex;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    .home-bar a {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--muted);
-      text-decoration: none;
-      white-space: nowrap;
-      transition: color .2s;
-    }
-    .home-bar a:hover { color: var(--accent); }
-
-    /* ── ヘッダー ── */
-    header {
-      border-bottom: 1px solid var(--border);
-      padding: 8px 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface);
-      flex-shrink: 0;
-      flex-wrap: nowrap;
-      overflow: hidden;
-      min-height: 44px;
-    }
-    header h1 {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: .02em;
-      white-space: nowrap;
-      flex-shrink: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .badge-orange { border-color: var(--orange); color: var(--orange); }
-    #verBadge {
-      font-size: 9px;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--muted);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 6px;
-      white-space: nowrap;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-    @media (max-width: 480px) {
-      header { padding: 6px 10px; gap: 6px; }
-      header h1 { font-size: 12px; }
-      #verBadge { display: none; }
-    }
-
-    /* ── アプリ本体 ── */
-    .app {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* ── 左: 会社 + フィルターパネル ── */
-    .left-panel {
-      width: 200px;
-      flex-shrink: 0;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .panel-section {
-      padding: 12px 0 4px;
-      border-bottom: 1px solid var(--border);
-    }
-    .panel-section:last-child { border-bottom: none; flex: 1; }
-
-    .panel-label {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      color: var(--muted);
-      padding: 0 14px 6px;
-      text-transform: uppercase;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* 会社リスト */
-    .company-item {
-      padding: 8px 14px;
-      cursor: pointer;
-      font-size: 12px;
-      border-left: 3px solid transparent;
-      transition: all .15s;
-      color: var(--muted);
-    }
-    .company-item:hover { background: var(--surface2); color: var(--ink); }
-    .company-item.active {
-      background: var(--surface2);
-      border-left-color: var(--orange);
-      color: var(--orange);
-      font-weight: 600;
-    }
-
-    /* 大分類フィルター */
-    .cat-item {
-      padding: 7px 14px;
-      cursor: pointer;
-      font-size: 12px;
-      border-left: 3px solid transparent;
-      transition: all .15s;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .cat-item:hover { background: var(--surface2); color: var(--ink); }
-    .cat-item.active {
-      background: rgba(56,139,253,.07);
-      border-left-color: var(--accent);
-      color: var(--accent);
-      font-weight: 600;
-    }
-    .cat-count {
-      margin-left: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      background: var(--surface2);
-      border-radius: 3px;
-      padding: 1px 4px;
-    }
-
-    /* 品名検索 */
-    .search-wrap { padding: 8px 10px; }
-    .search-input {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 6px 8px;
-      font-size: 11px;
-      color: var(--ink);
-      font-family: 'Noto Sans JP', sans-serif;
-      outline: none;
-      transition: border-color .15s;
-    }
-    .search-input:focus { border-color: var(--accent); }
-    .search-input::placeholder { color: var(--muted); }
-
-    /* ── 中: 商品一覧 ── */
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .section-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    .section-line { flex: 1; height: 1px; background: var(--border); }
-    .item-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-    }
-
-    .items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 8px;
-    }
-
-    .item-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: all .15s;
-      position: relative;
-    }
-    .item-card:hover {
-      background: var(--surface2);
-      border-color: var(--accent);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(56,139,253,.08);
-    }
-    .item-card.in-cart {
-      border-color: var(--good);
-      background: rgba(63,185,80,.04);
-    }
-
-    .item-no {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      color: var(--muted);
-      margin-bottom: 5px;
-    }
-    .item-name {
-      font-size: 12px;
-      font-weight: 500;
-      line-height: 1.5;
-      color: var(--ink);
-      margin-bottom: 8px;
-    }
-    .item-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .item-price {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 12px;
-    }
-    .item-unit { color: var(--muted); font-size: 10px; }
-    .cart-badge-card {
-      position: absolute;
-      top: 8px; right: 8px;
-      background: var(--good);
-      color: white;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* ── 右: カートパネル ── */
-    .cart-panel {
-      width: 360px;
-      flex-shrink: 0;
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .cart-head {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .cart-head-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      color: var(--muted);
-      text-transform: uppercase;
-      flex: 1;
-    }
-    .cart-count-badge {
-      background: var(--orange);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .cart-items {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .cart-empty {
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
-      padding: 40px 0;
-    }
-
-    .cart-item {
-      background: var(--surface2);
-      border-radius: 6px;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-    }
-    .cart-item-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-      gap: 8px;
-    }
-    .cart-item-name {
-      font-size: 11px;
-      line-height: 1.5;
-      color: var(--ink);
-      flex: 1;
-    }
-    .cart-item-remove {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 13px;
-      padding: 0;
-      line-height: 1;
-      flex-shrink: 0;
-      transition: color .1s;
-    }
-    .cart-item-remove:hover { color: var(--bad); }
-
-    .cart-item-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .qty-ctrl {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      background: var(--bg);
-      border-radius: 4px;
-      padding: 2px 4px;
-      border: 1px solid var(--border);
-    }
-    .qty-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 13px;
-      width: 22px; height: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 3px;
-      transition: all .1s;
-    }
-    .qty-btn:hover { background: var(--border); color: var(--ink); }
-    .qty-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 600;
-      min-width: 22px;
-      text-align: center;
-      color: var(--ink);
-    }
-    .qty-unit { font-size: 10px; color: var(--muted); }
-
-    .dim-row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 3px 7px;
-      margin-bottom: 6px;
-      font-size: 11px;
-    }
-    .dim-label { color: var(--muted); white-space: nowrap; font-size: 10px; }
-    .dim-unit-label { color: var(--muted); font-size: 10px; white-space: nowrap; flex-shrink: 0; }
-    .dim-sep { color: var(--muted); font-size: 12px; flex-shrink: 0; padding: 0 2px; }
-    .dim-half { width: 70px !important; }
-    .dim-input {
-      background: none;
-      border: none;
-      width: 100%;
-      color: var(--ink);
-      font-size: 11px;
-      font-family: 'JetBrains Mono', monospace;
-      outline: none;
-    }
-
-    .note-input {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 5px 7px;
-      font-size: 11px;
-      color: var(--ink);
-      font-family: 'Noto Sans JP', sans-serif;
-      resize: none;
-      outline: none;
-      transition: border-color .15s;
-    }
-    .note-input::placeholder { color: var(--muted); }
-    .note-input:focus { border-color: var(--accent); }
-
-    /* ── カートフッター ── */
-    .cart-footer {
-      padding: 12px 14px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .meta-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-    }
-    .meta-label {
-      color: var(--muted);
-      width: 66px;
-      flex-shrink: 0;
-      font-size: 10px;
-    }
-    .meta-input {
-      flex: 1;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 5px 7px;
-      font-size: 12px;
-      color: var(--ink);
-      font-family: 'Noto Sans JP', sans-serif;
-      outline: none;
-      transition: border-color .15s;
-    }
-    .meta-input:focus { border-color: var(--accent); }
-
-    .generate-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: 'Noto Sans JP', sans-serif;
-      letter-spacing: .04em;
-      transition: all .15s;
-      width: 100%;
-    }
-    .generate-btn:hover { background: #2d7df0; }
-    .generate-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
-
-    /* ── メールパネル ── */
-    .mail-panel {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 420px;
-      background: var(--surface);
-      border-top: 2px solid var(--accent);
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 200;
-      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
-    }
-    .mail-panel.visible { display: flex; }
-
-    .mail-head {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .mail-head-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      color: var(--muted);
-      text-transform: uppercase;
-      flex: 1;
-    }
-    .copy-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      color: var(--ink);
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: 'Noto Sans JP', sans-serif;
-      transition: all .15s;
-    }
-    .copy-btn:hover, .copy-btn.copied {
-      background: var(--good);
-      border-color: var(--good);
-      color: white;
-    }
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 0;
-      line-height: 1;
-      transition: color .1s;
-    }
-    .close-btn:hover { color: var(--bad); }
-
-    .mail-body { flex: 1; overflow-y: auto; padding: 10px 16px; }
-    .mail-textarea {
-      width: 100%;
-      min-height: 280px;
-      height: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      font-size: 11px;
-      line-height: 1.8;
-      color: var(--ink);
-      font-family: 'JetBrains Mono', monospace;
-      resize: none;
-      outline: none;
-    }
-    .mail-textarea:focus { border-color: var(--accent); }
-
-    /* スクロールバー */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    /* 空表示 */
-    .no-results {
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
-      padding: 40px 0;
-    }
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
   </style>
 </head>
 <body>
-
-  <!-- ── HOME バー ── -->
   <div class="home-bar">
     <a href="index.html" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← HOME</a>
   </div>
-
-  <!-- ── ヘッダー ── -->
   <header>
     <h1>🗒️ 見積依頼ツール</h1>
     <span class="badge badge-orange">Beta</span>
     <span id="verBadge">ver.--</span>
   </header>
 
-  <!-- ── アプリ本体 ── -->
-  <div class="app" id="app">
+  <!-- ── スマホ専用UI ── -->
+  <div class="sp-supplier-bar" id="spSupplierBar" style="display:none">
+    <span class="sp-supplier-label">発注先</span>
+    <select class="sp-supplier-select" id="spSupplierSelect" onchange="spSelectSupplier(this.value)"></select>
+    <div class="sp-search" onclick="toggleSpSearch()" title="検索">🔍</div>
+  </div>
+  <div class="sp-search-bar" id="spSearchBar">
+    <input class="sp-search-input" id="spSearchInput" type="text" placeholder="寸法・品番を検索…" oninput="spFilterItems()">
+  </div>
+  <div class="sp-cat-bar" id="spCatBar" style="display:none"></div>
+  <div class="sp-tabs" id="spTabs" style="display:none">
+    <div class="sp-tab active" id="spTabItems" onclick="spSwitchTab('items')">
+      📦 商品リスト
+    </div>
+    <div class="sp-tab" id="spTabCart" onclick="spSwitchTab('cart')">
+      🛒 カート
+      <span class="sp-tab-badge" id="spTabBadge">0</span>
+    </div>
+  </div>
 
-    <!-- 左: 会社 + 分類フィルター -->
+  <div class="app">
     <div class="left-panel">
-
       <div class="panel-section">
         <div class="panel-label">発注先</div>
         <div id="companyList"></div>
       </div>
-
       <div class="panel-section">
         <div class="panel-label">大分類</div>
         <div id="catList"></div>
       </div>
-
       <div class="panel-section">
         <div class="panel-label">絞り込み</div>
         <div class="search-wrap">
-          <input class="search-input" id="searchInput" type="text" placeholder="品名・品番を検索…" oninput="filterItems()">
+          <input class="search-input" id="searchInput" type="text" placeholder="寸法・品番を検索…" oninput="filterItems()">
         </div>
       </div>
-
     </div>
 
-    <!-- 中: 商品一覧 -->
     <div class="main" id="itemsMain">
       <div class="no-results">← 左の発注先を選択してください</div>
     </div>
 
-    <!-- 右: カートパネル -->
-    <div class="cart-panel">
+    <div class="cart-panel" id="cartPanel">
       <div class="cart-head">
         <span class="cart-head-title">🛒 カート</span>
+        <button class="generate-btn-top" id="generateBtnTop" onclick="generateMail()" disabled>📧 メール作成</button>
         <span class="cart-count-badge" id="cartCountBadge">0</span>
       </div>
       <div class="cart-items" id="cartItems">
         <div class="cart-empty">品目カードをクリックして追加</div>
       </div>
       <div class="cart-footer">
+        <button class="export-btn" onclick="exportData()">⬇ データをJSONで保存（編集用）</button>
         <div class="meta-row">
           <span class="meta-label">依頼者名</span>
           <input class="meta-input" id="requesterName" type="text" placeholder="例）施設管理課　山田">
@@ -679,7 +332,6 @@
       </div>
     </div>
 
-    <!-- 右右: メールパネル -->
     <div class="mail-panel" id="mailPanel">
       <div class="mail-head">
         <span class="mail-head-title">📧 メール本文</span>
@@ -690,450 +342,644 @@
         <textarea class="mail-textarea" id="mailTextarea" readonly></textarea>
       </div>
     </div>
-
-  </div><!-- /.app -->
+  </div>
 
   <script>
-    // ══════ データ ══════
+    // ══════ RAW_DATA ══════
+    // フィールド説明:
+    //   no       : 指定購買番号（''=要見積）
+    //   cat      : カテゴリキー（'plate'/'angle'/'sq'/'pipe'/'channel'/'flat'/'round'）
+    //   spec     : 寸法区分（カード・メールの品名として表示）
+    //   teishaku : 定尺表記（鋼板=サイズ文字列、その他=定尺長さmm）
+    //   w, h     : 鋼板の短辺・長辺mm（0=非鋼板）
+    //   unit     : 単位
+    //   price    : 参考単価（0=要見積）
+    //   supplier : 発注先
+    // ─────────────────────────────────────────────────────────────
+    // 品目追加は末尾にオブジェクト1行追記するだけでOK
+    // catの値: plate/angle/sq/pipe/channel/flat/round
+    // ─────────────────────────────────────────────────────────────
     var RAW_DATA = [
-      {no:'J04850004', name:'等辺山形鋼　ｔ６×６５×６５×５５００', unit:'本', price:2858, supplier:'小川真功商店'},
-      {no:'J04850003', name:'等辺山形鋼　ｔ６×５０×５０×５５００', unit:'本', price:2113, supplier:'小川真功商店'},
-      {no:'J04850002', name:'等辺山形鋼　ｔ５×４０×４０×５５００', unit:'本', price:1536, supplier:'小川真功商店'},
-      {no:'J04850001', name:'等辺山形鋼　ｔ５×３０×３０×５５００', unit:'本', price:1682, supplier:'小川真功商店'},
-      {no:'J04940011', name:'鋼管（ＳＧＰ白）　６５Ａ×５５００',    unit:'本', price:9247, supplier:'小川真功商店'},
-      {no:'J04940010', name:'鋼管（ＳＧＰ白）　５０Ａ×５５００',    unit:'本', price:6588, supplier:'小川真功商店'},
-      {no:'J04940009', name:'鋼管（ＳＧＰ白）　４０Ａ×５５００',    unit:'本', price:4835, supplier:'小川真功商店'},
-      {no:'J04940008', name:'鋼管（ＳＧＰ白）　３２Ａ×５５００',    unit:'本', price:4216, supplier:'小川真功商店'},
-      {no:'J04940007', name:'鋼管（ＳＧＰ白）　２５Ａ×５５００',    unit:'本', price:3186, supplier:'小川真功商店'},
-      {no:'J04940006', name:'鋼管（ＳＧＰ白）　２０Ａ×５５００',    unit:'本', price:2268, supplier:'小川真功商店'},
-      {no:'J04940005', name:'鋼管（ＳＧＰ白）　１５Ａ×５５００',    unit:'本', price:1845, supplier:'小川真功商店'},
-      {no:'J04940004', name:'鋼管（ＳＧＰ白）　１０Ａ×５５００',    unit:'本', price:1433, supplier:'小川真功商店'},
-      {no:'J04940003', name:'鋼管（ＳＧＰ黒）　８Ａ×５５００',      unit:'本', price:1320, supplier:'小川真功商店'},
-      {no:'J04940002', name:'鋼管（ＳＧＰ黒）　２５Ａ×５５００',    unit:'本', price:1934, supplier:'小川真功商店'},
-      {no:'J04940001', name:'鋼管（ＳＧＰ黒）　２０Ａ×５５００',    unit:'本', price:1346, supplier:'小川真功商店'},
-      {no:'J04900003', name:'溝形鋼　ｔ６×６５×１２５×５５００',   unit:'本', price:6744, supplier:'小川真功商店'},
-      {no:'J04900002', name:'溝形鋼　ｔ５×５０×１００×５５００',   unit:'本', price:4664, supplier:'小川真功商店'},
-      {no:'J04900001', name:'溝形鋼　ｔ５×４０×７５×５５００',    unit:'本', price:3810, supplier:'小川真功商店'},
-      {no:'J04970002', name:'角形鋼管　ｔ３．２×５０×５０×６０００', unit:'本', price:3034, supplier:'小川真功商店'},
-      {no:'J04970001', name:'角形鋼管　ｔ３．２×４０×４０×６０００', unit:'本', price:3629, supplier:'小川真功商店'},
-      {no:'J05120010', name:'平鋼　ｔ１６×１００×５５００',         unit:'本', price:9180, supplier:'小川真功商店'},
-      {no:'J05120009', name:'平鋼　ｔ１２×１００×５５００',         unit:'本', price:6710, supplier:'小川真功商店'},
-      {no:'J05120008', name:'平鋼　ｔ９×１００×５５００',          unit:'本', price:5040, supplier:'小川真功商店'},
-      {no:'J05120007', name:'平鋼　ｔ９×５０×５５００',           unit:'本', price:2020, supplier:'小川真功商店'},
-      {no:'J05120006', name:'平鋼　ｔ６×１００×５５００',          unit:'本', price:3360, supplier:'小川真功商店'},
-      {no:'J05120005', name:'平鋼　ｔ６×５０×５５００',           unit:'本', price:1354, supplier:'小川真功商店'},
-      {no:'J05120004', name:'平鋼　ｔ６×３８×５５００',           unit:'本', price:1062, supplier:'小川真功商店'},
-      {no:'J05120003', name:'平鋼　ｔ４．５×１００×５５００',       unit:'本', price:2850, supplier:'小川真功商店'},
-      {no:'J05120002', name:'平鋼　ｔ４．５×５０×５５００',        unit:'本', price:1082, supplier:'小川真功商店'},
-      {no:'J05120001', name:'平鋼　ｔ４．５×３８×５５００',        unit:'本', price: 801, supplier:'小川真功商店'},
-      {no:'J04980009', name:"鋼板　ｔ１６×３'×６'",              unit:'枚', price:25550, supplier:'小川真功商店'},
-      {no:'J04980008', name:"鋼板　ｔ１２×３'×６'",              unit:'枚', price:15800, supplier:'小川真功商店'},
-      {no:'J04980007', name:"鋼板　ｔ９．０×３'×６'（９１４×１８２９）", unit:'枚', price:9975, supplier:'小川真功商店'},
-      {no:'J04980006', name:"鋼板　ｔ６．０×３'×６'（９１４×１８２９）", unit:'枚', price:6108, supplier:'小川真功商店'},
-      {no:'J04980005', name:"鋼板　ｔ４．５×４'×８'（１２１９×２４３８）", unit:'枚', price:8876, supplier:'小川真功商店'},
-      {no:'J04980004', name:"鋼板　ｔ４．５×３'×６'（９１４×１８２９）", unit:'枚', price:4570, supplier:'小川真功商店'},
-      {no:'J04980003', name:"鋼板　ｔ３．２×３'×６'（９１４×１８２９）", unit:'枚', price:3247, supplier:'小川真功商店'},
-      {no:'J04980002', name:"鋼板　ｔ２．３×３'×６'（９１４×１８２９）", unit:'枚', price:2397, supplier:'小川真功商店'},
-      {no:'J04980001', name:"鋼板　ｔ１．６×３'×６'（９１４×１８２９）", unit:'枚', price:3547, supplier:'小川真功商店'},
+
+      // ─── 鋼板 ────
+      {no:'J04980001', cat:'plate', spec:'t1.6', teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:3547,  supplier:'小川真功商店'},
+      {no:'J04980002', cat:'plate', spec:'t2.3', teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:2397,  supplier:'小川真功商店'},
+      {no:'J04980003', cat:'plate', spec:'t3.2', teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:3247,  supplier:'小川真功商店'},
+      {no:'J04980004', cat:'plate', spec:'t4.5', teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:4570,  supplier:'小川真功商店'},
+      {no:'J04980005', cat:'plate', spec:'t4.5', teishaku:'4x8（1219×2438）', w:1219, h:2438, unit:'枚', price:8876,  supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t4.5', teishaku:"5x10（1524×3048）", w:1524, h:3048, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'J04980006', cat:'plate', spec:'t6.0', teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:6108,  supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t6.0', teishaku:'4x8（1219×2438）', w:1219, h:2438, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t6.0', teishaku:"5x10（1524×3048）", w:1524, h:3048, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'J04980007', cat:'plate', spec:'t9.0', teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:9975,  supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t9.0', teishaku:'4x8（1219×2438）', w:1219, h:2438, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t9.0', teishaku:"5x10（1524×3048）", w:1524, h:3048, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'J04980008', cat:'plate', spec:'t12',  teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:15800, supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t12',  teishaku:'4x8（1219×2438）', w:1219, h:2438, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t12',  teishaku:"5x10（1524×3048）", w:1524, h:3048, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'J04980009', cat:'plate', spec:'t16',  teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:25550, supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t16',  teishaku:"5x10（1524×3048）", w:1524, h:3048, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t19',  teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t22',  teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t25',  teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:0,     supplier:'小川真功商店'},
+      {no:'',          cat:'plate', spec:'t32',  teishaku:'3x6（914×1829）',  w:914,  h:1829, unit:'枚', price:0,     supplier:'小川真功商店'},
+
+      // ─── 等辺山形鋼（アングル）────
+      {no:'J04850001', cat:'angle', spec:'t5×30×30',   teishaku:'5500', w:0, h:0, unit:'本', price:1682, supplier:'小川真功商店'},
+      {no:'J04850002', cat:'angle', spec:'t5×40×40',   teishaku:'5500', w:0, h:0, unit:'本', price:1536, supplier:'小川真功商店'},
+      {no:'J04850003', cat:'angle', spec:'t6×50×50',   teishaku:'5500', w:0, h:0, unit:'本', price:2113, supplier:'小川真功商店'},
+      {no:'J04850004', cat:'angle', spec:'t6×65×65',   teishaku:'5500', w:0, h:0, unit:'本', price:2858, supplier:'小川真功商店'},
+      {no:'',          cat:'angle', spec:'t7×75×75',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'angle', spec:'t7×90×90',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'angle', spec:'t8×100×100', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'angle', spec:'t10×100×100',teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'angle', spec:'t12×120×120',teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'angle', spec:'t13×150×150',teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+
+      // ─── 角形鋼管 ────
+      {no:'J04970001', cat:'sq', spec:'t3.2×40×40',   teishaku:'6000', w:0, h:0, unit:'本', price:3629, supplier:'小川真功商店'},
+      {no:'J04970002', cat:'sq', spec:'t3.2×50×50',   teishaku:'6000', w:0, h:0, unit:'本', price:3034, supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t3.2×60×60',   teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t4.0×60×60',   teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t3.2×75×75',   teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t4.5×75×75',   teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t4.5×100×100', teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t6.0×100×100', teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t4.5×125×125', teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+      {no:'',          cat:'sq', spec:'t6.0×150×150', teishaku:'6000', w:0, h:0, unit:'本', price:0,    supplier:'小川真功商店'},
+
+      // ─── 鋼管（SGP黒）────
+      {no:'J04940003', cat:'pipe', spec:'SGP黒 8A',  teishaku:'5500', w:0, h:0, unit:'本', price:1320, supplier:'小川真功商店'},
+      {no:'',          cat:'pipe', spec:'SGP黒 10A', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'pipe', spec:'SGP黒 15A', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'J04940001', cat:'pipe', spec:'SGP黒 20A', teishaku:'5500', w:0, h:0, unit:'本', price:1346, supplier:'小川真功商店'},
+      {no:'J04940002', cat:'pipe', spec:'SGP黒 25A', teishaku:'5500', w:0, h:0, unit:'本', price:1934, supplier:'小川真功商店'},
+      // ─── 鋼管（SGP白）────
+      {no:'J04940004', cat:'pipe', spec:'SGP白 10A', teishaku:'5500', w:0, h:0, unit:'本', price:1433, supplier:'小川真功商店'},
+      {no:'J04940005', cat:'pipe', spec:'SGP白 15A', teishaku:'5500', w:0, h:0, unit:'本', price:1845, supplier:'小川真功商店'},
+      {no:'J04940006', cat:'pipe', spec:'SGP白 20A', teishaku:'5500', w:0, h:0, unit:'本', price:2268, supplier:'小川真功商店'},
+      {no:'J04940007', cat:'pipe', spec:'SGP白 25A', teishaku:'5500', w:0, h:0, unit:'本', price:3186, supplier:'小川真功商店'},
+      {no:'J04940008', cat:'pipe', spec:'SGP白 32A', teishaku:'5500', w:0, h:0, unit:'本', price:4216, supplier:'小川真功商店'},
+      {no:'J04940009', cat:'pipe', spec:'SGP白 40A', teishaku:'5500', w:0, h:0, unit:'本', price:4835, supplier:'小川真功商店'},
+      {no:'J04940010', cat:'pipe', spec:'SGP白 50A', teishaku:'5500', w:0, h:0, unit:'本', price:6588, supplier:'小川真功商店'},
+      {no:'J04940011', cat:'pipe', spec:'SGP白 65A', teishaku:'5500', w:0, h:0, unit:'本', price:9247, supplier:'小川真功商店'},
+
+      // ─── 溝形鋼（チャンネル）────
+      {no:'J04900001', cat:'channel', spec:'75×40×t5',    teishaku:'5500', w:0, h:0, unit:'本', price:3810, supplier:'小川真功商店'},
+      {no:'J04900002', cat:'channel', spec:'100×50×t5',   teishaku:'5500', w:0, h:0, unit:'本', price:4664, supplier:'小川真功商店'},
+      {no:'J04900003', cat:'channel', spec:'125×65×t6',   teishaku:'5500', w:0, h:0, unit:'本', price:6744, supplier:'小川真功商店'},
+      {no:'',          cat:'channel', spec:'150×75×t6.5', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'channel', spec:'150×75×t9',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'channel', spec:'180×75×t7',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'channel', spec:'200×80×t7.5', teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'channel', spec:'200×90×t8',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+      {no:'',          cat:'channel', spec:'250×90×t8',   teishaku:'5500', w:0, h:0, unit:'本', price:0,    supplier:''},
+
+      // ─── 平鋼（フラットバー）────
+      {no:'J05120001', cat:'flat', spec:'t4.5×38',  teishaku:'5500', w:0, h:0, unit:'本', price:801,  supplier:'小川真功商店'},
+      {no:'J05120002', cat:'flat', spec:'t4.5×50',  teishaku:'5500', w:0, h:0, unit:'本', price:1082, supplier:'小川真功商店'},
+      {no:'J05120003', cat:'flat', spec:'t4.5×100', teishaku:'5500', w:0, h:0, unit:'本', price:2850, supplier:'小川真功商店'},
+      {no:'J05120004', cat:'flat', spec:'t6×38',    teishaku:'5500', w:0, h:0, unit:'本', price:1062, supplier:'小川真功商店'},
+      {no:'J05120005', cat:'flat', spec:'t6×50',    teishaku:'5500', w:0, h:0, unit:'本', price:1354, supplier:'小川真功商店'},
+      {no:'J05120006', cat:'flat', spec:'t6×100',   teishaku:'5500', w:0, h:0, unit:'本', price:3360, supplier:'小川真功商店'},
+      {no:'J05120007', cat:'flat', spec:'t9×50',    teishaku:'5500', w:0, h:0, unit:'本', price:2020, supplier:'小川真功商店'},
+      {no:'J05120008', cat:'flat', spec:'t9×100',   teishaku:'5500', w:0, h:0, unit:'本', price:5040, supplier:'小川真功商店'},
+      {no:'J05120009', cat:'flat', spec:'t12×100',  teishaku:'5500', w:0, h:0, unit:'本', price:6710, supplier:'小川真功商店'},
+      {no:'J05120010', cat:'flat', spec:'t16×100',  teishaku:'5500', w:0, h:0, unit:'本', price:9180, supplier:'小川真功商店'},
+
+
+      // ─── H形鋼（広幅・細幅 定尺6000mm）────
+      {no:'', cat:'hbeam', spec:'広幅 100×100',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'広幅 125×125',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'広幅 150×150',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'広幅 175×175',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'広幅 200×200',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'広幅 250×250',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'広幅 300×300',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 100×50',   teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 125×60',   teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 150×75',   teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 175×90',   teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 200×100',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 250×125',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'hbeam', spec:'細幅 300×150',  teishaku:'6000', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+
+      // ─── 丸棒 ────
+      {no:'', cat:'round', spec:'Φ10',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ12',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ13',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ16',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ19',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ20',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ22',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ25',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ28',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ30',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ32',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ35',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ38',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ40',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ45',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ50',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ55',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ60',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ65',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ70',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ75',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ80',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ90',  teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
+      {no:'', cat:'round', spec:'Φ100', teishaku:'5500', w:0, h:0, unit:'本', price:0, supplier:'小川真功商店'},
     ];
 
-    // ══════ ソート用ユーティリティ ══════
-    // 全角数字・記号を半角に変換
-    function toHalf(str) {
-      return str.replace(/[０-９．]/g, function(c) {
-        return c === '．' ? '.' : String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
-      });
-    }
+    // ══════ カテゴリ定義 ══════
+    var CATEGORIES = [
+      {key:'all',     label:'すべて',             icon:'📦'},
+      {key:'plate',   label:'鋼板（定尺）',        icon:'🟫'},
+      {key:'angle',   label:'等辺山形鋼',           icon:'📐'},
+      {key:'hbeam',  label:'H形鋼',                icon:'⌶'},
+      {key:'sq',      label:'角形鋼管',             icon:'⬜'},
+      {key:'pipe',    label:'配管（鋼管）',          icon:'🔩'},
+      {key:'channel', label:'溝形鋼（チャンネル）', icon:'⊓'},
+      {key:'flat',    label:'平鋼（フラットバー）', icon:'▬'},
+      {key:'round',   label:'丸棒',                 icon:'⬤'},
+    ];
+    var CAT_ORDER = ['plate','angle','hbeam','sq','pipe','channel','flat','round'];
+    var PAINT_CATS = ['angle','hbeam','channel']; // 塗装トグルを出すカテゴリ
 
-    // 品名から数値列を抽出してソートキー配列を返す
-    function sortKey(item) {
-      var name = toHalf(item.name);
-      var cat = getCategory(item.name);
+    function getCategory(d){ return d.cat || 'other'; }
 
-      if (cat === 'pipe') {
-        // 鋼管: 黒→白の順(0/1)、次に呼び径
-        var isWhite = name.includes('白') ? 1 : 0;
-        var m = name.match(/(\d+\.?\d*)Ａ/i) || name.match(/(\d+\.?\d*)A/i);
-        var dia = m ? parseFloat(m[1]) : 0;
-        return [isWhite, dia];
-      }
-
-      // ｔ×寸法1×寸法2... の数値列を順番にキーにする
+    // ══════ ソート（specフィールドから数値抽出）══════
+    function specNums(spec) {
       var nums = [];
-      var re = /[\d]+\.?[\d]*/g;
-      var matched;
-      // ｔの後の数値を最優先（全角toHalf済みなのでtで拾える、念のため両対応）
-      var tMatch = name.match(/[tｔ]([\d.]+)/i);
-      if (tMatch) nums.push(parseFloat(tMatch[1]));
-      // 残りの×区切り数値
-      var rest = name.replace(/^[^×]+/, ''); // ｔ部分の前を除去
-      while ((matched = re.exec(rest)) !== null) {
-        nums.push(parseFloat(matched[0]));
-      }
+      var re = /[\d]+\.?[\d]*/g, m;
+      while ((m = re.exec(spec)) !== null) nums.push(parseFloat(m[0]));
       return nums;
     }
-
     function sortItems(items) {
-      return items.slice().sort(function(a, b) {
-        var ka = sortKey(a);
-        var kb = sortKey(b);
-        for (var i = 0; i < Math.max(ka.length, kb.length); i++) {
-          var va = ka[i] !== undefined ? ka[i] : 0;
-          var vb = kb[i] !== undefined ? kb[i] : 0;
-          if (va !== vb) return va - vb;
+      return items.slice().sort(function(a,b){
+        var ka = specNums(a.spec), kb = specNums(b.spec);
+        // pipeはSGP黒→白の順を保持するためspec文字列も考慮
+        if (a.cat==='pipe') {
+          var aw = a.spec.includes('白')?1:0, bw = b.spec.includes('白')?1:0;
+          if (aw!==bw) return aw-bw;
+        }
+        for (var i=0;i<Math.max(ka.length,kb.length);i++){
+          var va=ka[i]!==undefined?ka[i]:0, vb=kb[i]!==undefined?kb[i]:0;
+          if (va!==vb) return va-vb;
         }
         return 0;
       });
     }
 
-    // ══════ カテゴリ分類 ══════
-    var CATEGORIES = [
-      { key: 'all',    label: 'すべて',                icon: '📦' },
-      { key: 'plate',  label: '鋼板（定尺）',           icon: '🟫', match: function(n){ return n.includes('鋼板'); } },
-      { key: 'angle',  label: '等辺山形鋼（アングル）', icon: '📐', match: function(n){ return n.includes('等辺山形鋼'); } },
-      { key: 'sq',     label: '角形鋼管',               icon: '⬜', match: function(n){ return n.includes('角形鋼管'); } },
-      { key: 'pipe',   label: '配管（鋼管）',           icon: '🔩', match: function(n){ return n.includes('鋼管'); } },
-      { key: 'channel',label: '溝形鋼（チャンネル）',   icon: '⊓',  match: function(n){ return n.includes('溝形鋼'); } },
-      { key: 'flat',   label: '平鋼（フラットバー）',   icon: '▬',  match: function(n){ return n.includes('平鋼'); } },
-    ];
-
-    var CAT_ORDER = ['plate','angle','sq','pipe','channel','flat'];
-
-    function getCategory(name) {
-      for (var i = 1; i < CATEGORIES.length; i++) {
-        if (CATEGORIES[i].match(name)) return CATEGORIES[i].key;
-      }
-      return 'other';
-    }
+    // ══════ itemKey: インデックスベース（衝突しない）══════
+    function setupItemKeys(){ RAW_DATA.forEach(function(d,i){ d._idx=i; }); }
+    function itemKey(d){ return 'i'+d._idx; }
 
     // ══════ State ══════
-    var selectedSupplier = null;
-    var selectedCat = 'all';
-    var searchQuery = '';
-    var cart = {};
+    var selectedSupplier=null, selectedCat='all', searchQuery='';
+    var cart={};
 
     // ══════ 初期化 ══════
-    function init() {
-      // 会社リスト
-      var suppliers = [];
-      RAW_DATA.forEach(function(d) {
-        if (suppliers.indexOf(d.supplier) < 0) suppliers.push(d.supplier);
-      });
-      var cList = document.getElementById('companyList');
-      cList.innerHTML = '';
-      suppliers.forEach(function(s) {
-        var div = document.createElement('div');
-        div.className = 'company-item';
-        div.textContent = s;
-        div.onclick = function() { selectSupplier(s, div); };
-        cList.appendChild(div);
-      });
+    // ══════ スマホ判定 ══════
+    function isMobile(){ return window.innerWidth <= 768; }
 
-      // 大分類リスト（全件数カウント付き）
-      buildCatList(suppliers[0] || null);
-
-      // 1社しかなければ自動選択
-      if (suppliers.length === 1) cList.children[0].click();
+    // ══════ スマホ: タブ切替 ══════
+    var spCurrentTab = 'items';
+    function spSwitchTab(tab){
+      spCurrentTab = tab;
+      document.getElementById('spTabItems').classList.toggle('active', tab==='items');
+      document.getElementById('spTabCart').classList.toggle('active', tab==='cart');
+      document.getElementById('itemsMain').classList.toggle('sp-active', tab==='items');
+      document.getElementById('cartPanel').classList.toggle('sp-active', tab==='cart');
     }
 
-    function buildCatList(supplier) {
-      var items = supplier
-        ? RAW_DATA.filter(function(d) { return d.supplier === supplier; })
+    // ══════ スマホ: 発注先セレクト ══════
+    function spSelectSupplier(s){
+      selectedSupplier = s;
+      // PCのcompanyItemにもactive反映
+      document.querySelectorAll('.company-item').forEach(function(e){
+        e.classList.toggle('active', e.textContent===s);
+      });
+      selectedCat = 'all';
+      buildCatList(s);
+      buildSpCatBar();
+      renderItems();
+    }
+
+    // ══════ スマホ: 大分類チップバー ══════
+    function buildSpCatBar(){
+      var items = selectedSupplier
+        ? RAW_DATA.filter(function(d){ return d.supplier===selectedSupplier; })
         : RAW_DATA;
+      var bar = document.getElementById('spCatBar');
+      bar.innerHTML = '';
+      CATEGORIES.forEach(function(cat){
+        var cnt = cat.key==='all' ? items.length
+          : items.filter(function(d){ return d.cat===cat.key; }).length;
+        if(cat.key!=='all' && cnt===0) return;
+        var chip = document.createElement('div');
+        chip.className = 'sp-chip' + (cat.key===selectedCat?' active':'');
+        chip.setAttribute('data-cat', cat.key);
+        chip.textContent = cat.icon + ' ' + cat.label + ' ' + cnt;
+        chip.onclick = function(){
+          selectedCat = cat.key;
+          document.querySelectorAll('.sp-chip').forEach(function(c){ c.classList.remove('active'); });
+          chip.classList.add('active');
+          // PC側のcatListも同期
+          document.querySelectorAll('.cat-item').forEach(function(c){
+            c.classList.toggle('active', c.getAttribute('data-cat')===cat.key);
+          });
+          renderItems();
+        };
+        bar.appendChild(chip);
+      });
+    }
 
-      var catList = document.getElementById('catList');
-      catList.innerHTML = '';
-      CATEGORIES.forEach(function(cat) {
-        var cnt = cat.key === 'all'
-          ? items.length
-          : items.filter(function(d) { return getCategory(d.name) === cat.key; }).length;
-        if (cat.key !== 'all' && cnt === 0) return;
+    // ══════ スマホ: 検索 ══════
+    function toggleSpSearch(){
+      var bar = document.getElementById('spSearchBar');
+      bar.classList.toggle('open');
+      if(bar.classList.contains('open')) document.getElementById('spSearchInput').focus();
+    }
+    function spFilterItems(){
+      searchQuery = document.getElementById('spSearchInput').value.trim();
+      renderItems();
+    }
 
-        var div = document.createElement('div');
-        div.className = 'cat-item' + (cat.key === selectedCat ? ' active' : '');
-        div.setAttribute('data-cat', cat.key);
-        div.innerHTML = cat.icon + ' ' + cat.label + '<span class="cat-count">' + cnt + '</span>';
-        div.onclick = function() { selectCat(cat.key); };
+    // ══════ スマホ: カートバッジ更新 ══════
+    function updateSpBadge(){
+      var cnt = Object.keys(cart).length;
+      var badge = document.getElementById('spTabBadge');
+      badge.textContent = cnt;
+      badge.classList.toggle('show', cnt > 0);
+    }
+
+    // ══════ スマホUI初期化 ══════
+    function initSpUI(){
+      if(!isMobile()) return;
+      // 発注先セレクト構築
+      var suppliers = [];
+      RAW_DATA.forEach(function(d){ if(d.supplier && suppliers.indexOf(d.supplier)<0) suppliers.push(d.supplier); });
+      var sel = document.getElementById('spSupplierSelect');
+      sel.innerHTML = '';
+      suppliers.forEach(function(s){
+        var opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        sel.appendChild(opt);
+      });
+      document.getElementById('spSupplierBar').style.display = 'flex';
+      document.getElementById('spCatBar').style.display = 'flex';
+      document.getElementById('spTabs').style.display = 'flex';
+      // 初期選択
+      if(suppliers.length){
+        selectedSupplier = suppliers[0];
+        sel.value = suppliers[0];
+        buildSpCatBar();
+        renderItems();
+        document.getElementById('itemsMain').classList.add('sp-active');
+      }
+    }
+
+    function init(){
+      setupItemKeys();
+      var suppliers=[];
+      RAW_DATA.forEach(function(d){ if(d.supplier && suppliers.indexOf(d.supplier)<0) suppliers.push(d.supplier); });
+      var cList=document.getElementById('companyList');
+      cList.innerHTML='';
+      suppliers.forEach(function(s){
+        var div=document.createElement('div');
+        div.className='company-item';
+        div.textContent=s;
+        div.onclick=function(){ selectSupplier(s,div); };
+        cList.appendChild(div);
+      });
+      buildCatList(suppliers[0]||null);
+      if(suppliers.length===1) cList.children[0].click();
+      // スマホ初期化
+      initSpUI();
+    }
+
+    function buildCatList(supplier){
+      var items=supplier?RAW_DATA.filter(function(d){ return d.supplier===supplier; }):RAW_DATA;
+      var catList=document.getElementById('catList');
+      catList.innerHTML='';
+      CATEGORIES.forEach(function(cat){
+        var cnt=cat.key==='all'?items.length:items.filter(function(d){ return d.cat===cat.key; }).length;
+        if(cat.key!=='all'&&cnt===0) return;
+        var div=document.createElement('div');
+        div.className='cat-item'+(cat.key===selectedCat?' active':'');
+        div.setAttribute('data-cat',cat.key);
+        div.innerHTML=cat.icon+' '+cat.label+'<span class="cat-count">'+cnt+'</span>';
+        div.onclick=function(){ selectCat(cat.key); };
         catList.appendChild(div);
       });
     }
 
-    function selectSupplier(supplier, el) {
-      selectedSupplier = supplier;
-      document.querySelectorAll('.company-item').forEach(function(e) { e.classList.remove('active'); });
+    function selectSupplier(s,el){
+      selectedSupplier=s;
+      document.querySelectorAll('.company-item').forEach(function(e){ e.classList.remove('active'); });
       el.classList.add('active');
-      selectedCat = 'all';
-      buildCatList(supplier);
+      selectedCat='all'; buildCatList(s); renderItems();
+    }
+    function selectCat(k){
+      selectedCat=k;
+      document.querySelectorAll('.cat-item').forEach(function(e){ e.classList.toggle('active',e.getAttribute('data-cat')===k); });
       renderItems();
     }
+    function filterItems(){ searchQuery=document.getElementById('searchInput').value.trim(); if(selectedSupplier) renderItems(); }
 
-    function selectCat(catKey) {
-      selectedCat = catKey;
-      document.querySelectorAll('.cat-item').forEach(function(e) {
-        e.classList.toggle('active', e.getAttribute('data-cat') === catKey);
-      });
-      renderItems();
-    }
-
-    function filterItems() {
-      searchQuery = document.getElementById('searchInput').value.trim();
-      if (selectedSupplier) renderItems();
-    }
-
-    // ══════ 商品一覧レンダリング ══════
-    function renderItems() {
-      var main = document.getElementById('itemsMain');
-
-      var items = RAW_DATA.filter(function(d) {
-        if (d.supplier !== selectedSupplier) return false;
-        if (selectedCat !== 'all' && getCategory(d.name) !== selectedCat) return false;
-        if (searchQuery) {
-          var q = searchQuery.toLowerCase();
-          if (d.name.indexOf(searchQuery) < 0 && d.no.indexOf(searchQuery) < 0) return false;
-        }
+    // ══════ 商品一覧 ══════
+    function renderItems(){
+      var main=document.getElementById('itemsMain');
+      var items=RAW_DATA.filter(function(d){
+        if(d.supplier!==selectedSupplier) return false;
+        if(selectedCat!=='all'&&d.cat!==selectedCat) return false;
+        if(searchQuery&&d.spec.indexOf(searchQuery)<0&&d.no.indexOf(searchQuery)<0&&d.teishaku.indexOf(searchQuery)<0) return false;
         return true;
       });
+      if(!items.length){ main.innerHTML='<div class="no-results">該当する品目がありません</div>'; return; }
 
-      if (!items.length) {
-        main.innerHTML = '<div class="no-results">該当する品目がありません</div>';
-        return;
-      }
-
-      // カテゴリ別グループ（大分類選択中は1グループのみ）
-      var grouped = {};
-      items.forEach(function(item) {
-        var cat = getCategory(item.name);
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(item);
-      });
-
-      var order = selectedCat === 'all' ? CAT_ORDER : [selectedCat];
-      var html = '';
-      order.forEach(function(catKey) {
-        if (!grouped[catKey]) return;
-        var catItems = sortItems(grouped[catKey]);
-        var catInfo = CATEGORIES.find(function(c) { return c.key === catKey; }) || {label: catKey, icon: '📦'};
-        html += '<div>';
-        html += '<div class="section-header">';
-        html += '<span class="section-title">' + catInfo.icon + ' ' + catInfo.label + '</span>';
-        html += '<div class="section-line"></div>';
-        html += '<span class="item-count">' + catItems.length + '品目</span>';
-        html += '</div>';
-        html += '<div class="items-grid">';
-        catItems.forEach(function(item) {
-          var inCart = !!cart[item.no];
-          var cartQty = inCart ? cart[item.no].qty : 0;
-          html += '<div class="item-card' + (inCart ? ' in-cart' : '') + '" id="card-' + item.no + '" onclick="addToCart(\'' + item.no + '\')">';
-          if (inCart) html += '<span class="cart-badge-card">×' + cartQty + '</span>';
-          html += '<div class="item-no">' + item.no + '</div>';
-          html += '<div class="item-name">' + item.name + '</div>';
-          html += '<div class="item-meta">';
-          html += '<span class="item-price">¥' + item.price.toLocaleString() + '</span>';
-          html += '<span class="item-unit">/ ' + item.unit + '</span>';
-          html += '</div></div>';
+      var grouped={};
+      items.forEach(function(d){ if(!grouped[d.cat]) grouped[d.cat]=[]; grouped[d.cat].push(d); });
+      var order=selectedCat==='all'?CAT_ORDER:[selectedCat];
+      var html='';
+      order.forEach(function(catKey){
+        if(!grouped[catKey]) return;
+        var catItems=sortItems(grouped[catKey]);
+        var catInfo=CATEGORIES.find(function(c){ return c.key===catKey; })||{label:catKey,icon:'📦'};
+        html+='<div><div class="section-header">';
+        html+='<span class="section-title">'+catInfo.icon+' '+catInfo.label+'</span>';
+        html+='<div class="section-line"></div>';
+        html+='<span class="item-count">'+catItems.length+'品目</span></div>';
+        html+='<div class="items-grid">';
+        catItems.forEach(function(d){
+          var key=itemKey(d);
+          var inCart=!!cart[key];
+          var cartQty=inCart?cart[key].qty:0;
+          html+='<div class="item-card'+(inCart?' in-cart':'')+'" id="card-'+key+'" onclick="addToCart(\''+key+'\')">';
+          if(inCart) html+='<span class="cart-badge-card">×'+cartQty+'</span>';
+          if(d.no) html+='<div class="item-no">'+d.no+'</div>';
+          html+='<div class="item-spec">'+d.spec+'</div>';
+          html+='<div class="item-teishaku">定尺 '+d.teishaku+(d.cat==='plate'?'':' mm')+'</div>';
+          html+='<div class="item-meta">';
+          html+='<span style="font-family:\'JetBrains Mono\',monospace;font-weight:600;font-size:12px;color:'+(d.price?'var(--accent)':'var(--warn)')+'">'+( d.price?'¥'+d.price.toLocaleString():'要見積')+'</span>';
+          html+='<span class="item-unit">/ '+d.unit+'</span>';
+          html+='</div></div>';
         });
-        html += '</div></div>';
+        html+='</div></div>';
       });
-
-      main.innerHTML = html;
+      main.innerHTML=html;
     }
 
     // ══════ カート操作 ══════
-    function addToCart(no) {
-      var item = RAW_DATA.find(function(d) { return d.no === no; });
-      if (!item) return;
-      if (!cart[no]) {
-        cart[no] = { item: item, qty: 1, note: '', cutLength: '' };
-      } else {
-        cart[no].qty++;
-      }
-      renderCart();
-      renderItems();
-      updateBtn();
+    function addToCart(key){
+      var d=RAW_DATA.find(function(r){ return itemKey(r)===key; });
+      if(!d) return;
+      if(!cart[key]){
+        cart[key]={
+          item:d, qty:1, note:'',
+          specMode:'standard', cutLength:'', cutWidth:'',
+          paintMode:'none', stainless:false,
+          surface:'kuro', material:'S45C', materialOther:'',
+        };
+      } else { cart[key].qty++; }
+      renderCart(); renderItems(); updateBtn();
+    }
+    function removeFromCart(key){ delete cart[key]; renderCart(); renderItems(); updateBtn(); }
+    function changeQty(key,delta){
+      if(!cart[key]) return;
+      cart[key].qty=Math.max(1,cart[key].qty+delta);
+      renderCart(); renderItems();
+    }
+    function updateNote(key,val){        if(cart[key]) cart[key].note=val; }
+    function updateCutLength(key,val){   if(cart[key]) cart[key].cutLength=val; }
+    function updateCutWidth(key,val){    if(cart[key]) cart[key].cutWidth=val; }
+    function updateSpecMode(key,val){    if(!cart[key]) return; cart[key].specMode=val; renderCart(); }
+    function updatePaintMode(key,val){   if(!cart[key]) return; cart[key].paintMode=val; renderCart(); }
+    function updateStainless(key,el){    if(!cart[key]) return; cart[key].stainless=el.checked; el.closest('.check-row').classList.toggle('checked',el.checked); }
+    function updateSurface(key,val){     if(cart[key]) cart[key].surface=val; }
+    function updateMaterial(key,val){    if(!cart[key]) return; cart[key].material=val; renderCart(); }
+    function updateMaterialOther(key,val){ if(cart[key]) cart[key].materialOther=val; }
+
+    function radioBtn(name,value,label,checked,onchange){
+      var id=name+'-'+value.replace(/[^a-zA-Z0-9]/g,'_');
+      return '<input type="radio" id="'+id+'" name="'+name+'" value="'+value+'"'+(checked?' checked':'')+' onchange="'+onchange+'">'
+            +'<label for="'+id+'">'+label+'</label>';
     }
 
-    function removeFromCart(no) {
-      delete cart[no];
-      renderCart();
-      renderItems();
-      updateBtn();
-    }
+    // ══════ カートUI ══════
+    function renderCart(){
+      var keys=Object.keys(cart);
+      document.getElementById('cartCountBadge').textContent=keys.length;
+      var container=document.getElementById('cartItems');
+      if(!keys.length){ container.innerHTML='<div class="cart-empty">品目カードをクリックして追加</div>'; return; }
 
-    function changeQty(no, delta) {
-      if (!cart[no]) return;
-      cart[no].qty = Math.max(1, cart[no].qty + delta);
-      renderCart();
-      renderItems();
-    }
+      var html='';
+      keys.forEach(function(key){
+        var c=cart[key], d=c.item, uid=key;
 
-    function updateNote(no, val) { if (cart[no]) cart[no].note = val; }
-    function updateCutLength(no, val) { if (cart[no]) cart[no].cutLength = val; }
-    function updateCutWidth(no, val) { if (cart[no]) cart[no].cutWidth = val; }
+        html+='<div class="cart-item">';
+        // ヘッダ: spec + 定尺 + 削除
+        html+='<div class="cart-item-top">';
+        html+='<div><div class="cart-item-spec">'+d.spec+'</div>';
+        html+='<div class="cart-item-teishaku">定尺 '+d.teishaku+(d.cat==='plate'?'':' mm')+'</div></div>';
+        html+='<button class="cart-item-remove" onclick="removeFromCart(\''+key+'\')">✕</button></div>';
 
-    // カテゴリ別の寸法入力欄HTML
-    function dimFields(no, c) {
-      var cat = getCategory(c.item.name);
-      var cl = c.cutLength || '';
-      var cw = c.cutWidth  || '';
+        // 数量
+        html+='<div class="cart-item-controls">';
+        html+='<div class="qty-ctrl">';
+        html+='<button class="qty-btn" onclick="changeQty(\''+key+'\',-1)">－</button>';
+        html+='<span class="qty-value">'+c.qty+'</span>';
+        html+='<button class="qty-btn" onclick="changeQty(\''+key+'\',+1)">＋</button>';
+        html+='</div><span class="qty-unit">'+d.unit+'</span></div>';
 
-      if (cat === 'plate') {
-        // 鋼板: 縦×横
-        return '<div class="dim-row">' +
-          '<span class="dim-label">切断寸法</span>' +
-          '<input class="dim-input dim-half" type="text" placeholder="縦 例）500" value="' + cl + '"' +
-          ' onchange="updateCutLength(\'' + no + '\',this.value)" oninput="updateCutLength(\'' + no + '\',this.value)">' +
-          '<span class="dim-sep">×</span>' +
-          '<input class="dim-input dim-half" type="text" placeholder="横 例）500" value="' + cw + '"' +
-          ' onchange="updateCutWidth(\'' + no + '\',this.value)" oninput="updateCutWidth(\'' + no + '\',this.value)">' +
-          '<span class="dim-unit-label">mm</span>' +
-          '</div>';
-      } else {
-        // 棒・管系: 長さのみ
-        return '<div class="dim-row">' +
-          '<span class="dim-label">切断長さ</span>' +
-          '<input class="dim-input" type="text" placeholder="例）500" value="' + cl + '"' +
-          ' onchange="updateCutLength(\'' + no + '\',this.value)" oninput="updateCutLength(\'' + no + '\',this.value)">' +
-          '<span class="dim-unit-label">mm</span>' +
-          '</div>';
-      }
-    }
+        if(d.cat==='round'){
+          // 丸棒専用
+          html+='<div class="toggle-row">';
+          html+=radioBtn('surf-'+uid,'kuro','黒皮',c.surface==='kuro','updateSurface(\''+key+'\',this.value)');
+          html+=radioBtn('surf-'+uid,'migaki','ミガキ',c.surface==='migaki','updateSurface(\''+key+'\',this.value)');
+          html+='</div>';
+          html+='<div class="toggle-row">';
+          html+=radioBtn('mat-'+uid,'S45C','S45C',c.material==='S45C','updateMaterial(\''+key+'\',this.value)');
+          html+=radioBtn('mat-'+uid,'SS400','SS400',c.material==='SS400','updateMaterial(\''+key+'\',this.value)');
+          html+=radioBtn('mat-'+uid,'other','その他',c.material==='other','updateMaterial(\''+key+'\',this.value)');
+          html+='</div>';
+          if(c.material==='other'){
+            html+='<div class="dim-row"><span class="dim-label">材質名</span>';
+            html+='<input class="dim-input" type="text" placeholder="例）SCM440" value="'+(c.materialOther||'')+'"';
+            html+=' oninput="updateMaterialOther(\''+key+'\',this.value)"></div>';
+          }
+          // 丸棒は寸法を常時表示（選択した外径Φがspecに入ってるので長さだけ）
+          html+='<div class="dim-row"><span class="dim-label">切断長さ</span>';
+          html+='<input class="dim-input" type="text" placeholder="例）500" value="'+(c.cutLength||'')+'"';
+          html+=' oninput="updateCutLength(\''+key+'\',this.value)"><span class="dim-unit-label">mm</span></div>';
+        } else {
+          // 通常品: 定尺/寸法指定
+          html+='<div class="toggle-row">';
+          html+=radioBtn('spec-'+uid,'standard','定尺',c.specMode==='standard','updateSpecMode(\''+key+'\',this.value)');
+          html+=radioBtn('spec-'+uid,'cut','寸法指定',c.specMode==='cut','updateSpecMode(\''+key+'\',this.value)');
+          html+='</div>';
+          if(c.specMode==='cut'){
+            if(d.cat==='plate'){
+              html+='<div class="dim-row"><span class="dim-label">切断寸法</span>';
+              html+='<input class="dim-input dim-half" type="text" placeholder="縦" value="'+(c.cutLength||'')+'"';
+              html+=' oninput="updateCutLength(\''+key+'\',this.value)">';
+              html+='<span class="dim-sep">×</span>';
+              html+='<input class="dim-input dim-half" type="text" placeholder="横" value="'+(c.cutWidth||'')+'"';
+              html+=' oninput="updateCutWidth(\''+key+'\',this.value)">';
+              html+='<span class="dim-unit-label">mm</span></div>';
+            } else {
+              html+='<div class="dim-row"><span class="dim-label">切断長さ</span>';
+              html+='<input class="dim-input" type="text" placeholder="例）500" value="'+(c.cutLength||'')+'"';
+              html+=' oninput="updateCutLength(\''+key+'\',this.value)">';
+              html+='<span class="dim-unit-label">mm</span></div>';
+            }
+          }
+          if(PAINT_CATS.indexOf(d.cat)>=0){
+            html+='<div class="toggle-row">';
+            html+=radioBtn('paint-'+uid,'none','塗装無',c.paintMode==='none','updatePaintMode(\''+key+'\',this.value)');
+            html+=radioBtn('paint-'+uid,'color','カラー（錆止め）',c.paintMode==='color','updatePaintMode(\''+key+'\',this.value)');
+            html+='</div>';
+          }
+        }
 
-    function renderCart() {
-      var keys = Object.keys(cart);
-      document.getElementById('cartCountBadge').textContent = keys.length;
+        // ステンレス
+        html+='<label class="check-row'+(c.stainless?' checked':'')+'">';
+        html+='<input type="checkbox"'+(c.stainless?' checked':'')+' onchange="updateStainless(\''+key+'\',this)">';
+        html+='ステンレス（SUS）材で依頼する</label>';
 
-      var container = document.getElementById('cartItems');
-      if (!keys.length) {
-        container.innerHTML = '<div class="cart-empty">品目カードをクリックして追加</div>';
-        return;
-      }
-
-      var html = '';
-      keys.forEach(function(no) {
-        var c = cart[no];
-        html += '<div class="cart-item">';
-        html += '<div class="cart-item-top">';
-        html += '<div class="cart-item-name">' + c.item.name + '</div>';
-        html += '<button class="cart-item-remove" onclick="removeFromCart(\'' + no + '\')">✕</button>';
-        html += '</div>';
-        html += '<div class="cart-item-controls">';
-        html += '<div class="qty-ctrl">';
-        html += '<button class="qty-btn" onclick="changeQty(\'' + no + '\',-1)">－</button>';
-        html += '<span class="qty-value">' + c.qty + '</span>';
-        html += '<button class="qty-btn" onclick="changeQty(\'' + no + '\',+1)">＋</button>';
-        html += '</div>';
-        html += '<span class="qty-unit">' + c.item.unit + '</span>';
-        html += '</div>';
-        html += dimFields(no, c);
-        html += '<textarea class="note-input" rows="2" placeholder="品目備考（用途・仕様補足など）"';
-        html += ' onchange="updateNote(\'' + no + '\',this.value)" oninput="updateNote(\'' + no + '\',this.value)">' + (c.note||'') + '</textarea>';
-        html += '</div>';
+        // 備考
+        html+='<textarea class="note-input" rows="2" placeholder="品目備考（用途・仕様補足など）"';
+        html+=' oninput="updateNote(\''+key+'\',this.value)">'+(c.note||'')+'</textarea>';
+        html+='</div>';
       });
-      container.innerHTML = html;
+      container.innerHTML=html;
     }
 
-    function updateBtn() {
-      document.getElementById('generateBtn').disabled = Object.keys(cart).length === 0;
+    function updateBtn(){
+      var d=Object.keys(cart).length===0;
+      document.getElementById('generateBtn').disabled=d;
+      document.getElementById('generateBtnTop').disabled=d;
+      updateSpBadge();
     }
 
     // ══════ メール生成 ══════
-    function generateMail() {
-      var keys = Object.keys(cart);
-      if (!keys.length) return;
-
-      var requester = document.getElementById('requesterName').value || '（依頼者名未入力）';
-      var deliveryRaw = document.getElementById('deliveryDate').value;
-      var delivery = deliveryRaw
-        ? new Date(deliveryRaw).toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'})
-        : '（希望納期未入力）';
-      var globalNote = document.getElementById('globalNote').value;
-
-      var bySupplier = {};
-      keys.forEach(function(no) {
-        var c = cart[no];
-        var s = c.item.supplier;
-        if (!bySupplier[s]) bySupplier[s] = [];
+    function generateMail(){
+      var keys=Object.keys(cart);
+      if(!keys.length) return;
+      var requester=document.getElementById('requesterName').value||'（依頼者名未入力）';
+      var deliveryRaw=document.getElementById('deliveryDate').value;
+      var delivery=deliveryRaw?new Date(deliveryRaw).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'}):'（希望納期未入力）';
+      var globalNote=document.getElementById('globalNote').value;
+      var bySupplier={};
+      keys.forEach(function(key){
+        var c=cart[key], s=c.item.supplier||'（発注先未設定）';
+        if(!bySupplier[s]) bySupplier[s]=[];
         bySupplier[s].push(c);
       });
+      var today=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric'});
+      var mailText='';
 
-      var today = new Date().toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'});
-      var mailText = '';
+      Object.keys(bySupplier).forEach(function(supplier){
+        var entries=bySupplier[supplier];
+        var itemLines='';
+        entries.forEach(function(c,i){
+          var d=c.item;
+          var line='';
 
-      Object.keys(bySupplier).forEach(function(supplier) {
-        var entries = bySupplier[supplier];
-        var itemLines = '';
-        entries.forEach(function(e, i) {
-          itemLines += '\n【' + (i+1) + '】' + e.item.name;
-          var cat = getCategory(e.item.name);
-          if (cat === 'plate') {
-            if (e.cutLength || e.cutWidth) {
-              var dimStr = (e.cutLength||'?') + 'mm × ' + (e.cutWidth||'?') + 'mm';
-              itemLines += '\n　　切断寸法：' + dimStr;
-            }
+          if(d.cat==='round'){
+            // 丸棒: 材質・黒皮ミガキ・Φ・長さをまとめて品名に
+            var mat=c.material==='other'?(c.materialOther||'材質不明'):c.material;
+            var surf=c.surface==='kuro'?'黒皮':'ミガキ';
+            line='丸棒　'+d.spec+'　'+mat+'　'+surf;
+            if(c.cutLength) line+='　切断長さ '+c.cutLength+'mm';
           } else {
-            if (e.cutLength) itemLines += '\n　　切断長さ：' + e.cutLength + 'mm';
+            // specだけ（定尺サイズは含まない）+ カテゴリ名
+            var catInfo=CATEGORIES.find(function(cat){ return cat.key===d.cat; });
+            var catLabel=catInfo?catInfo.label:d.cat;
+            line=catLabel+'　'+d.spec;
+            if(c.specMode==='cut'){
+              if(d.cat==='plate') line+='\n　　切断寸法：'+(c.cutLength||'?')+'mm × '+(c.cutWidth||'?')+'mm';
+              else if(c.cutLength) line+='\n　　切断長さ：'+c.cutLength+'mm';
+            } else {
+              line+='\n　　指定：定尺（'+d.teishaku+(d.cat==='plate'?'':' mm')+')';
+            }
+            if(PAINT_CATS.indexOf(d.cat)>=0){
+              line+='\n　　塗装：'+(c.paintMode==='color'?'カラー（錆止め）':'塗装無');
+            }
           }
-          itemLines += '\n　　数量：' + e.qty + ' ' + e.item.unit;
-          if (e.note) itemLines += '\n　　備考：' + e.note;
-          itemLines += '\n';
+
+          if(c.stainless) line='【SUS】'+line;
+          itemLines+='\n【'+(i+1)+'】'+line;
+          itemLines+='\n　　数量：'+c.qty+' '+d.unit;
+          if(c.note) itemLines+='\n　　備考：'+c.note;
+          itemLines+='\n';
         });
 
-        mailText += supplier + ' ご担当者様\n\n';
-        mailText += 'お世話になっております。\n' + requester + ' でございます。\n\n';
-        mailText += '下記につきまして、お見積りをお願いいたします。\n\n';
-        mailText += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-        mailText += '■ 見積依頼日：' + today + '\n';
-        mailText += '■ 依頼者　　：' + requester + '\n';
-        mailText += '■ 希望納期　：' + delivery + '\n';
-        if (globalNote) mailText += '■ 備考　　　：' + globalNote + '\n';
-        mailText += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
-        mailText += '■ 見積依頼品目（計' + entries.length + '品目）\n';
-        mailText += itemLines;
-        mailText += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
-        mailText += 'お忙しいところ恐れ入りますが、何卒よろしくお願い申し上げます。\n\n以上';
+        mailText+=supplier+' ご担当者様\n\n';
+        mailText+='お世話になっております。\n'+requester+' でございます。\n\n';
+        mailText+='下記につきまして、お見積りをお願いいたします。\n\n';
+        mailText+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        mailText+='■ 見積依頼日：'+today+'\n';
+        mailText+='■ 依頼者　　：'+requester+'\n';
+        mailText+='■ 希望納期　：'+delivery+'\n';
+        if(globalNote) mailText+='■ 備考　　　：'+globalNote+'\n';
+        mailText+='━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+        mailText+='■ 見積依頼品目（計'+entries.length+'品目）\n';
+        mailText+=itemLines;
+        mailText+='\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+        mailText+='お忙しいところ恐れ入りますが、何卒よろしくお願い申し上げます。\n\n以上';
       });
 
-      document.getElementById('mailTextarea').value = mailText;
+      document.getElementById('mailTextarea').value=mailText;
       document.getElementById('mailPanel').classList.add('visible');
-      var btn = document.getElementById('copyBtn');
-      btn.textContent = 'コピー';
-      btn.classList.remove('copied');
+      var btn=document.getElementById('copyBtn');
+      btn.textContent='コピー'; btn.classList.remove('copied');
     }
 
-    function copyMail() {
-      var ta = document.getElementById('mailTextarea');
+    function copyMail(){
+      var ta=document.getElementById('mailTextarea');
       ta.select();
-      navigator.clipboard.writeText(ta.value).then(function() {
-        var btn = document.getElementById('copyBtn');
-        btn.textContent = '✓ コピー済み';
-        btn.classList.add('copied');
-        setTimeout(function() {
-          btn.textContent = 'コピー';
-          btn.classList.remove('copied');
-        }, 2000);
+      navigator.clipboard.writeText(ta.value).then(function(){
+        var btn=document.getElementById('copyBtn');
+        btn.textContent='✓ コピー済み'; btn.classList.add('copied');
+        setTimeout(function(){ btn.textContent='コピー'; btn.classList.remove('copied'); },2000);
       });
     }
+    function closeMail(){ document.getElementById('mailPanel').classList.remove('visible'); }
 
-    function closeMail() {
-      document.getElementById('mailPanel').classList.remove('visible');
+    // ══════ JSONエクスポート ══════
+    function exportData(){
+      var out=RAW_DATA.map(function(d){
+        return {no:d.no,cat:d.cat,spec:d.spec,teishaku:d.teishaku,w:d.w,h:d.h,unit:d.unit,price:d.price,supplier:d.supplier};
+      });
+      var json=JSON.stringify(out,null,2);
+      var blob=new Blob([json],{type:'application/json'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='estimate_items_'+new Date().toISOString().slice(0,10)+'.json';
+      a.click();
     }
 
-    // ══════ バージョン情報をコメントから読み込み ══════
-    window.addEventListener('DOMContentLoaded', function() {
-      for (var n of document.head.childNodes) {
-        if (n.nodeType === Node.COMMENT_NODE && n.nodeValue.includes('build:')) {
-          var parts = n.nodeValue.trim().replace('build:', '').split('|').map(function(s) { return s.trim(); }).filter(Boolean);
-          var ver = parts[0] || '--';
-          var date = parts[1] ? parts[1].replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3') : '';
-          var el = document.getElementById('verBadge');
-          if (el) el.textContent = '見積依頼ツール ver.' + ver + (date ? '  ' + date : '');
+    // ══════ バージョン ══════
+    window.addEventListener('DOMContentLoaded',function(){
+      for(var n of document.head.childNodes){
+        if(n.nodeType===Node.COMMENT_NODE&&n.nodeValue.includes('build:')){
+          var parts=n.nodeValue.trim().replace('build:','').split('|').map(function(s){ return s.trim(); }).filter(Boolean);
+          var ver=parts[0]||'--';
+          var date=parts[1]?parts[1].replace(/(\d{4})(\d{2})(\d{2})/,'$1.$2.$3'):'';
+          var el=document.getElementById('verBadge');
+          if(el) el.textContent='見積依頼ツール ver.'+ver+(date?'  '+date:'');
           break;
         }
       }
     });
 
     init();
+    // リサイズ時にスマホUI再初期化
+    window.addEventListener('resize', function(){
+      if(isMobile()) initSpUI();
+    });
   </script>
-
 </body>
 </html>
