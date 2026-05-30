@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>PC 容量レスキュー</title>
+<title>PC 容量Refresh (OneDrive対応)</title>
 <hta:application
     id="oApp"
     applicationname="PCStorageRescue"
@@ -285,7 +285,7 @@ html, body {
 // --- ウィンドウ初期化 ---
 // 余裕を持たせつつ、画面に収まる範囲にクランプ（小さい画面でもはみ出さない）。
 // 画面に収まりきらない分は #main の縦スクロールで救済する。
-var W = 740, H = 840;
+var W = 740, H = 960;
 try {
     if (W > screen.availWidth  - 20) W = screen.availWidth  - 20;
     if (H > screen.availHeight - 20) H = screen.availHeight - 20;
