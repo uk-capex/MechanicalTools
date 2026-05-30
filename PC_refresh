@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>PC 容量レスキュー</title>
+<hta:application
+    id="oApp"
+    applicationname="PCStorageRescue"
+    border="none"
+    caption="no"
+    maximizebutton="no"
+    minimizebutton="no"
+    sysmenu="no"
+    scroll="no"
+    singleinstance="yes"
+    windowstate="normal"
+    contextmenu="no"
+    selection="no"
+    innerborder="no"
+/>
+<style>
+/* ============================================================
+   PC 容量レスキュー  -  ダーク×クラウド管制室テイスト
+   ※IE11エンジン想定：CSS変数(var)/grid/backdrop-filterは不可。色は直書き。
+   ============================================================ */
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0; padding: 0; height: 100%;
+    overflow: hidden;
+    background: #0a111f;
+    font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
+    color: #e7eefb;
+    -ms-user-select: none;
+    cursor: default;
+}
+
+#app {
+    position: relative;
+    height: 100%;
+    display: -ms-flexbox; display: flex;
+    -ms-flex-direction: column; flex-direction: column;
+    background: #0c1426;
+    background-image:
+        radial-gradient(900px 420px at 78% -8%, rgba(56,160,255,0.16), rgba(56,160,255,0) 60%),
+        radial-gradient(700px 520px at 8% 118%, rgba(46,207,143,0.10), rgba(46,207,143,0) 55%),
+        linear-gradient(180deg, #0e1729 0%, #0a111f 100%);
+    border: 1px solid #21314c;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+}
+
+/* ---- タイトルバー ---- */
+#titlebar {
+    height: 46px;
+    -ms-flex-negative: 0; flex-shrink: 0;
+    display: -ms-flexbox; display: flex;
+    -ms-flex-align: center; align-items: center;
+    -ms-flex-pack: justify; justify-content: space-between;
+    padding: 0 12px 0 16px;
+    background: rgba(11,18,33,0.6);
+    border-bottom: 1px solid #1a2840;
+}
+#tb-left { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; }
+.brand-dot {
+    width: 22px; height: 22px; margin-right: 10px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #38a0ff 0%, #2b6bf0 100%);
+    box-shadow: 0 0 14px rgba(56,160,255,0.55);
+    position: relative;
+}
+.brand-dot:after {
+    content: ''; position: absolute; left: 5px; top: 7px;
+    width: 12px; height: 7px; border-radius: 8px;
+    background: rgba(255,255,255,0.92);
+}
+#tb-title { font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #cdddf5; }
+#tb-title span { color: #6f86a8; font-weight: 400; margin-left: 8px; font-size: 11px; }
+#tb-right { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; }
+.tb-btn {
+    width: 30px; height: 30px; margin-left: 4px;
+    border: none; outline: none; cursor: pointer;
+    background: transparent; color: #8aa0c0;
+    font-size: 15px; line-height: 30px; text-align: center;
+    border-radius: 7px;
+    transition: background-color .15s, color .15s;
+}
+.tb-btn:hover { background: #182438; color: #e7eefb; }
+#btn-close:hover { background: #3a1620; color: #ff7a86; }
+
+/* ---- 本体 ---- */
+#main { -ms-flex: 1; flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 20px 16px; }
+
+/* ===== HEROゲージ ===== */
+#hero {
+    display: -ms-flexbox; display: flex;
+    -ms-flex-align: center; align-items: center;
+    background: linear-gradient(180deg, #101c33 0%, #0d1729 100%);
+    border: 1px solid #1f2f49;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+#gauge-wrap { position: relative; width: 112px; height: 112px; -ms-flex-negative: 0; flex-shrink: 0; }
+#gauge-wrap svg { transform: rotate(-90deg); }
+#gauge-center {
+    position: absolute; left: 0; top: 0; width: 112px; height: 112px;
+    display: -ms-flexbox; display: flex;
+    -ms-flex-direction: column; flex-direction: column;
+    -ms-flex-pack: center; justify-content: center;
+    -ms-flex-align: center; align-items: center;
+}
+#gauge-pct { font-family: 'Consolas','Courier New',monospace; font-size: 27px; font-weight: 700; color: #ffffff; line-height: 1; }
+#gauge-pct small { font-size: 12px; color: #7d93b4; font-weight: 600; }
+#gauge-cap { font-size: 9px; letter-spacing: .12em; color: #6f86a8; margin-top: 3px; text-transform: uppercase; }
+#hero-info { -ms-flex: 1; flex: 1; margin-left: 22px; }
+.drive-row { display: -ms-flexbox; display: flex; -ms-flex-align: baseline; align-items: baseline; }
+#drive-letter { font-family: 'Consolas','Courier New',monospace; font-size: 21px; font-weight: 700; color: #e7eefb; margin-right: 10px; }
+#drive-sub { font-size: 12px; color: #7d93b4; }
+.barwrap { height: 9px; background: #16223a; border-radius: 6px; margin: 11px 0 6px; overflow: hidden; }
+#usedbar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #2b6bf0 0%, #38a0ff 60%, #45d6ff 100%);
+    border-radius: 6px; box-shadow: 0 0 10px rgba(56,160,255,0.5);
+    transition: width .6s cubic-bezier(.22,1,.32,1);
+}
+.figures { display: -ms-flexbox; display: flex; -ms-flex-pack: justify; justify-content: space-between; font-size: 12px; }
+.fig b { font-family: 'Consolas','Courier New',monospace; font-size: 15px; color: #cdddf5; font-weight: 700; }
+.fig.free b { color: #45d6ff; }
+.fig span { display: block; color: #6f86a8; font-size: 10px; letter-spacing: .08em; margin-top: 2px; }
+#od-chip { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; margin: 0 2px 12px; padding: 7px 12px; background: #11203a; border: 1px solid #20406b; border-radius: 10px; font-size: 11px; color: #9fc4ff; }
+#od-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: #45d6ff; margin-right: 9px; box-shadow: 0 0 8px #45d6ff; -ms-flex-negative: 0; flex-shrink: 0; }
+#od-chip.warn { background: #2a1c10; border-color: #5a3c18; color: #f0b366; }
+#od-chip.warn .dot { background: #f0a93b; box-shadow: 0 0 8px #f0a93b; }
+#od-path { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== タブバー ===== */
+#tabbar {
+    display: -ms-flexbox; display: flex;
+    margin: 16px 2px 0;
+    border-bottom: 1px solid #1a2840;
+}
+.tab-btn {
+    -ms-flex: 1; flex: 1;
+    background: transparent; border: none; outline: none; cursor: pointer;
+    color: #7d93b4; font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 12px 6px 13px; position: relative;
+    transition: color .18s;
+}
+.tab-btn .ti { font-size: 16px; margin-right: 6px; vertical-align: -2px; }
+.tab-btn:hover { color: #cdddf5; }
+.tab-btn.active { color: #ffffff; }
+.tab-btn.active:after {
+    content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px;
+    background: linear-gradient(90deg, #2b6bf0, #45d6ff);
+    box-shadow: 0 0 8px rgba(69,214,255,0.6); border-radius: 2px;
+}
+
+/* ===== タブペイン共通 ===== */
+.tabpane { display: none; padding-top: 14px; }
+.tabpane.active { display: block; }
+.pane-title { font-size: 14px; font-weight: 700; color: #f2f7ff; margin: 0 2px 4px; }
+.pane-sub { font-size: 11.5px; color: #7d93b4; margin: 0 2px 12px; line-height: 1.5; }
+
+/* ===== ① OneDriveウィザード ===== */
+#rail { position: relative; display: -ms-flexbox; display: flex; -ms-flex-pack: justify; justify-content: space-between; margin: 2px 6px 12px; }
+#rail:before { content: ''; position: absolute; top: 16px; left: 18px; right: 18px; height: 2px; background: #1c2840; z-index: 1; }
+#rail-fill { position: absolute; top: 16px; left: 18px; width: 0%; height: 2px; z-index: 1; background: linear-gradient(90deg, #2b6bf0, #45d6ff); box-shadow: 0 0 8px rgba(69,214,255,0.6); transition: width .5s cubic-bezier(.22,1,.32,1); }
+.rail-step { position: relative; z-index: 2; text-align: center; width: 76px; }
+.rail-dot { width: 34px; height: 34px; margin: 0 auto; border-radius: 50%; background: #0e1729; border: 2px solid #243654; color: #6f86a8; font-size: 14px; font-weight: 700; line-height: 30px; text-align: center; transition: all .3s cubic-bezier(.22,1,.32,1); }
+.rail-step.active .rail-dot { border-color: #38a0ff; color: #fff; background: linear-gradient(135deg, #38a0ff, #2b6bf0); box-shadow: 0 0 16px rgba(56,160,255,0.6); transform: scale(1.06); }
+.rail-step.done .rail-dot { border-color: #2ecf8f; color: #2ecf8f; background: #0e1f1a; }
+.rail-label { font-size: 10.5px; color: #6f86a8; margin-top: 7px; }
+.rail-step.active .rail-label { color: #cdddf5; font-weight: 600; }
+
+#card { position: relative; height: 190px; background: linear-gradient(180deg, #0f1b30 0%, #0c1626 100%); border: 1px solid #1c2c47; border-radius: 14px; overflow: hidden; }
+.panel { position: absolute; left: 0; top: 0; right: 0; bottom: 0; padding: 16px 20px; opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .35s ease, transform .35s cubic-bezier(.22,1,.32,1), visibility 0s linear .35s; }
+.panel.show { opacity: 1; visibility: visible; transform: translateY(0); transition: opacity .35s ease .05s, transform .4s cubic-bezier(.22,1,.32,1) .05s; }
+.p-head { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; margin-bottom: 10px; }
+.p-ico { width: 40px; height: 40px; -ms-flex-negative: 0; flex-shrink: 0; border-radius: 11px; margin-right: 13px; display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; -ms-flex-pack: center; justify-content: center; font-size: 21px; background: #11233f; border: 1px solid #20406b; }
+.p-title { font-size: 16px; font-weight: 700; color: #f2f7ff; }
+.p-title em { font-style: normal; color: #45d6ff; }
+.p-desc { font-size: 12.5px; line-height: 1.7; color: #a9bdd9; }
+.p-desc b { color: #e7eefb; }
+.p-desc .hi { color: #45d6ff; font-weight: 700; }
+.checklist { margin: 2px 0 0; padding: 0; list-style: none; }
+.checklist li { font-size: 12.5px; color: #a9bdd9; line-height: 1.5; padding: 5px 0 5px 26px; position: relative; }
+.checklist li:before { content: '✓'; position: absolute; left: 0; top: 5px; width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; color: #2ecf8f; background: #0e1f1a; border: 1px solid #1f4d3a; border-radius: 5px; }
+.checklist li b { color: #e7eefb; }
+.live-row { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; margin-top: 2px; }
+.live-num { font-family: 'Consolas','Courier New',monospace; font-size: 36px; font-weight: 700; color: #45d6ff; line-height: 1; text-shadow: 0 0 18px rgba(69,214,255,0.45); }
+.live-num small { font-size: 15px; color: #7d93b4; margin-left: 4px; }
+.live-cap { font-size: 11px; color: #6f86a8; margin-left: 16px; }
+.pulse { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.55;} 50%{opacity:1;} }
+.ba { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; margin-top: 2px; }
+.ba-box { text-align: center; }
+.ba-box .lab { font-size: 10px; letter-spacing: .12em; color: #6f86a8; text-transform: uppercase; }
+.ba-box .val { font-family: 'Consolas','Courier New',monospace; font-size: 21px; font-weight: 700; color: #cdddf5; margin-top: 3px; }
+.ba-arrow { font-size: 19px; color: #45d6ff; margin: 0 16px; }
+.ba-gain { margin-left: 20px; padding: 8px 16px; background: #0e1f1a; border: 1px solid #1f4d3a; border-radius: 10px; text-align: center; }
+.ba-gain .val { font-family: 'Consolas','Courier New',monospace; font-size: 24px; font-weight: 700; color: #2ecf8f; }
+.ba-gain .lab { font-size: 10px; color: #5fb98e; letter-spacing: .1em; }
+
+#od-footer { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; -ms-flex-pack: justify; justify-content: space-between; margin-top: 14px; }
+#hint { font-size: 11px; color: #5d7396; }
+#hint b { color: #9fc4ff; }
+.btns { display: -ms-flexbox; display: flex; }
+
+/* ===== ボタン共通 ===== */
+.btn { border: none; outline: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; border-radius: 10px; padding: 10px 20px; transition: background-color .18s, transform .08s, box-shadow .18s; }
+.btn-ghost { background: transparent; color: #8aa0c0; border: 1px solid #243654; margin-right: 10px; }
+.btn-ghost:hover { background: #15233a; color: #cdddf5; }
+.btn-ghost:disabled { opacity: .35; cursor: default; }
+.btn-primary { background: linear-gradient(135deg, #38a0ff 0%, #2b6bf0 100%); color: #fff; box-shadow: 0 6px 18px rgba(43,107,240,0.4); min-width: 160px; text-align: center; }
+.btn-primary:hover { box-shadow: 0 8px 24px rgba(56,160,255,0.55); }
+.btn-primary:active { transform: scale(.98); }
+.btn-primary:disabled { background: #1c2840; color: #5d7396; box-shadow: none; cursor: default; }
+.btn-danger { background: linear-gradient(135deg, #ff6a78 0%, #e23a4d 100%); box-shadow: 0 6px 18px rgba(226,58,77,0.35); }
+.btn-danger:hover { box-shadow: 0 8px 24px rgba(255,106,120,0.5); }
+.btn-danger:disabled { background: #1c2840; color: #5d7396; box-shadow: none; cursor: default; }
+.btn-sm { padding: 7px 14px; font-size: 12px; min-width: 0; }
+.spin { display: none; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn.loading .spin { display: inline-block; }
+
+/* ===== ② ジャンク掃除 ===== */
+#junk-list { background: linear-gradient(180deg, #0f1b30 0%, #0c1626 100%); border: 1px solid #1c2c47; border-radius: 12px; padding: 6px 4px; height: 216px; overflow-y: auto; overflow-x: hidden; }
+.jrow { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; padding: 11px 14px; border-bottom: 1px solid #15233a; }
+.jrow:last-child { border-bottom: none; }
+.jchk { width: 18px; height: 18px; margin-right: 14px; -ms-flex-negative: 0; flex-shrink: 0; cursor: pointer; }
+.jinfo { -ms-flex: 1; flex: 1; min-width: 0; }
+.jname { font-size: 13px; color: #e7eefb; font-weight: 600; }
+.jpath { font-size: 10.5px; color: #5d7396; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.jsize { font-family: 'Consolas','Courier New',monospace; font-size: 15px; font-weight: 700; color: #ffbf5a; margin-left: 12px; -ms-flex-negative: 0; flex-shrink: 0; }
+.jsize.zero { color: #5d7396; }
+.jrow.locked { opacity: .55; }
+.jrow.locked .jchk { cursor: default; }
+.locktag { font-size: 9.5px; font-weight: 700; color: #f0b366; background: #2a1c10; border: 1px solid #5a3c18; border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: 1px; letter-spacing: .04em; }
+.junk-foot { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; -ms-flex-pack: justify; justify-content: space-between; margin-top: 14px; }
+.warn-banner { display: -ms-flexbox; display: flex; -ms-flex-align: flex-start; align-items: flex-start; background: #241c0e; border: 1px solid #5a3c18; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; font-size: 12px; color: #f0b366; line-height: 1.65; }
+.warn-banner .wi { font-size: 17px; margin-right: 10px; -ms-flex-negative: 0; flex-shrink: 0; margin-top: 1px; }
+.warn-banner b { color: #ffcc7a; display: block; margin-bottom: 2px; }
+.junk-confirm { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; -ms-flex-pack: justify; justify-content: space-between; margin-top: 14px; background: #1e1410; border: 1px solid #5a3c18; border-radius: 10px; padding: 12px 16px; }
+.junk-confirm .cfmsg { font-size: 12.5px; color: #f0b366; -ms-flex: 1; flex: 1; margin-right: 16px; line-height: 1.5; }
+.junk-confirm .cfmsg b { color: #ffcc7a; font-size: 13px; display: block; margin-bottom: 4px; }
+.junk-total { font-size: 12px; color: #a9bdd9; }
+.junk-total b { font-family: 'Consolas','Courier New',monospace; font-size: 19px; color: #ffbf5a; margin: 0 4px; }
+.scanning { color: #7d93b4; font-size: 12.5px; padding: 26px 0; text-align: center; }
+
+/* ===== ③ 大きいフォルダ ===== */
+.root-pick { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; margin: 0 2px 10px; }
+.root-pick .lbl { font-size: 11px; color: #7d93b4; margin-right: 8px; }
+.chip-btn { background: #11203a; border: 1px solid #20406b; color: #9fc4ff; font-family: inherit; font-size: 11.5px; padding: 6px 12px; border-radius: 999px; margin-right: 7px; cursor: pointer; transition: all .15s; }
+.chip-btn:hover { background: #163056; }
+.chip-btn.active { background: linear-gradient(135deg, #2b6bf0, #38a0ff); border-color: #38a0ff; color: #fff; }
+#folder-list { background: linear-gradient(180deg, #0f1b30 0%, #0c1626 100%); border: 1px solid #1c2c47; border-radius: 12px; height: 240px; overflow-y: auto; overflow-x: hidden; padding: 4px; }
+.frow { display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; padding: 9px 12px; border-bottom: 1px solid #15233a; }
+.frow:last-child { border-bottom: none; }
+.frank { font-family: 'Consolas','Courier New',monospace; font-size: 12px; color: #5d7396; width: 22px; -ms-flex-negative: 0; flex-shrink: 0; }
+.finfo { -ms-flex: 1; flex: 1; min-width: 0; margin-right: 12px; }
+.fname { font-size: 12.5px; color: #e7eefb; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fbarwrap { height: 5px; background: #16223a; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+.fbar { height: 100%; background: linear-gradient(90deg, #2b6bf0, #45d6ff); border-radius: 4px; }
+.fsize { font-family: 'Consolas','Courier New',monospace; font-size: 13px; font-weight: 700; color: #cdddf5; width: 78px; text-align: right; -ms-flex-negative: 0; flex-shrink: 0; }
+.fsize.unk { color: #5d7396; font-size: 11px; }
+.fopen { margin-left: 12px; -ms-flex-negative: 0; flex-shrink: 0; background: #11233f; border: 1px solid #20406b; color: #9fc4ff; font-family: inherit; font-size: 11px; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all .15s; }
+.fopen:hover { background: #1a3a66; color: #fff; }
+.folder-foot { display: -ms-flexbox; display: flex; -ms-flex-pack: justify; justify-content: space-between; -ms-flex-align: center; align-items: center; margin-top: 12px; }
+.folder-note { font-size: 10.5px; color: #5d7396; -ms-flex: 1; flex: 1; line-height: 1.4; }
+
+/* トースト */
+#toast { position: absolute; left: 50%; bottom: 18px; margin-left: -190px; width: 380px; background: #2a1620; border: 1px solid #5a2630; color: #ffb3bb; padding: 11px 16px; border-radius: 10px; font-size: 12.5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity .3s, transform .3s, visibility 0s linear .3s; z-index: 50; text-align: center; }
+#toast.show { opacity: 1; visibility: visible; transform: translateY(0); transition: opacity .3s, transform .3s; }
+#toast.ok { background: #0e1f1a; border-color: #1f4d3a; color: #8ce0b8; }
+</style>
+
+<script language="javascript">
+/* ============================================================
+   ロジック部 ： IE11(JScript)互換（var / function / Enumerator / try-catch）
+   ============================================================ */
+
+// --- ウィンドウ初期化 ---
+// 余裕を持たせつつ、画面に収まる範囲にクランプ（小さい画面でもはみ出さない）。
+// 画面に収まりきらない分は #main の縦スクロールで救済する。
+var W = 740, H = 840;
+try {
+    if (W > screen.availWidth  - 20) W = screen.availWidth  - 20;
+    if (H > screen.availHeight - 20) H = screen.availHeight - 20;
+    window.resizeTo(W, H);
+    window.moveTo(Math.floor((screen.availWidth - W) / 2), Math.floor((screen.availHeight - H) / 2));
+} catch (e) {}
+
+// --- ActiveX ---
+var shell = null, fso = null;
+try { shell = new ActiveXObject("WScript.Shell"); } catch (e) {}
+try { fso   = new ActiveXObject("Scripting.FileSystemObject"); } catch (e) {}
+
+// --- 共通状態 ---
+var GB = 1073741824, MB = 1048576;
+var currentStep = 1;
+var oneDrivePath = "";
+var targetDrive = "C:";
+var beforeFreeGB = 0;
+var lastFreeGB = 0;
+var ringCirc = 0;
+var pollTimer = null, animTimer = null;
+var lastPollFree = 0;
+var junkScanned = false;
+var junkTargets = [];
+var folderRoot = "USER";
+var isElevated = false;
+var isScanning = false;
+
+// ---------- 起動 ----------
+function boot() {
+    setupGaugeRing();
+    detectOneDrive();
+    applyAdminUI();
+    scanDrive(true);
+    showPanel(1);
+    showTab("onedrive");
+}
+
+/* ============================================================
+   管理者権限の判定 / 表示
+   ============================================================ */
+// 非管理者だと HKU\S-1-5-19（LocalServiceのハイブ）の読み取りで例外が出る、
+// という挙動を利用した簡易判定。失敗側に倒して安全側（=非管理者扱い）に。
+function isAdmin() {
+    if (!shell) return false;
+    try { shell.RegRead("HKEY_USERS\\S-1-5-19\\Environment\\TEMP"); return true; }
+    catch (e) { return false; }
+}
+function applyAdminUI() {
+    isElevated = isAdmin();
+    var ab = document.getElementById("admin-banner");
+    if (ab) {
+        if (isElevated) { ab.style.display = "none"; }
+        else { ab.style.display = "-ms-flexbox"; ab.style.display = "flex"; }
+    }
+    var fn = document.getElementById("folder-admin-note");
+    if (fn) fn.style.display = isElevated ? "none" : "inline";
+}
+
+/* ============================================================
+   HEROゲージ / ドライブスキャン
+   ============================================================ */
+function setupGaugeRing() {
+    var r = 49;
+    ringCirc = 2 * Math.PI * r;
+    var fg = document.getElementById("ring-fg");
+    fg.setAttribute("stroke-dasharray", ringCirc);
+    fg.setAttribute("stroke-dashoffset", ringCirc);
+}
+function setRing(usedPct, animate) {
+    var fg = document.getElementById("ring-fg");
+    var target = ringCirc * (1 - Math.max(0, Math.min(100, usedPct)) / 100);
+    if (!animate) { fg.setAttribute("stroke-dashoffset", target); return; }
+    var startOff = parseFloat(fg.getAttribute("stroke-dashoffset"));
+    if (isNaN(startOff)) startOff = ringCirc;
+    var steps = 28, i = 0;
+    if (animTimer) window.clearInterval(animTimer);
+    animTimer = window.setInterval(function () {
+        i++;
+        var t = i / steps;
+        var e = 1 - Math.pow(1 - t, 3);
+        fg.setAttribute("stroke-dashoffset", startOff + (target - startOff) * e);
+        if (i >= steps) { window.clearInterval(animTimer); animTimer = null; }
+    }, 16);
+}
+function scanDrive(animate) {
+    if (!fso) { setDriveText("--", 0, 0, 0); return; }
+    try {
+        var d = fso.GetDrive(targetDrive);
+        var freeB = Number(d.FreeSpace), totalB = Number(d.TotalSize);
+        var freeG = freeB / GB, totalG = totalB / GB;
+        var usedPct = totalB > 0 ? ((totalB - freeB) / totalB) * 100 : 0;
+        lastFreeGB = freeG;
+        setDriveText(targetDrive, freeG, totalG, usedPct);
+        setRing(usedPct, animate);
+        document.getElementById("usedbar").style.width = usedPct.toFixed(1) + "%";
+    } catch (e) { setDriveText("--", 0, 0, 0); }
+}
+function setDriveText(letter, freeG, totalG, usedPct) {
+    document.getElementById("drive-letter").innerText = (letter === "--") ? "—" : (letter + " ");
+    document.getElementById("drive-sub").innerText = (letter === "--") ? "ドライブ情報を取得できません" : "ローカルドライブ";
+    document.getElementById("fig-free").innerText = freeG > 0 ? freeG.toFixed(1) + " GB" : "—";
+    document.getElementById("fig-total").innerText = totalG > 0 ? totalG.toFixed(0) + " GB" : "—";
+    document.getElementById("gauge-pct-num").innerText = totalG > 0 ? Math.round(usedPct) : "—";
+}
+function readFreeGB() {
+    if (!fso) return 0;
+    try { return Number(fso.GetDrive(targetDrive).FreeSpace) / GB; } catch (e) { return 0; }
+}
+
+/* ============================================================
+   タブ切替
+   ============================================================ */
+function showTab(name) {
+    var names = ["onedrive", "junk", "folders"];
+    for (var i = 0; i < names.length; i++) {
+        var p = document.getElementById("tab-" + names[i]);
+        var b = document.getElementById("tabbtn-" + names[i]);
+        if (p) p.className = (names[i] === name) ? "tabpane active" : "tabpane";
+        if (b) b.className = (names[i] === name) ? "tab-btn active" : "tab-btn";
+    }
+    // タブ切替はペインの表示だけを行う（重い集計を自動で走らせない）。
+    // ジャンク集計はユーザーが「スキャン」を押したときだけ実行する。
+}
+
+/* ============================================================
+   ① OneDrive ウィザード
+   ============================================================ */
+function detectOneDrive() {
+    var p = "";
+    if (shell) {
+        try {
+            p = shell.ExpandEnvironmentStrings("%OneDriveConsumer%");
+            if (p === "%OneDriveConsumer%" || p === "") p = shell.ExpandEnvironmentStrings("%OneDrive%");
+            if (p === "%OneDrive%") p = "";
+        } catch (e) { p = ""; }
+    }
+    var chip = document.getElementById("od-chip"), pathEl = document.getElementById("od-path");
+    if (p && p.length > 2) {
+        oneDrivePath = p;
+        if (/^[A-Za-z]:/.test(p)) targetDrive = p.substring(0, 2);
+        chip.className = ""; pathEl.innerText = "OneDrive : " + p;
+        document.getElementById("od-dot").style.background = "#45d6ff";
+    } else {
+        oneDrivePath = ""; chip.className = "warn";
+        pathEl.innerText = "OneDrive フォルダが見つかりません（サインイン要確認）";
+    }
+}
+function showPanel(n) {
+    for (var k = 1; k <= 4; k++) {
+        var pn = document.getElementById("panel-" + k), rs = document.getElementById("rail-" + k);
+        if (pn) pn.className = (k === n) ? "panel show" : "panel";
+        if (rs) rs.className = (k < n) ? "rail-step done" : (k === n) ? "rail-step active" : "rail-step";
+    }
+    document.getElementById("rail-fill").style.width = (((n - 1) / 3) * 100) + "%";
+    currentStep = n;
+    syncButtons();
+}
+function syncButtons() {
+    var back = document.getElementById("btn-back"), next = document.getElementById("btn-next"), label = document.getElementById("btn-next-text");
+    back.disabled = (currentStep === 1);
+    next.className = "btn btn-primary";
+    if (currentStep === 1) { label.innerText = "Cドライブを確認する"; }
+    else if (currentStep === 2) { label.innerText = "OneDrive設定を開く"; }
+    else if (currentStep === 3) {
+        label.innerText = "容量を解放する"; next.className = "btn btn-danger";
+        if (!oneDrivePath) { next.disabled = true; label.innerText = "OneDrive未検出"; } else { next.disabled = false; }
+    } else if (currentStep === 4) { label.innerText = "閉じる"; next.disabled = false; }
+}
+function goBack() { if (currentStep > 1 && currentStep < 4) showPanel(currentStep - 1); }
+function goNext() {
+    if (currentStep === 1) { runCmd("explorer.exe /root,::{20D04FE0-3AEA-1069-A2D8-08002B30309D}", 1, false, "エクスプローラーを開けませんでした"); showPanel(2); }
+    else if (currentStep === 2) { runCmd("cmd.exe /c start odopen://launchadminsettings", 0, false, "OneDrive設定を開けませんでした"); showPanel(3); }
+    else if (currentStep === 3) { startCleanup(); }
+    else if (currentStep === 4) { window.close(); }
+}
+function startCleanup() {
+    if (!oneDrivePath) { toast("OneDriveフォルダが見つからないため実行できません", false); return; }
+    var next = document.getElementById("btn-next"), back = document.getElementById("btn-back");
+    next.disabled = true; back.disabled = true;
+    next.className = "btn btn-danger loading";
+    document.getElementById("btn-next-text").innerText = "解放処理中...";
+    beforeFreeGB = readFreeGB();
+    window.setTimeout(function () {
+        var cmd = 'powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command '
+                + '"$o=$env:OneDriveConsumer; if(-not $o){$o=$env:OneDrive}; '
+                + 'if($o){ attrib +U -P /s ($o + \'\\*\') }"';
+        // wait=false で起動：UIを固めず、空き容量の増加をポーリングでライブ表示する。
+        // 完了判定は startPolling 側（変化が止まったら終了）。
+        try { shell.Run(cmd, 0, false); }
+        catch (e) { toast("解放処理でエラー: " + e.message, false); finishCleanupError(); return; }
+        // showPanel(3)は呼ばない：syncButtons()でボタンが復活＆ローディング表示が消えるため
+        document.getElementById("btn-next").disabled = true;
+        document.getElementById("btn-back").disabled = true;
+        document.getElementById("p3-confirm").style.display = "none";
+        document.getElementById("p3-live").style.display = "block";
+        startPolling();
+    }, 120);
+}
+function startPolling() {
+    // OneDriveの空き容量回収は attrib 完了後も裏で続くことがあるので、
+    // 監視は長めに取る（最大 30回 × 2.5秒 ≒ 75秒）。
+    // 変化が止まって 5回（約12秒）続いたら、回収完了とみなして早期終了。
+    var tries = 0, maxTries = 30, stable = 0;
+    lastPollFree = 0;
+    document.getElementById("live-num").innerText = "0.00";
+    if (pollTimer) window.clearInterval(pollTimer);
+    pollTimer = window.setInterval(function () {
+        tries++;
+        scanDrive(true);
+        var nowFree = readFreeGB();
+        var freed = nowFree - beforeFreeGB; if (freed < 0) freed = 0;
+        document.getElementById("live-num").innerText = freed.toFixed(2);
+        if (Math.abs(nowFree - lastPollFree) < 0.01) stable++; else stable = 0;
+        lastPollFree = nowFree;
+        if (tries >= maxTries || (tries >= 4 && stable >= 5)) { window.clearInterval(pollTimer); pollTimer = null; finishCleanup(freed); }
+    }, 2500);
+}
+function finishCleanup(freedGB) {
+    scanDrive(true);
+    var afterFree = readFreeGB();
+    document.getElementById("ba-before").innerText = beforeFreeGB.toFixed(1) + " GB";
+    document.getElementById("ba-after").innerText = afterFree.toFixed(1) + " GB";
+    var gain = afterFree - beforeFreeGB; if (gain < 0) gain = 0;
+    document.getElementById("ba-gain-val").innerText = "+" + gain.toFixed(1);
+    document.getElementById("btn-next").className = "btn btn-primary";
+    showPanel(4);
+    if (gain < 0.1) {
+        // ほぼ変化なし：attrib は走ったが空きが増えていない＝同期待ち or 設定オフ等の可能性。
+        toast("空き容量の変化を検出できませんでした。同期待ちか、『ファイル オンデマンド』がオフの可能性があります", false);
+    } else {
+        toast("解放処理が完了しました（クラウド同期は継続中の場合があります）", true);
+    }
+}
+function finishCleanupError() {
+    document.getElementById("p3-confirm").style.display = "block";
+    document.getElementById("p3-live").style.display = "none";
+    var next = document.getElementById("btn-next"), back = document.getElementById("btn-back");
+    next.className = "btn btn-danger"; next.disabled = false; back.disabled = false;
+    document.getElementById("btn-next-text").innerText = "容量を解放する";
+}
+
+/* ============================================================
+   ② ジャンク掃除
+   ============================================================ */
+function buildJunkTargets() {
+    var t = [];
+    if (shell) {
+        var tmp = shell.ExpandEnvironmentStrings("%TEMP%");
+        if (tmp && tmp.indexOf("%") < 0) t.push({ key: "usertmp", name: "ユーザー一時ファイル", path: tmp, type: "files" });
+        var lad = shell.ExpandEnvironmentStrings("%LOCALAPPDATA%");
+        if (lad && lad.indexOf("%") < 0) t.push({ key: "inet", name: "インターネット一時ファイル", path: lad + "\\Microsoft\\Windows\\INetCache", type: "files" });
+    }
+    t.push({ key: "wintmp", name: "Windows 一時ファイル", path: "C:\\Windows\\Temp", type: "files", needsAdmin: true });
+    t.push({ key: "recycle", name: "ごみ箱", path: "（システム全体）", type: "recyclebin" });
+    return t;
+}
+function safeFolderSize(path) {
+    if (!fso || !fso.FolderExists(path)) return 0;
+    try { return Number(fso.GetFolder(path).Size); } catch (e) {}
+    var total = 0;
+    try {
+        var folder = fso.GetFolder(path);
+        var fc = new Enumerator(folder.Files);
+        for (; !fc.atEnd(); fc.moveNext()) { try { total += Number(fc.item().Size); } catch (e2) {} }
+        var sc = new Enumerator(folder.SubFolders);
+        for (; !sc.atEnd(); sc.moveNext()) { try { total += Number(sc.item().Size); } catch (e3) {} }
+    } catch (e4) {}
+    return total;
+}
+// ごみ箱内のフォルダは Item().Size が 0 を返すため、フォルダは GetFolder で
+// 中へ降りて再帰合算する（深さは念のため上限を設ける）。
+function shellItemSize(item, depth) {
+    if (depth > 8) return 0;
+    var s = 0;
+    try {
+        if (item.IsFolder) {
+            var sub = item.GetFolder;
+            if (sub) {
+                var its = sub.Items(), n = its.Count;
+                for (var i = 0; i < n; i++) { s += shellItemSize(its.Item(i), depth + 1); }
+            }
+        } else {
+            s = Number(item.Size); if (isNaN(s)) s = 0;
+        }
+    } catch (e) {}
+    return s;
+}
+function recycleBinSize() {
+    try {
+        var sa = new ActiveXObject("Shell.Application");
+        var rb = sa.Namespace(10);
+        if (!rb) return 0;
+        var items = rb.Items(), total = 0, n = items.Count;
+        for (var i = 0; i < n; i++) { try { total += shellItemSize(items.Item(i), 0); } catch (e) {} }
+        return total;
+    } catch (e) { return 0; }
+}
+function scanJunk() {
+    if (isScanning) return;          // 別の集計/削除が進行中なら無視（再入防止）
+    isScanning = true;
+    var jbtn = document.getElementById("btn-jscan");
+    if (jbtn) jbtn.disabled = true;
+    var list = document.getElementById("junk-list");
+    list.innerHTML = '<div class="scanning">ジャンクファイルを集計中...</div>';
+    document.getElementById("junk-total-val").innerText = "—";
+    window.setTimeout(function () {
+        try {
+            junkTargets = buildJunkTargets();
+            var total = 0, html = "";
+            for (var i = 0; i < junkTargets.length; i++) {
+                var tg = junkTargets[i];
+                var sz = (tg.type === "recyclebin") ? recycleBinSize() : safeFolderSize(tg.path);
+                tg.size = sz;
+                // 管理者必須の項目は、非管理者だと実際には消せない。チェック不可にして合計からも除外する。
+                var locked = (tg.needsAdmin && !isElevated);
+                if (!locked) total += sz;
+                var szTxt = sz >= GB ? (sz / GB).toFixed(2) + " GB" : (sz / MB).toFixed(0) + " MB";
+                var szCls = sz < MB ? "jsize zero" : "jsize";
+                var tag = locked ? ' <span class="locktag">要管理者</span>' : '';
+                html += '<div class="jrow' + (locked ? ' locked' : '') + '">'
+                      + '<input type="checkbox" class="jchk" id="jc-' + i + '" ' + (locked ? 'disabled' : 'checked') + ' />'
+                      + '<div class="jinfo"><div class="jname">' + tg.name + tag + '</div>'
+                      + '<div class="jpath">' + tg.path + '</div></div>'
+                      + '<div class="' + szCls + '">' + szTxt + '</div></div>';
+            }
+            list.innerHTML = html;
+            document.getElementById("junk-total-val").innerText = (total / GB).toFixed(2);
+            junkScanned = true;
+        } catch (eScan) {
+            list.innerHTML = '<div class="scanning">集計中にエラーが発生しました</div>';
+        }
+        if (jbtn) jbtn.disabled = false;
+        // 集計中(=フリーズ中)にバッファされた連打を吸収するため、解除は少し遅らせる
+        window.setTimeout(function () { isScanning = false; }, 300);
+    }, 80);
+}
+function emptyFolder(path) {
+    var res = { freed: 0, count: 0 };
+    if (!fso || !fso.FolderExists(path)) return res;
+    var folder;
+    try { folder = fso.GetFolder(path); } catch (e) { return res; }
+    try {
+        var fc = new Enumerator(folder.Files);
+        for (; !fc.atEnd(); fc.moveNext()) {
+            var f = fc.item();
+            try { var s = Number(f.Size); f.Delete(true); res.freed += s; res.count++; } catch (e2) {}
+        }
+    } catch (e3) {}
+    try {
+        var sc = new Enumerator(folder.SubFolders);
+        for (; !sc.atEnd(); sc.moveNext()) {
+            var sf = sc.item();
+            try { var s2 = Number(sf.Size); sf.Delete(true); res.freed += s2; res.count++; } catch (e4) {}
+        }
+    } catch (e5) {}
+    return res;
+}
+function runJunkClean() {
+    if (isScanning) return;          // 集計/削除の進行中は受け付けない
+    // 集計未済のまま押された場合は何もしない
+    if (!junkScanned || junkTargets.length === 0) { toast("先に「スキャン」を実行してください", false); return; }
+    // 通常フッターを隠して確認フッターを表示
+    document.getElementById("junk-foot-normal").style.display = "none";
+    document.getElementById("junk-foot-confirm").style.display = "-ms-flexbox";
+    document.getElementById("junk-foot-confirm").style.display = "flex";
+}
+function cancelJunkClean() {
+    document.getElementById("junk-foot-confirm").style.display = "none";
+    document.getElementById("junk-foot-normal").style.display = "-ms-flexbox";
+    document.getElementById("junk-foot-normal").style.display = "flex";
+}
+function execJunkClean() {
+    if (isScanning) return;          // 進行中なら無視（再入防止）
+    isScanning = true;
+    // 確認フッターを閉じ、通常フッターのボタンをローディング状態で復元
+    document.getElementById("junk-foot-confirm").style.display = "none";
+    document.getElementById("junk-foot-normal").style.display = "-ms-flexbox";
+    document.getElementById("junk-foot-normal").style.display = "flex";
+    var btn = document.getElementById("btn-clean");
+    btn.disabled = true; btn.className = "btn btn-danger loading";
+    document.getElementById("clean-text").innerText = "削除中...";
+    window.setTimeout(function () {
+        var freed = 0, files = 0, doRecycle = false;
+        try {
+            for (var i = 0; i < junkTargets.length; i++) {
+                var chk = document.getElementById("jc-" + i);
+                if (!chk || !chk.checked) continue;
+                var tg = junkTargets[i];
+                if (tg.type === "recyclebin") { doRecycle = true; freed += (tg.size || 0); }
+                else { var r = emptyFolder(tg.path); freed += r.freed; files += r.count; }
+            }
+            if (doRecycle && shell) {
+                try { shell.Run('powershell -NoProfile -ExecutionPolicy Bypass -Command "Clear-RecycleBin -Force -ErrorAction SilentlyContinue"', 0, true); } catch (e) {}
+            }
+        } catch (eDel) {}
+        btn.disabled = false; btn.className = "btn btn-danger";
+        document.getElementById("clean-text").innerText = "クリーンアップ実行";
+        scanDrive(true);
+        isScanning = false;          // 再集計を走らせるため、ここで解放
+        junkScanned = false; scanJunk();
+        toast("約 " + (freed / GB).toFixed(2) + " GB を削除しました（" + files + " 項目）", true);
+    }, 120);
+}
+
+/* ============================================================
+   ③ 大きいフォルダ探索
+   ============================================================ */
+function pickRoot(which, btn) {
+    folderRoot = which;
+    var ids = ["rb-user", "rb-cdrive"];
+    for (var i = 0; i < ids.length; i++) {
+        var e = document.getElementById(ids[i]);
+        if (e) e.className = "chip-btn";
+    }
+    if (btn) btn.className = "chip-btn active";
+}
+function resolveRoot() {
+    if (!shell) return "C:\\";
+    if (folderRoot === "USER") return shell.ExpandEnvironmentStrings("%USERPROFILE%");
+    return "C:\\";
+}
+function scanFolders() {
+    if (isScanning) return;          // 別の集計/削除が進行中なら無視（再入防止）
+    isScanning = true;
+    var listEl = document.getElementById("folder-list");
+    listEl.innerHTML = '<div class="scanning">フォルダサイズを計測中...<br>（大きいフォルダが多いと時間がかかります）</div>';
+    var btn = document.getElementById("btn-fscan");
+    btn.disabled = true; btn.className = "btn btn-primary btn-sm loading";
+    document.getElementById("fscan-text").innerText = "計測中...";
+    window.setTimeout(function () {
+        var root = resolveRoot();
+        var results = [];
+        try {
+            var folder = fso.GetFolder(root);
+            var sc = new Enumerator(folder.SubFolders);
+            for (; !sc.atEnd(); sc.moveNext()) {
+                var sf = sc.item();
+                var size = -1, skip = false;
+                try { if (Number(sf.Attributes) & 1024) skip = true; } catch (eA) {}
+                if (!skip) { try { size = Number(sf.Size); } catch (eS) { size = -1; } }
+                results.push({ name: sf.Name, path: sf.Path, size: size });
+            }
+        } catch (e) {
+            listEl.innerHTML = '<div class="scanning">このフォルダにアクセスできませんでした</div>';
+            resetFscanBtn(); return;
+        }
+        results.sort(function (a, b) { return b.size - a.size; });
+        var max = results.length ? Math.max(1, results[0].size) : 1;
+        var html = "", shown = 0;
+        for (var i = 0; i < results.length && shown < 15; i++) {
+            var r = results[i]; shown++;
+            var sizeTxt, sizeCls, barPct;
+            if (r.size < 0) { sizeTxt = "計測不可"; sizeCls = "fsize unk"; barPct = 0; }
+            else {
+                sizeTxt = r.size >= GB ? (r.size / GB).toFixed(2) + " GB" : (r.size / MB).toFixed(0) + " MB";
+                sizeCls = "fsize"; barPct = Math.round((r.size / max) * 100);
+            }
+            html += '<div class="frow">'
+                  + '<div class="frank">' + shown + '</div>'
+                  + '<div class="finfo"><div class="fname" title="' + r.path + '">' + r.name + '</div>'
+                  + '<div class="fbarwrap"><div class="fbar" style="width:' + barPct + '%"></div></div></div>'
+                  + '<div class="' + sizeCls + '">' + sizeTxt + '</div>'
+                  + '<button class="fopen" onclick="openPath(\'' + jsEsc(r.path) + '\')">開く</button>'
+                  + '</div>';
+        }
+        if (!html) html = '<div class="scanning">サブフォルダが見つかりませんでした</div>';
+        listEl.innerHTML = html;
+        resetFscanBtn();
+    }, 80);
+}
+function resetFscanBtn() {
+    var btn = document.getElementById("btn-fscan");
+    btn.disabled = false; btn.className = "btn btn-primary btn-sm";
+    document.getElementById("fscan-text").innerText = "スキャン";
+    // 計測中(=フリーズ中)にバッファされた連打を吸収するため、解除は少し遅らせる
+    window.setTimeout(function () { isScanning = false; }, 300);
+}
+function jsEsc(s) { return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+function openPath(p) { runCmd('explorer.exe "' + p + '"', 1, false, "フォルダを開けませんでした"); }
+
+/* ============================================================
+   共通ユーティリティ
+   ============================================================ */
+function runCmd(cmd, winStyle, wait, errMsg) {
+    if (!shell) { toast("シェルを初期化できません", false); return; }
+    try { shell.Run(cmd, winStyle, wait); } catch (e) { toast(errMsg + " : " + e.message, false); }
+}
+function openOneDriveFolder() {
+    if (!oneDrivePath) { toast("OneDriveフォルダが見つかりません", false); return; }
+    runCmd('explorer.exe "' + oneDrivePath + '"', 1, false, "フォルダを開けませんでした");
+}
+var toastTimer = null;
+function toast(msg, ok) {
+    var t = document.getElementById("toast");
+    t.innerText = msg; t.className = ok ? "show ok" : "show";
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () { t.className = ok ? "ok" : ""; }, 4500);
+}
+
+/* ---- タイトルバー ドラッグ移動 ---- */
+var dragging = false, dStartX = 0, dStartY = 0, wStartL = 0, wStartT = 0;
+function dragStart() {
+    var e = window.event; dragging = true;
+    dStartX = e.screenX; dStartY = e.screenY; wStartL = window.screenLeft; wStartT = window.screenTop;
+    if (document.getElementById("titlebar").setCapture) document.getElementById("titlebar").setCapture();
+}
+function dragMove() {
+    if (!dragging) return;
+    var e = window.event;
+    window.moveTo(wStartL + (e.screenX - dStartX), wStartT + (e.screenY - dStartY));
+}
+function dragEnd() { dragging = false; try { document.releaseCapture(); } catch (e) {} }
+
+function rescanAll() { detectOneDrive(); scanDrive(true); junkScanned = false; if (document.getElementById("tab-junk").className.indexOf("active") >= 0) scanJunk(); }
+</script>
+</head>
+
+<body onload="boot()">
+<div id="app">
+
+    <!-- タイトルバー -->
+    <div id="titlebar" onmousedown="dragStart()" onmousemove="dragMove()" onmouseup="dragEnd()">
+        <div id="tb-left">
+            <div class="brand-dot"></div>
+            <div id="tb-title">PC 容量レスキュー<span>storage rescue</span></div>
+        </div>
+        <div id="tb-right">
+            <button class="tb-btn" title="再スキャン" onclick="rescanAll()">&#x21bb;</button>
+            <button class="tb-btn" id="btn-close" title="閉じる" onclick="window.close()">&#10005;</button>
+        </div>
+    </div>
+
+    <div id="main">
+
+        <!-- HEROゲージ -->
+        <div id="hero">
+            <div id="gauge-wrap">
+                <svg width="112" height="112" viewBox="0 0 112 112">
+                    <defs>
+                        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#2b6bf0"/>
+                            <stop offset="55%" stop-color="#38a0ff"/>
+                            <stop offset="100%" stop-color="#45d6ff"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="56" cy="56" r="49" fill="none" stroke="#16223a" stroke-width="10"/>
+                    <circle id="ring-fg" cx="56" cy="56" r="49" fill="none" stroke="url(#ringGrad)" stroke-width="10" stroke-linecap="round"/>
+                </svg>
+                <div id="gauge-center">
+                    <div id="gauge-pct"><span id="gauge-pct-num">--</span><small>%</small></div>
+                    <div id="gauge-cap">使用率</div>
+                </div>
+            </div>
+            <div id="hero-info">
+                <div class="drive-row"><div id="drive-letter">C:</div><div id="drive-sub">ローカルドライブ</div></div>
+                <div class="barwrap"><div id="usedbar"></div></div>
+                <div class="figures">
+                    <div class="fig free"><b id="fig-free">— GB</b><span>空き容量</span></div>
+                    <div class="fig" style="text-align:right;"><b id="fig-total">— GB</b><span>合計容量</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- タブバー -->
+        <div id="tabbar">
+            <button class="tab-btn active" id="tabbtn-onedrive" onclick="showTab('onedrive')"><span class="ti">&#9729;</span>OneDrive</button>
+            <button class="tab-btn" id="tabbtn-junk" onclick="showTab('junk')"><span class="ti">&#128465;</span>ジャンク掃除</button>
+            <button class="tab-btn" id="tabbtn-folders" onclick="showTab('folders')"><span class="ti">&#128193;</span>大きいフォルダ</button>
+        </div>
+
+        <!-- ===== ① OneDrive ===== -->
+        <div id="tab-onedrive" class="tabpane active">
+            <div id="od-chip"><span class="dot" id="od-dot"></span><span id="od-path">OneDrive を検出中...</span></div>
+            <div id="rail">
+                <div id="rail-fill"></div>
+                <div id="rail-1" class="rail-step active"><div class="rail-dot">1</div><div class="rail-label">現状確認</div></div>
+                <div id="rail-2" class="rail-step"><div class="rail-dot">2</div><div class="rail-label">設定確認</div></div>
+                <div id="rail-3" class="rail-step"><div class="rail-dot">3</div><div class="rail-label">容量解放</div></div>
+                <div id="rail-4" class="rail-step"><div class="rail-dot">&#10003;</div><div class="rail-label">完了</div></div>
+            </div>
+
+            <div id="card">
+                <div id="panel-1" class="panel show">
+                    <div class="p-head"><div class="p-ico">&#128202;</div><div class="p-title">いまの空き容量を<em>チェック</em></div></div>
+                    <div class="p-desc">
+                        上のゲージが、現在のCドライブの状況です。<br>
+                        赤に近いほど空き容量がひっ迫しています。「Cドライブを確認する」を押すと<b>PC（エクスプローラー）</b>が開くので、目視でも確認できます。容量は自動で読み取るため、<span class="hi">数字を覚えておく必要はありません。</span>
+                    </div>
+                </div>
+                <div id="panel-2" class="panel">
+                    <div class="p-head"><div class="p-ico">&#9881;</div><div class="p-title">設定の確認（<em>ここ大事</em>）</div></div>
+                    <div class="p-desc" style="margin-bottom:6px;">「OneDrive設定を開く」を押すと設定画面が出ます。<b>「同期とバックアップ」&gt;「詳細設定」</b>の <b>ファイル オンデマンド</b> を、こう設定します。</div>
+                    <ul class="checklist">
+                        <li><b>オンにする</b> → 使っていないファイルが<b>雲マーク</b>になり、PCの空きが増える（次の手順の土台）</li>
+                        <li>オフのままだと、せっかく解放しても<span class="hi">またPCに戻ってくる</span></li>
+                    </ul>
+                </div>
+                <div id="panel-3" class="panel">
+                    <div id="p3-confirm">
+                        <div class="p-head"><div class="p-ico">&#9729;</div><div class="p-title">クラウドへ<em>実体を返却</em></div></div>
+                        <div class="p-desc">
+                            PCに溜まったOneDriveファイルの実体を、まとめてクラウドへ戻します。<br>
+                            <b>ファイルは削除されません</b>（雲マークになるだけで、必要なときに自動でダウンロードされます）。<br>
+                            <span class="hi">※「常にこのデバイスに保持」にしていたファイルも、いったん雲マークに戻ります（中身は無事）。</span>
+                        </div>
+                    </div>
+                    <div id="p3-live" style="display:none;">
+                        <div class="p-head"><div class="p-ico pulse">&#9729;</div><div class="p-title pulse">解放中...</div></div>
+                        <div class="live-row">
+                            <div class="live-num"><span id="live-num">0.00</span><small>GB</small></div>
+                            <div class="live-cap">解放した容量を監視中（最大1分ほど）<br>（バックグラウンドで継続することがあります）</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="panel-4" class="panel">
+                    <div class="p-head"><div class="p-ico" style="background:#0e1f1a;border-color:#1f4d3a;">&#9989;</div><div class="p-title">スッキリ完了！<em>お疲れさま</em></div></div>
+                    <div class="ba">
+                        <div class="ba-box"><div class="lab">Before</div><div class="val" id="ba-before">— GB</div></div>
+                        <div class="ba-arrow">&#10142;</div>
+                        <div class="ba-box"><div class="lab">After</div><div class="val" id="ba-after">— GB</div></div>
+                        <div class="ba-gain"><div class="val" id="ba-gain-val">+0.0</div><div class="lab">GB FREED</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="od-footer">
+                <div id="hint">ファイルは削除されません。クラウドに<b>退避</b>するだけです。</div>
+                <div class="btns">
+                    <button class="btn btn-ghost" id="btn-back" onclick="goBack()" disabled>&#8592; 戻る</button>
+                    <button class="btn btn-primary" id="btn-next" onclick="goNext()"><span class="spin"></span><span id="btn-next-text">Cドライブを確認する</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ② ジャンク掃除 ===== -->
+        <div id="tab-junk" class="tabpane">
+            <div class="pane-title">ジャンクファイルを削除</div>
+            <div class="pane-sub">一時ファイルやごみ箱など、消しても安全なファイルをまとめて削除します。使用中でロックされたファイルは自動でスキップされます。</div>
+            <div class="warn-banner" id="admin-banner" style="display:none; background:#10202e; border-color:#1f4060; color:#9fc4ff;">
+                <div class="wi">&#128274;</div>
+                <div><b style="color:#bcdcff;">いまは管理者権限なしで動いています</b>ユーザー領域（一時ファイル等）は削除できますが、<b>C:\Windows\Temp</b> などシステム領域は消せずにスキップされます。合計表示より実際の削減が少なくなることがあります。フルに掃除したいときは、このファイルを<b>右クリック →「管理者として実行」</b>で開き直してください。</div>
+            </div>
+            <div class="warn-banner">
+                <div class="wi">&#9888;</div>
+                <div><b>実行前に：起動中のアプリを全て閉じてください</b>Teams・Excel・Outlook などを起動したまま実行すると、ファイルがロックされていて削除できない場合があります。閉じてから実行すると確実です。</div>
+            </div>
+            <div id="junk-list"><div class="scanning">「スキャン」を押すと、削除できるジャンクファイルを集計します</div></div>
+            <!-- 通常フッター -->
+            <div class="junk-foot" id="junk-foot-normal">
+                <div class="junk-total">削除可能な合計：<b id="junk-total-val">—</b>GB</div>
+                <div class="btns">
+                    <button class="btn btn-ghost btn-sm" id="btn-jscan" onclick="junkScanned=false; scanJunk();">スキャン</button>
+                    <button class="btn btn-danger" id="btn-clean" onclick="runJunkClean()"><span class="spin"></span><span id="clean-text">クリーンアップ実行</span></button>
+                </div>
+            </div>
+            <!-- 確認フッター（ボタン押下後に表示） -->
+            <div class="junk-confirm" id="junk-foot-confirm" style="display:none;">
+                <div class="cfmsg"><b>&#9888; 本当に実行しますか？</b>Teams・Excel・Outlookなど、起動中のアプリを全て閉じてから「実行する」を押してください。</div>
+                <div class="btns">
+                    <button class="btn btn-ghost btn-sm" onclick="cancelJunkClean()">やめる</button>
+                    <button class="btn btn-danger btn-sm" onclick="execJunkClean()">閉じました・実行する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ③ 大きいフォルダ ===== -->
+        <div id="tab-folders" class="tabpane">
+            <div class="pane-title">容量を食っているフォルダを探す</div>
+            <div class="root-pick">
+                <span class="lbl">探索場所：</span>
+                <button class="chip-btn active" id="rb-user" onclick="pickRoot('USER', this)">ユーザーフォルダ</button>
+                <button class="chip-btn" id="rb-cdrive" onclick="pickRoot('CDRIVE', this)">Cドライブ直下</button>
+            </div>
+            <div id="folder-list"><div class="scanning">「スキャン」を押すと、選んだ場所の直下フォルダをサイズ順で表示します</div></div>
+            <div class="folder-foot">
+                <div class="folder-note">※ サイズの大きい順に最大15件。各フォルダは「開く」でエクスプローラーへ。削除は中身を確認のうえ手動で。<span id="folder-admin-note" style="display:none; color:#f0b366;"><br>※ 管理者権限なしのため、Windows などシステム系フォルダは「計測不可」と出ることがあります。</span></div>
+                <button class="btn btn-primary btn-sm" id="btn-fscan" onclick="scanFolders()"><span class="spin"></span><span id="fscan-text">スキャン</span></button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast"></div>
+</div>
+</body>
+</html>
