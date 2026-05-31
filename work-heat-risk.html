@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>屋外作業 熱中症リスクチェッカー</title>
+<title>熱中症リスクチェッカー</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap');
@@ -388,6 +388,120 @@ body {
     .gps-btn { font-size: 0.95rem; padding: 12px; }
     .chart-wrap { height: 240px; }
   }
+
+/* ── 実測ログ・補正 ── */
+.log-sub { font-size:0.62rem; color:var(--text2); line-height:1.6; margin-bottom:10px; }
+.log-field { margin-bottom:10px; }
+.log-field label { display:block; font-size:0.62rem; color:var(--text2); margin-bottom:4px; }
+.log-input, .log-select {
+  width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  color:var(--text); font-size:0.78rem; padding:8px 10px; font-family:'Noto Sans JP',sans-serif; outline:none;
+}
+.log-input::placeholder { color:var(--muted); }
+.log-row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.log-btn {
+  width:100%; border:none; border-radius:8px; padding:9px; font-size:0.75rem; font-weight:700;
+  cursor:pointer; font-family:'Noto Sans JP',sans-serif; transition:opacity .2s;
+}
+.log-btn:active { opacity:0.7; }
+.log-btn-primary { background:var(--accent); color:#000; }
+.log-btn-sub { background:var(--bg3); color:var(--text2); border:1px solid var(--border); }
+.log-divider { border:none; border-top:1px solid var(--border); margin:12px 0; }
+
+.corr-readout {
+  background:var(--bg3); border:1px solid var(--border); border-radius:10px;
+  padding:10px 12px; margin-bottom:10px; text-align:center;
+}
+.corr-val { font-family:'Share Tech Mono',monospace; font-size:1.4rem; font-weight:700; }
+.corr-meta { font-size:0.6rem; color:var(--text2); margin-top:2px; }
+.reli { display:inline-block; font-size:0.55rem; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:6px; }
+
+.toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.toggle-row span { font-size:0.72rem; font-weight:600; }
+.switch { position:relative; width:42px; height:24px; flex-shrink:0; }
+.switch input { opacity:0; width:0; height:0; }
+.slider {
+  position:absolute; inset:0; background:var(--bg3); border:1px solid var(--border);
+  border-radius:24px; cursor:pointer; transition:.2s;
+}
+.slider::before {
+  content:''; position:absolute; height:16px; width:16px; left:3px; top:3px;
+  background:var(--text2); border-radius:50%; transition:.2s;
+}
+.switch input:checked + .slider { background:rgba(0,212,255,0.25); border-color:var(--accent); }
+.switch input:checked + .slider::before { transform:translateX(18px); background:var(--accent); }
+
+.mode-tabs { display:flex; gap:6px; margin-bottom:10px; }
+.mode-tab {
+  flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  color:var(--text2); font-size:0.68rem; padding:7px; cursor:pointer; text-align:center;
+  font-family:'Noto Sans JP',sans-serif; transition:all .15s;
+}
+.mode-tab.active { background:rgba(0,212,255,0.12); border-color:var(--accent); color:var(--accent); font-weight:700; }
+
+.log-list { display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto; }
+.log-item {
+  background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  padding:8px 10px; font-size:0.66rem; line-height:1.5;
+}
+.log-item .li-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.log-item .li-date { color:var(--text2); }
+.log-item .li-off { font-family:'Share Tech Mono',monospace; font-weight:700; }
+.log-item .li-vals { color:var(--text2); margin-top:2px; }
+.log-item .li-memo { color:var(--text); margin-top:3px; font-size:0.64rem; }
+.log-item .li-del { background:none; border:none; color:var(--muted); font-size:0.7rem; cursor:pointer; padding:0 2px; }
+.log-empty { font-size:0.66rem; color:var(--muted); text-align:center; padding:14px; }
+.corr-active-note {
+  font-size:0.58rem; color:var(--accent); margin-top:6px; font-weight:600;
+}
+
+/* 運用カード（職域別補正値） */
+.corr-point-name {
+  font-size:0.82rem; font-weight:700; color:var(--text); text-align:center;
+  background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  padding:8px; margin-bottom:12px;
+}
+.corr-table { width:100%; border-collapse:collapse; font-size:0.66rem; }
+.corr-table th {
+  color:var(--text2); font-weight:600; text-align:center; padding:6px 4px;
+  border-bottom:1px solid var(--border); white-space:nowrap;
+}
+.corr-table td { padding:5px 4px; text-align:center; border-bottom:1px solid var(--border); }
+.corr-table td:first-child { text-align:left; color:var(--text); }
+.corr-table tr.active-row td { background:rgba(0,212,255,0.06); }
+.corr-table tr.active-row td:first-child { color:var(--accent); font-weight:700; }
+.corr-table input {
+  width:62px; background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+  color:var(--text); font-size:0.7rem; padding:4px 6px; text-align:center;
+  font-family:'Share Tech Mono',monospace; outline:none;
+}
+.corr-table .ct-auto { font-family:'Share Tech Mono',monospace; color:var(--text2); }
+
+/* サマリー補正バナー */
+.summary-corr {
+  background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3);
+  border-radius:8px; padding:7px 10px; margin-top:10px;
+  font-size:0.68rem; color:var(--accent); font-weight:600; line-height:1.5;
+}
+.summary-corr strong { color:var(--accent); font-family:'Share Tech Mono',monospace; }
+
+/* 折りたたみカード */
+.card-collapsible .card-title {
+  cursor:pointer; margin-bottom:0; user-select:none;
+  display:flex; align-items:center; gap:6px;
+}
+.card-collapsible.open .card-title { margin-bottom:12px; }
+.card-title .acc-arrow {
+  margin-left:auto; font-size:0.7rem; color:var(--text2);
+  transition:transform .2s; transform:rotate(0deg);
+}
+.card-collapsible.open .card-title .acc-arrow { transform:rotate(180deg); }
+.card-title .acc-hint {
+  font-size:0.6rem; font-weight:400; color:var(--text2);
+  text-transform:none; letter-spacing:0;
+}
+.acc-body { display:none; }
+.card-collapsible.open .acc-body { display:block; }
 </style>
 </head>
 <body>
@@ -395,7 +509,7 @@ body {
 <div class="header">
   <div class="header-inner">
     <span class="header-badge">WBGT</span>
-    <h1>屋外作業 熱中症リスクチェッカー</h1>
+    <h1>熱中症リスクチェッカー</h1>
     <a href="index.html" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);text-decoration:none;white-space:nowrap;flex-shrink:0;transition:color .2s;" onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='var(--text2)'">← HOME</a>
   </div>
 </div>
@@ -532,8 +646,9 @@ body {
   </div>
 
   <!-- ⑨場所を選ぶ -->
-  <div class="card">
-    <div class="card-title">📍 場所を選ぶ</div>
+  <div class="card card-collapsible" id="placeCard">
+    <div class="card-title" onclick="toggleCard('placeCard')">📍 場所を選ぶ <span class="acc-hint" id="placeHint"></span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body">
     <button class="gps-btn" onclick="useGPS()" style="margin-bottom:10px;">📡 現在地から取得する</button>
     <div style="font-size:0.65rem;color:var(--text2);margin-bottom:8px;text-align:center;">または地域を検索</div>
     <div style="display:flex;gap:8px;margin-bottom:8px;">
@@ -547,6 +662,124 @@ body {
       </select>
     </div>
     <div class="location-info" id="locationInfo" style="font-size:0.78rem;color:var(--text2);text-align:center;min-height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- ⑨-1 職域別WBGT補正値（運用） -->
+  <div class="card card-collapsible" id="corrCard">
+    <div class="card-title" onclick="toggleCard('corrCard')">⚙️ 職域別WBGT補正値 <span class="acc-hint" id="corrCardHint"></span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body">
+    <div class="log-sub">
+      選択中の職域の補正値を入力してください。<strong>適用ON</strong>で、上の予報グラフ・時間別判定・週間予報すべてに加算した補正後WBGTを表示します。値は端末に保存されます。
+    </div>
+
+    <div id="corrPointName" class="corr-point-name">地点を選択してください</div>
+
+    <div class="log-row2" style="align-items:end;">
+      <div class="log-field" style="margin-bottom:0;">
+        <label>補正値（℃）</label>
+        <input class="log-input" id="opManualVal" type="number" step="0.1" inputmode="decimal" placeholder="例：+6.8" oninput="onOpManualInput()" />
+      </div>
+      <div class="toggle-row" style="margin-bottom:6px;">
+        <span>予報に補正を適用</span>
+        <label class="switch">
+          <input type="checkbox" id="corrToggle" onchange="onCorrToggle()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div id="opAutoHint" class="log-sub" style="margin-top:8px;margin-bottom:0;"></div>
+
+    <hr class="log-divider" />
+
+    <button class="log-btn log-btn-sub" onclick="toggleCorrTable()" id="corrTableToggle">全職域の補正値を見る ▼</button>
+    <div id="corrTableWrap" class="hidden" style="margin-top:10px;overflow-x:auto;">
+      <table class="corr-table">
+        <thead>
+          <tr><th>職域</th><th>補正値℃</th><th>実測</th><th>自動平均</th></tr>
+        </thead>
+        <tbody id="corrTableBody"></tbody>
+      </table>
+    </div>
+
+    <hr class="log-divider" />
+
+    <div class="log-sub" style="margin-bottom:8px;">
+      💾 データ移行・バックアップ。携帯で記録した補正値・実測ログをJSONで書き出し、PCなど別端末で読み込めます。
+    </div>
+    <div class="log-row2">
+      <button class="log-btn log-btn-sub" onclick="exportJSON()">⬇ JSON書き出し</button>
+      <button class="log-btn log-btn-sub" onclick="triggerImport()">⬆ JSON読み込み</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" onchange="importJSON(event)" style="display:none;" />
+    <div id="ioHint" class="log-sub" style="margin-top:8px;margin-bottom:0;"></div>
+    </div>
+  </div>
+
+  <!-- ⑨-2 実測ログ・補正 -->
+  <div class="card card-collapsible" id="logCard">
+    <div class="card-title" onclick="toggleCard('logCard')">🧪 実測ログ・職域補正 <span class="acc-hint">記録はここから</span><span class="acc-arrow">▼</span></div>
+    <div class="acc-body">
+    <div class="log-sub">
+      屋内は予報からズレます。黒球付きWBGT計の実測を貯めると、その地点（職域）の<strong>平均オフセット</strong>を自動算出し、予報に重ねて精度を上げられます。
+    </div>
+
+    <!-- 地点（職域）選択・登録 -->
+    <div class="log-field">
+      <label>地点（職域）</label>
+      <div style="display:flex;gap:8px;">
+        <select class="log-select" id="pointSelect" onchange="onPointSelect()" style="flex:1;">
+          <option value="">── 地点を選択 ──</option>
+        </select>
+        <button class="log-btn log-btn-sub" id="clearPointBtn" onclick="clearPoint()" style="width:auto;padding:8px 12px;white-space:nowrap;">選択解除</button>
+      </div>
+    </div>
+    <div class="log-row2" style="margin-bottom:10px;">
+      <input class="log-input" id="newPointName" placeholder="例：村田工場 炉前" />
+      <button class="log-btn log-btn-sub" onclick="registerPoint()">＋現在地で登録</button>
+    </div>
+    <div id="pointHint" class="log-sub" style="margin-bottom:0;"></div>
+
+    <hr class="log-divider" />
+
+    <!-- 実測記録 -->
+    <div id="logEntry" class="hidden">
+      <div class="log-row2">
+        <div class="log-field">
+          <label>予報WBGT（自動）</label>
+          <input class="log-input" id="logForecast" readonly />
+        </div>
+        <div class="log-field">
+          <label>実測WBGT（計測器）</label>
+          <input class="log-input" id="logMeasured" type="number" step="0.1" inputmode="decimal" placeholder="例：30.5" />
+        </div>
+      </div>
+      <div class="log-field">
+        <label>メモ（条件・任意）</label>
+        <input class="log-input" id="logMemo" placeholder="例：スポットクーラー停止／シャッター開" />
+      </div>
+      <button class="log-btn log-btn-primary" onclick="addLog()">この実測を記録</button>
+
+      <hr class="log-divider" />
+
+      <!-- 自動平均（参考表示のみ。適用は上の運用欄で） -->
+      <div class="corr-readout">
+        <div class="corr-val" id="corrVal">—</div>
+        <div class="corr-meta" id="corrMeta">実測を貯めると平均オフセットが出ます</div>
+      </div>
+      <div class="log-sub" style="text-align:center;margin-bottom:0;">
+        ※ これは収集用の参考値です。グラフ・判定への適用は上の「職域別WBGT補正値」で行います。
+      </div>
+
+      <hr class="log-divider" />
+
+      <!-- ログ一覧 -->
+      <div class="log-field" style="margin-bottom:6px;">
+        <label id="logListLabel">記録一覧</label>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+    </div>
   </div>
 
   <!-- ⑩注意書き -->
@@ -556,14 +789,15 @@ body {
     実際の作業環境の暑さ指数（WBGT）は、<strong>必ず計測器で確認</strong>してください。
     風・輻射熱・作業服の素材・個人差により実際のリスクは大きく異なります。
     本ツールは作業計画の参考情報としてご活用ください。
+    実測ログから算出する補正値も、条件（機械稼働・クーラー・シャッター開閉）で変動する目安値です。
   </div>
 
 </div><!-- /wrap -->
 
 <script>
 // ======= バージョン情報（ここを編集） =======
-const VERSION = '1.10';
-const VERSION_DATE = '20260519';
+const VERSION = '1.14';
+const VERSION_DATE = '20260531';
 
 // ======= 都道府県リスト =======
 const PREFECTURES = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
@@ -701,6 +935,9 @@ async function useGPS() {
   navigator.geolocation.getCurrentPosition(async pos => {
     currentLat = pos.coords.latitude;
     currentLon = pos.coords.longitude;
+    activePointId = null; saveCorr();
+    const psel = document.getElementById('pointSelect');
+    if (psel) psel.value = '';
     document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${currentLat}&lon=${currentLon}&format=json&accept-language=ja`);
@@ -763,7 +1000,8 @@ function renderView() {
     if (!t.startsWith(targetStr)) return;
     const h = new Date(t).getHours();
     if (h < 6 || h > 20) return;
-    const wbgt = calcWBGT(temps[i], hums ? hums[i] : null, winds ? winds[i] : null, rads ? rads[i] : null);
+    let wbgt = calcWBGT(temps[i], hums ? hums[i] : null, winds ? winds[i] : null, rads ? rads[i] : null);
+    if (wbgt !== null) wbgt = Math.round((wbgt + correctionOffset()) * 10) / 10;
     const risk = getRiskLevel(wbgt, currentWork);
     const dateStr = t.substring(0,10);
     const srIdx = sunrises.findIndex(s => s && s.startsWith(dateStr));
@@ -788,6 +1026,10 @@ function renderView() {
 
   renderWeekChart(times, temps, hums, winds, rads);
   document.getElementById('weekCard').classList.remove('hidden');
+
+  renderLogCard();
+  renderCorrCard();
+  updateAccHints();
 }
 
 // ======= 総合判定 =======
@@ -823,12 +1065,18 @@ function renderSummary(slots) {
     ? `<strong style="color:${risk.color}">${dangerSlots.map(s=>`${s.hour}時`).join('・')}</strong>は${dangerSlots[0].risk.level}レベル。`
     : `${dateLbl}の【${currentName}】は危険・厳重警戒レベルの時間帯はありません。`;
 
+  const off = correctionOffset();
+  const corrBanner = (corr.enabled && off !== 0)
+    ? `<div class="summary-corr">🧪 WBGT実測値から、想定値に <strong>${off>=0?'+':''}${off.toFixed(1)}℃</strong> 補正適用中</div>`
+    : '';
+
   card.innerHTML = `
     <div class="summary-level" style="color:${risk.color}">${risk.emoji} 最大リスク：${risk.level}</div>
     <div class="summary-desc">
       ${dangerTxt}<br>
       WBGT最高 <strong style="color:${risk.color}">${maxWbgt}℃</strong>（${peakSlot.hour}時頃）、最低 <strong>${minWbgt}℃</strong>。
     </div>
+    ${corrBanner}
     <div class="summary-meta">
       <div class="summary-chip">🦺 ${wt.label}</div>
       <div class="summary-chip">⏱️ ${wt.rest}</div>
@@ -1100,7 +1348,8 @@ function renderWeekChart(times, temps, hums, winds, rads) {
       if (!t.startsWith(dateStr)) return;
       const h = new Date(t).getHours();
       if (h < 6 || h > 20) return;
-      const w = calcWBGT(temps[i], hums?.[i], winds?.[i], rads?.[i]);
+      let w = calcWBGT(temps[i], hums?.[i], winds?.[i], rads?.[i]);
+      if (w !== null) w = Math.round((w + correctionOffset()) * 10) / 10;
       if (w !== null && (maxWbgt === null || w > maxWbgt)) maxWbgt = w;
     });
     weekData.push({ label, maxWbgt, dateStr });
@@ -1235,6 +1484,10 @@ function onCitySelect() {
   if (!val) return;
   const { lat, lon, name } = JSON.parse(val);
   currentLat = lat; currentLon = lon; currentName = name;
+  // 地域を選んだら職域選択は解除（補正は地域には掛けない）
+  activePointId = null; saveCorr();
+  const psel = document.getElementById('pointSelect');
+  if (psel) psel.value = '';
   document.getElementById('locationInfo').textContent = '📍 ' + name;
   if (selectedDate) fetchData();
 }
@@ -1268,21 +1521,433 @@ function initDateBtns() {
   }
 }
 
+// ======= 実測ログ・職域補正 =======
+const LS_POINTS = 'whr_points';
+const LS_LOGPREFIX = 'whr_logs_';
+const LS_CORR = 'whr_corr';
+
+// localStorageが使えない環境(プレビュー等)ではメモリにフォールバック
+const memStore = {};
+function lsGet(k){ try { const v = localStorage.getItem(k); if(v!==null) return v; } catch(e){} return (k in memStore)?memStore[k]:null; }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} memStore[k]=v; }
+function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} delete memStore[k]; }
+
+let points = [];                 // [{id,name,lat,lon}]
+let activePointId = null;
+// corr.manual[pid] = 職域ごとの確定補正値（℃）。適用ONで予報に加算
+let corr = { enabled:false, manual:{}, activePointId:null };
+
+function loadStore(){
+  try { points = JSON.parse(lsGet(LS_POINTS)) || []; } catch(e){ points = []; }
+  try { const c = JSON.parse(lsGet(LS_CORR)); if(c){ corr = Object.assign(corr, c); } } catch(e){}
+  activePointId = corr.activePointId || null;
+}
+function saveCorr(){ corr.activePointId = activePointId; lsSet(LS_CORR, JSON.stringify(corr)); }
+function savePoints(){ lsSet(LS_POINTS, JSON.stringify(points)); }
+function getLogs(pid){ if(!pid) return []; try { return JSON.parse(lsGet(LS_LOGPREFIX+pid)) || []; } catch(e){ return []; } }
+function setLogs(pid, arr){ lsSet(LS_LOGPREFIX+pid, JSON.stringify(arr)); }
+function activePoint(){ return points.find(p=>p.id===activePointId) || null; }
+
+// ── JSON 書き出し / 読み込み ──
+const EXPORT_VERSION = 1;
+function buildExport(){
+  const logs = {};
+  points.forEach(p=>{ logs[p.id] = getLogs(p.id); });
+  return {
+    app:'whr', exportVersion:EXPORT_VERSION, exportedAt:new Date().toISOString(),
+    points, manual:corr.manual, logs
+  };
+}
+function exportJSON(){
+  if(!points.length){ alert('書き出す職域データがありません'); return; }
+  const data = buildExport();
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date(), pad=n=>String(n).padStart(2,'0');
+  a.href = url;
+  a.download = `wbgt_補正データ_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('ioHint').textContent = '✓ '+points.length+'職域を書き出しました（'+a.download+'）';
+}
+function triggerImport(){ document.getElementById('importFile').click(); }
+function importJSON(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    let data;
+    try { data = JSON.parse(e.target.result); }
+    catch(err){ document.getElementById('ioHint').textContent = '⚠ JSONの読み込みに失敗しました（壊れたファイル）'; ev.target.value=''; return; }
+    if(!data || data.app!=='whr' || !Array.isArray(data.points)){
+      document.getElementById('ioHint').textContent = '⚠ このツールの書き出しファイルではないようです';
+      ev.target.value=''; return;
+    }
+    applyImport(data);
+    ev.target.value='';
+  };
+  reader.readAsText(file);
+}
+function applyImport(data){
+  const mode = (points.length>0)
+    ? prompt('読み込み方法を入力してください。\n  merge … 既存に統合（同名の職域は上書き）\n  replace … 既存を全消去して置き換え\n  cancel … 中止', 'merge')
+    : 'replace';
+  if(mode===null || mode==='cancel') return;
+  if(mode!=='merge' && mode!=='replace'){ document.getElementById('ioHint').textContent='⚠ merge / replace のいずれかを入力してください'; return; }
+
+  if(mode==='replace'){
+    // 既存ログを全消去
+    points.forEach(p=>lsDel(LS_LOGPREFIX+p.id));
+    points = []; corr.manual = {}; activePointId = null;
+  }
+  let added=0, updated=0;
+  data.points.forEach(ip=>{
+    if(!ip || !ip.id || !ip.name) return;
+    const existsSameName = points.find(p=>p.name===ip.name);
+    let targetId;
+    if(mode==='merge' && existsSameName){ targetId = existsSameName.id; updated++; }
+    else if(points.find(p=>p.id===ip.id)){ targetId = ip.id; updated++; }
+    else { points.push({id:ip.id, name:ip.name, lat:ip.lat, lon:ip.lon}); targetId = ip.id; added++; }
+    // ログ
+    const importedLogs = (data.logs && data.logs[ip.id]) ? data.logs[ip.id] : [];
+    if(mode==='merge' && existsSameName){
+      const cur = getLogs(targetId);
+      const seen = new Set(cur.map(l=>l.ts));
+      const merged = cur.concat(importedLogs.filter(l=>!seen.has(l.ts)));
+      merged.sort((a,b)=>b.ts-a.ts);
+      setLogs(targetId, merged);
+    } else {
+      setLogs(targetId, importedLogs);
+    }
+    // 補正値
+    if(data.manual && (ip.id in data.manual)) corr.manual[targetId] = data.manual[ip.id];
+  });
+  savePoints(); saveCorr();
+  initPointSelect();
+  renderLogCard(); renderCorrCard(); renderCorrTable(); updateAccHints();
+  if(lastData) renderView();
+  document.getElementById('ioHint').textContent = '✓ 読み込み完了（新規'+added+' / 更新'+updated+' 職域）';
+}
+
+function avgOffset(pid){
+  const logs = getLogs(pid);
+  if(!logs.length) return null;
+  return Math.round((logs.reduce((a,l)=>a+l.offset,0)/logs.length)*10)/10;
+}
+function reliability(n){
+  if(n>=6) return {label:'実用', color:'#22c55e'};
+  if(n>=3) return {label:'暫定', color:'#eab308'};
+  if(n>=1) return {label:'参考', color:'#f97316'};
+  return {label:'なし', color:'#445566'};
+}
+
+// 表示WBGTに乗せる補正（renderView / renderWeekChartから呼ばれる）
+// 適用するのは職域ごとの「確定補正値」(corr.manual)。自動平均は参考表示のみ。
+function correctionOffset(){
+  if(!corr.enabled || !activePointId) return 0;
+  const v = corr.manual[activePointId];
+  return (v===undefined||v===null||isNaN(v)) ? 0 : v;
+}
+
+// 現在時刻の「生の予報WBGT」（補正なし）→ ログ自動入力に使う
+function currentForecastWBGT(){
+  if(!lastData || !lastData.hourly) return null;
+  const h = lastData.hourly, now = new Date(), pad = n => String(n).padStart(2,'0');
+  const prefix = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}`;
+  const idx = h.time.findIndex(t => t.startsWith(prefix));
+  if(idx < 0) return null;
+  return calcWBGT(h.temperature_2m[idx], h.relativehumidity_2m?.[idx], h.windspeed_10m?.[idx], h.shortwave_radiation?.[idx]);
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── アコーディオン開閉 ──
+function toggleCard(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+// タイトル横のヒント（閉じてても状態が分かる）
+function updateAccHints(){
+  const ph = document.getElementById('placeHint');
+  if(ph) ph.textContent = currentName ? '（'+currentName+'）' : '';
+  const ch = document.getElementById('corrCardHint');
+  if(ch){
+    const off = correctionOffset();
+    ch.textContent = (corr.enabled && off!==0) ? '（'+(off>=0?'+':'')+off.toFixed(1)+'℃ 適用中）' : '';
+  }
+}
+
+// ── 地点（職域）操作 ──
+function initPointSelect(){
+  const sel = document.getElementById('pointSelect');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">── 地点を選択 ──</option>';
+  points.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; sel.appendChild(o); });
+  if(activePointId) sel.value = activePointId;
+}
+function registerPoint(){
+  const nameEl = document.getElementById('newPointName');
+  const hint = document.getElementById('pointHint');
+  const name = (nameEl.value||'').trim();
+  if(!name){ hint.textContent='⚠ 地点名を入力してください'; return; }
+  if(currentLat===null || currentLon===null){ hint.textContent='⚠ 先に「場所を選ぶ」で予報を読み込んでください'; return; }
+  const id = 'p'+Date.now();
+  points.push({ id, name, lat:currentLat, lon:currentLon });
+  savePoints();
+  activePointId = id; saveCorr();
+  nameEl.value='';
+  initPointSelect();
+  document.getElementById('pointSelect').value = id;
+  hint.textContent = '✓ 「'+name+'」を登録（座標 '+currentLat.toFixed(3)+', '+currentLon.toFixed(3)+'）';
+  renderLogCard();
+}
+function onPointSelect(){
+  const id = document.getElementById('pointSelect').value;
+  activePointId = id || null; saveCorr();
+  const p = activePoint();
+  if(p){
+    currentLat=p.lat; currentLon=p.lon; currentName=p.name;
+    document.getElementById('locationInfo').textContent = '📍 '+p.name+'（職域）';
+    document.getElementById('pointHint').textContent = '';
+    fetchData();
+  } else { renderLogCard(); renderCorrCard(); updateAccHints(); if(lastData) renderView(); }
+}
+// 職域選択を解除 → 通常の地域選択モードに戻す（補正は外れる、地点はそのまま表示）
+function clearPoint(){
+  if(!activePointId) return;
+  activePointId = null; saveCorr();
+  const psel = document.getElementById('pointSelect');
+  if(psel) psel.value = '';
+  document.getElementById('locationInfo').textContent = currentName ? '📍 '+currentName : '';
+  document.getElementById('pointHint').textContent = '職域選択を解除しました。地域を選び直すか、職域を再選択できます。';
+  renderLogCard();
+  renderCorrCard();
+  updateAccHints();
+  if(lastData) renderView();
+}
+function deletePoint(){
+  const p = activePoint(); if(!p) return;
+  if(!confirm('「'+p.name+'」と、その実測ログを削除します。よろしいですか？')) return;
+  lsDel(LS_LOGPREFIX+activePointId);
+  points = points.filter(x=>x.id!==activePointId);
+  delete corr.manual[activePointId];
+  activePointId = null;
+  savePoints(); saveCorr();
+  initPointSelect();
+  renderLogCard();
+  if(lastData) renderView();
+}
+
+// ── 実測ログ ──
+function addLog(){
+  if(!activePointId){ alert('先に地点（職域）を選択／登録してください'); return; }
+  const fc = currentForecastWBGT();
+  const measured = parseFloat(document.getElementById('logMeasured').value);
+  if(isNaN(measured)){ alert('実測WBGTを入力してください'); return; }
+  if(fc===null){ alert('予報値が未取得です。地点の予報を読み込んでから記録してください'); return; }
+  const offset = Math.round((measured-fc)*10)/10;
+  const logs = getLogs(activePointId);
+  logs.unshift({ ts:Date.now(), forecast:fc, measured, offset, memo:(document.getElementById('logMemo').value||'').trim() });
+  setLogs(activePointId, logs);
+  document.getElementById('logMeasured').value='';
+  document.getElementById('logMemo').value='';
+  renderLogCard();
+  if(corr.enabled && lastData) renderView();
+}
+function deleteLog(ts){
+  if(!activePointId) return;
+  setLogs(activePointId, getLogs(activePointId).filter(l=>l.ts!==ts));
+  renderLogCard();
+  if(corr.enabled && lastData) renderView();
+}
+
+// ── 補正コントロール（運用カード）──
+function onCorrToggle(){
+  corr.enabled = document.getElementById('corrToggle').checked; saveCorr();
+  renderCorrCard();
+  updateAccHints();
+  if(lastData) renderView();
+}
+// 上の運用欄の補正値入力
+function onOpManualInput(){
+  if(!activePointId) return;
+  const v = parseFloat(document.getElementById('opManualVal').value);
+  corr.manual[activePointId] = isNaN(v)?null:v; saveCorr();
+  renderCorrTable();
+  if(corr.enabled && lastData) renderView();
+}
+// 表の中での補正値入力
+function onTableManualInput(pid, el){
+  const v = parseFloat(el.value);
+  corr.manual[pid] = isNaN(v)?null:v; saveCorr();
+  if(pid===activePointId){
+    const op = document.getElementById('opManualVal');
+    if(document.activeElement!==op) op.value = isNaN(v)?'':v;
+  }
+  if(corr.enabled && pid===activePointId && lastData) renderView();
+}
+// 自動平均→確定値に採用
+function adoptAuto(){
+  if(!activePointId) return;
+  const a = avgOffset(activePointId);
+  if(a===null){ alert('実測がまだありません'); return; }
+  corr.manual[activePointId] = a; saveCorr();
+  document.getElementById('opManualVal').value = a;
+  renderCorrCard();
+  if(corr.enabled && lastData) renderView();
+}
+let corrTableOpen = false;
+function toggleCorrTable(){
+  corrTableOpen = !corrTableOpen;
+  document.getElementById('corrTableWrap').classList.toggle('hidden', !corrTableOpen);
+  document.getElementById('corrTableToggle').textContent = corrTableOpen ? '全職域の補正値を閉じる ▲' : '全職域の補正値を見る ▼';
+  if(corrTableOpen) renderCorrTable();
+}
+
+// ── 描画 ──
+function renderLogCard(){
+  initPointSelect();
+  const entry = document.getElementById('logEntry');
+  const p = activePoint();
+  const clearBtn = document.getElementById('clearPointBtn');
+  if(clearBtn){ clearBtn.disabled = !p; clearBtn.style.opacity = p ? '1' : '0.4'; }
+  if(entry) entry.classList.toggle('hidden', !p);
+  if(!p) return;
+
+  const fc = currentForecastWBGT();
+  document.getElementById('logForecast').value = (fc===null) ? '取得待ち' : fc.toFixed(1)+' ℃';
+
+  const logs = getLogs(activePointId), n = logs.length;
+  const auto = avgOffset(activePointId), rel = reliability(n);
+
+  // 自動平均は参考表示のみ
+  const shownVal = (auto===null) ? '—' : (auto>=0?'+':'')+auto.toFixed(1)+'℃';
+  let metaHtml = (auto===null) ? '実測を貯めると平均オフセットが出ます'
+    : '実測'+n+'件の平均 <span class="reli" style="background:'+rel.color+'22;color:'+rel.color+'">'+rel.label+'</span>';
+  const valEl = document.getElementById('corrVal');
+  valEl.textContent = shownVal;
+  valEl.style.color = (shownVal==='—') ? 'var(--muted)' : 'var(--accent)';
+  document.getElementById('corrMeta').innerHTML = metaHtml;
+
+  document.getElementById('logListLabel').textContent = '記録一覧（'+n+'件）';
+  const list = document.getElementById('logList');
+  if(!n){
+    list.innerHTML = '<div class="log-empty">まだ実測がありません。計測器の値を記録してください。</div>';
+  } else {
+    list.innerHTML = '';
+    logs.forEach(l=>{
+      const d=new Date(l.ts);
+      const ds=(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      const offStr=(l.offset>=0?'+':'')+l.offset.toFixed(1);
+      const offColor=l.offset>0?'#f97316':(l.offset<0?'#22c55e':'var(--text2)');
+      const div=document.createElement('div'); div.className='log-item';
+      div.innerHTML='<div class="li-top"><span class="li-date">'+ds+'</span><span><span class="li-off" style="color:'+offColor+'">'+offStr+'℃</span> <button class="li-del" onclick="deleteLog('+l.ts+')">✕</button></span></div>'+
+        '<div class="li-vals">予報 '+l.forecast.toFixed(1)+' → 実測 '+l.measured.toFixed(1)+' ℃</div>'+
+        (l.memo?'<div class="li-memo">📝 '+escapeHtml(l.memo)+'</div>':'');
+      list.appendChild(div);
+    });
+  }
+  const delBtn=document.createElement('button');
+  delBtn.className='log-btn log-btn-sub'; delBtn.style.marginTop='8px';
+  delBtn.textContent='この地点を削除'; delBtn.onclick=deletePoint;
+  list.appendChild(delBtn);
+
+  renderCorrCard();
+}
+
+// ── 運用カード描画 ──
+function renderCorrCard(){
+  const p = activePoint();
+  const nameEl = document.getElementById('corrPointName');
+  document.getElementById('corrToggle').checked = corr.enabled;
+
+  if(!p){
+    nameEl.textContent = '地点を選択してください';
+    document.getElementById('opManualVal').value = '';
+    document.getElementById('opAutoHint').innerHTML = '';
+    if(corrTableOpen) renderCorrTable();
+    return;
+  }
+  nameEl.textContent = '📍 '+p.name;
+
+  const mvEl = document.getElementById('opManualVal');
+  if(document.activeElement!==mvEl){
+    const mv = corr.manual[activePointId];
+    mvEl.value = (mv===undefined||mv===null)?'':mv;
+  }
+
+  // 自動平均をヒント表示＋ワンタップ採用
+  const auto = avgOffset(activePointId);
+  const n = getLogs(activePointId).length;
+  const hint = document.getElementById('opAutoHint');
+  if(auto===null){
+    hint.innerHTML = '参考：実測がまだありません（下の収集カードで記録）';
+  } else {
+    const rel = reliability(n);
+    hint.innerHTML = '参考：実測'+n+'件の自動平均 <strong style="color:var(--accent)">'+(auto>=0?'+':'')+auto.toFixed(1)+'℃</strong> '+
+      '<span class="reli" style="background:'+rel.color+'22;color:'+rel.color+'">'+rel.label+'</span> '+
+      '<button class="li-del" style="color:var(--accent);font-size:0.62rem;text-decoration:underline" onclick="adoptAuto()">この値を採用</button>';
+  }
+  if(corr.enabled && correctionOffset()!==0){
+    hint.innerHTML += '<div class="corr-active-note">⚙ 上の予報グラフ・判定に適用中（'+(correctionOffset()>=0?'+':'')+correctionOffset().toFixed(1)+'℃）</div>';
+  }
+
+  if(corrTableOpen) renderCorrTable();
+}
+
+// ── 全職域 補正値テーブル ──
+function renderCorrTable(){
+  const body = document.getElementById('corrTableBody');
+  if(!body) return;
+  if(!points.length){
+    body.innerHTML = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:12px;">登録された職域がありません</td></tr>';
+    return;
+  }
+  body.innerHTML = '';
+  points.forEach(p=>{
+    const mv = corr.manual[p.id];
+    const auto = avgOffset(p.id);
+    const n = getLogs(p.id).length;
+    const tr = document.createElement('tr');
+    if(p.id===activePointId) tr.className = 'active-row';
+    tr.innerHTML =
+      '<td>'+escapeHtml(p.name)+'</td>'+
+      '<td><input type="number" step="0.1" inputmode="decimal" value="'+((mv===undefined||mv===null)?'':mv)+'" '+
+        'oninput="onTableManualInput(\''+p.id+'\',this)" /></td>'+
+      '<td>'+n+'件</td>'+
+      '<td class="ct-auto">'+(auto===null?'—':(auto>=0?'+':'')+auto.toFixed(1))+'</td>';
+    body.appendChild(tr);
+  });
+}
+
 // ======= 初期表示 =======
 window.onload = () => {
   const vb = document.getElementById('verBadge'); if (vb) vb.textContent = 'ver.' + VERSION;
   initPrefSelect();
   initDateBtns();
+  loadStore();
+  initPointSelect();
+  renderCorrCard();
+  updateAccHints();
 
-  // デフォルト：宮城県・村田町 を自動選択してロード
-  const prefSel = document.getElementById('prefSelect');
-  prefSel.value = '宮城県';
-  onPrefChange();
-  const citySel = document.getElementById('citySelect');
-  const murata = Array.from(citySel.options).find(o => o.textContent === '村田町');
-  if (murata) {
-    citySel.value = murata.value;
-    onCitySelect();
+  // 前回選択した地点（職域）があれば復元、なければ宮城県・村田町
+  const p = activePoint();
+  if (p) {
+    currentLat = p.lat; currentLon = p.lon; currentName = p.name;
+    document.getElementById('locationInfo').textContent = '📍 ' + p.name + '（職域）';
+    document.getElementById('pointSelect').value = p.id;
+    fetchData();
+  } else {
+    const prefSel = document.getElementById('prefSelect');
+    prefSel.value = '宮城県';
+    onPrefChange();
+    const citySel = document.getElementById('citySelect');
+    const murata = Array.from(citySel.options).find(o => o.textContent === '村田町');
+    if (murata) {
+      citySel.value = murata.value;
+      onCitySelect();
+    }
   }
 };
 </script>
