@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>熱中症リスクチェッカー 使い方ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#111720; --bg3:#1a2230;
+    --text:#dce8f0; --text2:#7a9bb5; --muted:#445566;
+    --border:rgba(122,155,181,0.16);
+    --accent:#00d4ff;
+    --safe:#22c55e; --caution:#eab308; --warn:#f97316; --danger:#ef4444; --severe:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Noto Sans JP',sans-serif;
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(0,212,255,0.07), transparent 60%),
+      radial-gradient(700px 500px at -10% 110%, rgba(249,115,22,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+    padding:0 0 80px;
+  }
+  .wrap{max-width:780px;margin:0 auto;padding:0 18px;}
+
+  /* ヘッダー */
+  header{padding:44px 18px 30px;text-align:center;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.22em;
+    color:var(--accent);text-transform:uppercase;margin-bottom:14px;
+  }
+  h1{font-size:1.9rem;font-weight:900;letter-spacing:-.01em;line-height:1.3;}
+  h1 .em{color:var(--warn);}
+  .lead{color:var(--text2);font-size:.95rem;margin-top:14px;max-width:560px;margin-inline:auto;}
+  .rule{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:36px 0;}
+
+  /* セクション見出し */
+  .sec{margin:34px 0;}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .sec-num{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.8rem;
+    width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:9px;
+    background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.25);
+  }
+  .sec-title{font-size:1.18rem;font-weight:700;}
+
+  /* カード */
+  .card{
+    background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+    padding:20px 22px;margin-bottom:14px;
+  }
+  .card p{color:var(--text2);font-size:.93rem;}
+  .card p strong{color:var(--text);font-weight:700;}
+  .card p + p{margin-top:10px;}
+
+  /* 起動2拠点 */
+  .sites{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.sites{grid-template-columns:1fr;}}
+  .site{
+    background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+    padding:18px 18px 16px;position:relative;overflow:hidden;
+  }
+  .site::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--warn);}
+  .site .ico{font-size:1.6rem;}
+  .site h3{font-size:1.05rem;font-weight:700;margin:8px 0 4px;}
+  .site .place{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--accent);}
+  .site .note{color:var(--text2);font-size:.83rem;margin-top:10px;}
+
+  /* 監視指標グリッド */
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media(max-width:560px){.metrics{grid-template-columns:1fr;}}
+  .metric{
+    background:var(--bg3);border:1px solid var(--border);border-radius:11px;padding:13px 15px;
+  }
+  .metric .m-top{display:flex;align-items:center;gap:9px;margin-bottom:5px;}
+  .metric .m-ico{font-size:1.15rem;}
+  .metric .m-name{font-weight:700;font-size:.95rem;}
+  .metric .m-desc{color:var(--text2);font-size:.83rem;line-height:1.7;}
+  .badge{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.66rem;
+    padding:2px 8px;border-radius:6px;background:rgba(0,212,255,0.12);color:var(--accent);
+    border:1px solid rgba(0,212,255,0.22);margin-left:auto;
+  }
+
+  /* リスク段階テーブル */
+  .risk-table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  .risk-table th,.risk-table td{padding:11px 10px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;}
+  .risk-table th{font-size:.72rem;letter-spacing:.05em;color:var(--text2);font-weight:700;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+  .risk-table td:first-child{white-space:nowrap;font-weight:700;}
+  .risk-table td:last-child{color:var(--text2);}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+
+  /* 作業強度テーブル */
+  .work-table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  .work-table th,.work-table td{padding:10px;border-bottom:1px solid var(--border);text-align:center;}
+  .work-table th{font-size:.7rem;color:var(--text2);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.04em;}
+  .work-table td:first-child{text-align:left;font-weight:700;white-space:nowrap;}
+  .work-table .ico{margin-right:6px;}
+  .work-table td:not(:first-child){color:var(--text2);font-size:.82rem;}
+
+  /* 機能リスト（番号付き） */
+  .feat{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+  .feat:last-child{border-bottom:none;}
+  .feat .f-ico{font-size:1.4rem;flex:none;line-height:1.4;}
+  .feat .f-body h4{font-size:1rem;font-weight:700;margin-bottom:3px;}
+  .feat .f-body p{color:var(--text2);font-size:.88rem;}
+
+  /* 手順 */
+  .steps{counter-reset:s;}
+  .step{display:flex;gap:14px;margin-bottom:16px;}
+  .step .s-num{
+    counter-increment:s;flex:none;width:30px;height:30px;border-radius:50%;
+    display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-weight:700;
+    background:var(--warn);color:#1a0d00;font-size:.9rem;
+  }
+  .step .s-num::before{content:counter(s);}
+  .step .s-text{padding-top:2px;font-size:.92rem;}
+  .step .s-text strong{color:var(--text);}
+
+  /* 注意書き */
+  .notice{
+    background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.3);border-radius:14px;
+    padding:18px 20px;font-size:.9rem;color:var(--text2);
+  }
+  .notice strong{color:var(--warn);}
+
+  footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:44px;font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">USER GUIDE / 社内配布用</div>
+  <h1>熱中症リスク<span class="em">チェッカー</span><br>かんたん使い方ガイド</h1>
+  <p class="lead">気象データから作業現場の暑さ指数（WBGT）を推計し、時間帯ごとの熱中症リスクと推奨対応を表示するツールです。リンクを開くだけで使えます。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 1. 使い方の流れ -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">使い方の流れ</span></div>
+    <div class="steps card">
+      <div class="step"><span class="s-num"></span><div class="s-text"><strong>拠点版を開く。</strong> 村田／土浦のリンクから該当拠点を開くと、その地点が自動表示されます。</div></div>
+      <div class="step"><span class="s-num"></span><div class="s-text"><strong>作業強度を選ぶ。</strong> 「作業種別を選ぶ」で当日の作業に近いものをタップ。</div></div>
+      <div class="step"><span class="s-num"></span><div class="s-text"><strong>総合判定を確認。</strong> 画面上部で今日の最大リスク・WBGT最高/最低・休憩と水分の目安をチェック。</div></div>
+      <div class="step"><span class="s-num"></span><div class="s-text"><strong>時間帯・グラフを見る。</strong> どの時間帯が危険かタイムラインとグラフで把握し、作業ガイドの指示を確認。</div></div>
+      <div class="step"><span class="s-num"></span><div class="s-text"><strong>週間予報で先を読む。</strong> 週間グラフで危険な日を事前に把握し、作業計画に反映。</div></div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- 2. 2拠点の起動 -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">2つの拠点版があります</span></div>
+    <p style="color:var(--text2);font-size:.92rem;margin-bottom:14px;">トップページから、拠点に合わせてどちらかを開いてください。開くと <strong style="color:var(--text)">各拠点の地点が自動で読み込まれた状態</strong>で立ち上がります。</p>
+    <div class="sites">
+      <div class="site">
+        <div class="ico">🌡️</div>
+        <h3>村田版</h3>
+        <div class="place">東北特殊鋼_村田</div>
+        <p class="note">起動時に <strong style="color:var(--text)">宮城県・村田町</strong> を自動表示。</p>
+      </div>
+      <div class="site">
+        <div class="ico">🌡️</div>
+        <h3>土浦版</h3>
+        <div class="place">東北特殊鋼_土浦</div>
+        <p class="note">起動時に <strong style="color:var(--text)">茨城県・土浦市</strong> を自動表示。</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;">
+      <p>📍 地点は画面下部の「場所を選ぶ」から都道府県・市区町村で変更できます。一度選んだ地点は次回も復元されます。</p>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- 3. 見える監視指標 -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">画面で見える監視指標</span></div>
+    <p style="color:var(--text2);font-size:.92rem;margin-bottom:14px;">画面上部の「今日の総合判定」と時間帯タイムラインで、次の指標が確認できます。</p>
+    <div class="metrics">
+      <div class="metric">
+        <div class="m-top"><span class="m-ico">🌡️</span><span class="m-name">WBGT（暑さ指数）</span><span class="badge">主指標</span></div>
+        <div class="m-desc">気温・湿度・日射・風速から算出する熱中症の判定値。リスク段階の基準になります。</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><span class="m-ico">🚦</span><span class="m-name">最大リスク</span></div>
+        <div class="m-desc">その日のうち最も危険なレベルを5段階で表示。一目で危険度がわかります。</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><span class="m-ico">📈</span><span class="m-name">WBGT 最高 / 最低</span></div>
+        <div class="m-desc">1日の最高値と最低値、最高になる時間帯（◯時頃）を表示。</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><span class="m-ico">🌡️</span><span class="m-name">気温・湿度</span></div>
+        <div class="m-desc">時間帯ごとに実際の気温と湿度も併記。体感の裏付けになります。</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><span class="m-ico">🕐</span><span class="m-name">時間帯（6〜20時）</span></div>
+        <div class="m-desc">1時間ごとのリスクを横並びで表示。日の出・日の入りも🌅🌇で表示。</div>
+      </div>
+      <div class="metric">
+        <div class="m-top"><span class="m-ico">💧</span><span class="m-name">休憩・水分の目安</span></div>
+        <div class="m-desc">選んだ作業強度に応じた休憩間隔と水分補給量を表示。</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- 4. グラフ・週間情報 -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">グラフと週間情報</span></div>
+    <div class="card">
+      <div class="feat">
+        <div class="f-ico">📈</div>
+        <div class="f-body"><h4>WBGT推移グラフ</h4><p>選んだ日のWBGTが時間ごとにどう変化するかを折れ線で表示。ピークの時間帯がひと目で読み取れます。</p></div>
+      </div>
+      <div class="feat">
+        <div class="f-ico">📅</div>
+        <div class="f-body"><h4>日付を選ぶ</h4><p>今日だけでなく数日先の日付を選んで、その日のタイムライン・グラフ・作業ガイドを確認できます。作業計画の前倒し判断に。</p></div>
+      </div>
+      <div class="feat">
+        <div class="f-ico">📊</div>
+        <div class="f-body"><h4>週間WBGT最大値予報</h4><p>これから1週間の「1日の最大WBGT」を棒グラフで表示。どの日が特に危険になりそうか週単位で把握できます。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- 5. リスク段階と推奨行動 -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">5段階のリスクと推奨行動</span></div>
+    <p style="color:var(--text2);font-size:.92rem;margin-bottom:14px;">WBGTの値に応じて、色とアイコンで5段階に判定されます。各段階の推奨対応は次の通りです。</p>
+    <div class="card" style="padding:8px 18px;">
+      <table class="risk-table">
+        <thead><tr><th>リスク段階</th><th>推奨される対応行動</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dot" style="background:var(--safe)"></span>✅ 安全</td><td>通常どおり作業可能。作業強度に応じた休憩を目安に取る。</td></tr>
+          <tr><td><span class="dot" style="background:var(--caution)"></span>⚠️ 注意</td><td>こまめに休憩。決められた休憩間隔を守り、水分をしっかり補給する。</td></tr>
+          <tr><td><span class="dot" style="background:var(--warn)"></span>🔶 警戒</td><td>休憩を増やす。作業強度を下げることを検討する。</td></tr>
+          <tr><td><span class="dot" style="background:var(--danger)"></span>🚨 厳重警戒</td><td>作業制限を検討。原則として<strong style="color:var(--danger)">作業停止・屋内退避を強く推奨</strong>。</td></tr>
+          <tr><td><span class="dot" style="background:var(--severe)"></span>🛑 危険</td><td><strong style="color:var(--severe)">作業停止・屋内退避を強く推奨</strong>。屋外作業は避ける。</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <p>📋 <strong>作業ガイド（時間帯別）</strong>では、上記の判定を時間帯ごとの具体的な指示文として表示します。判定基準の数値（作業種別ごとのWBGTしきい値）は画面内の「WBGT判定基準」表で確認できます。</p>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  <!-- 6. 作業強度 -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">作業強度（作業種別）を選ぶ</span></div>
+    <p style="color:var(--text2);font-size:.92rem;margin-bottom:14px;">作業の重さによって安全なWBGTの基準が変わります。実際の作業に近いものを選ぶと、休憩・水分の目安が切り替わります。<strong style="color:var(--text)">きつい作業ほど低いWBGTでも危険</strong>と判定されます。</p>
+    <div class="card" style="padding:8px 14px;">
+      <table class="work-table">
+        <thead><tr><th>作業種別</th><th>内容の例</th><th>休憩の目安</th><th>水分の目安</th></tr></thead>
+        <tbody>
+          <tr><td><span class="ico">🪑</span>軽作業</td><td>監視・点検・軽い組立</td><td>60分作業／15分休憩</td><td>1時間 250ml</td></tr>
+          <tr><td><span class="ico">🔧</span>中程度</td><td>機械操作・一般作業</td><td>45分作業／15分休憩</td><td>1時間 500ml</td></tr>
+          <tr><td><span class="ico">🛠️</span>重作業</td><td>運搬・連続的な力仕事</td><td>30分作業／10分休憩</td><td>1時間 500ml</td></tr>
+          <tr><td><span class="ico">🔥</span>激しい作業</td><td>炉前・高強度の連続作業</td><td>25分作業／10分休憩</td><td>1時間 500ml以上</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 注意 -->
+  <div class="notice">
+    <strong>⚠️ 重要なお知らせ</strong><br>
+    本ツールの数値は気象データからの<strong>概算値</strong>です。実際の作業環境の暑さ指数（WBGT）は<strong>必ず計測器で確認</strong>してください。風・輻射熱・作業服・個人差により実際のリスクは大きく異なります。本ツールは作業計画の参考情報としてご活用ください。
+  </div>
+
+  <footer>© uk-capex / 熱中症リスクチェッカー 使い方ガイド</footer>
+
+</div>
+</body>
+</html>
