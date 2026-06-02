@@ -254,6 +254,12 @@ body {
   margin-top: 4px;
   line-height: 1.5;
 }
+.tl-pop {
+  font-size: 0.6rem;
+  font-weight: 700;
+  margin-top: 3px;
+  white-space: nowrap;
+}
 
 /* グラフ */
 .chart-wrap { height: 180px; position: relative; }
@@ -729,7 +735,7 @@ async function fetchData() {
   showError('');
   try {
     const [resHourly, resDaily] = await Promise.all([
-      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&hourly=temperature_2m,weathercode,relativehumidity_2m,windspeed_10m,shortwave_radiation&timezone=Asia%2FTokyo&forecast_days=7&past_days=0`),
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&hourly=temperature_2m,weathercode,relativehumidity_2m,windspeed_10m,shortwave_radiation,precipitation_probability&timezone=Asia%2FTokyo&forecast_days=7&past_days=0`),
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&daily=sunrise,sunset&timezone=Asia%2FTokyo&forecast_days=7`)
     ]);
     const data = await resHourly.json();
@@ -748,7 +754,8 @@ async function fetchData() {
 function renderView() {
   showLoading(false);
   const { time: times, temperature_2m: temps, weathercode: codes,
-          relativehumidity_2m: hums, windspeed_10m: winds, shortwave_radiation: rads } = lastData.hourly;
+          relativehumidity_2m: hums, windspeed_10m: winds, shortwave_radiation: rads,
+          precipitation_probability: pops } = lastData.hourly;
   const sunrises = (lastData.daily && lastData.daily.sunrise) ? lastData.daily.sunrise : [];
   const sunsets  = (lastData.daily && lastData.daily.sunset)  ? lastData.daily.sunset  : [];
 
@@ -771,7 +778,7 @@ function renderView() {
     const srStr = srIdx >= 0 ? sunrises[srIdx].substring(11,16) : null;
     const ssStr = ssIdx >= 0 ? sunsets[ssIdx].substring(11,16)  : null;
     const isToday = targetStr === todayStr;
-    slots.push({ hour: h, temp: temps[i], hum: hums ? hums[i] : null, wbgt, risk, code: codes[i], srStr, ssStr, isNow: isToday && h === now.getHours() });
+    slots.push({ hour: h, temp: temps[i], hum: hums ? hums[i] : null, wbgt, risk, code: codes[i], pop: pops ? pops[i] : null, srStr, ssStr, isNow: isToday && h === now.getHours() });
   });
 
   if (slots.length === 0) { showError('本日のデータがありません'); return; }
@@ -786,7 +793,7 @@ function renderView() {
   document.getElementById('graphCard').classList.remove('hidden');
   document.getElementById('guideCard').classList.remove('hidden');
 
-  renderWeekChart(times, temps, hums, winds, rads);
+  renderWeekChart(times, temps, hums, winds, rads, pops);
   document.getElementById('weekCard').classList.remove('hidden');
 }
 
@@ -849,6 +856,9 @@ function renderTimeline(slots) {
     const wbgtTxt = s.wbgt !== null ? s.wbgt + '℃' : '--';
     const tempTxt = s.temp !== undefined && s.temp !== null ? Math.round(s.temp * 10) / 10 + '℃' : '--';
     const humTxt  = s.hum  !== undefined && s.hum  !== null ? Math.round(s.hum) + '%' : '--';
+    const popVal  = (s.pop !== undefined && s.pop !== null) ? Math.round(s.pop) : null;
+    const popColor = popVal === null ? '#445566' : (popVal >= 70 ? '#3b82f6' : popVal >= 30 ? '#60a5fa' : '#7a9bb5');
+    const popTxt  = popVal === null ? '' : `<div class="tl-pop" style="color:${popColor}">☔ ${popVal}%</div>`;
     const riskColor = s.risk ? s.risk.color : '#445566';
     const riskBg    = s.risk ? s.risk.bg    : 'transparent';
     const riskLv    = s.risk ? s.risk.level : '--';
@@ -864,6 +874,7 @@ function renderTimeline(slots) {
       <div class="tl-wbgt" style="color:${riskColor}">${wbgtTxt}</div>
       <div class="tl-risk" style="color:${riskColor};background:${riskBg}">${riskLv}</div>
       <div class="tl-meta">${tempTxt}<br>${humTxt}</div>
+      ${popTxt}
     `;
     row.appendChild(div);
     if (s.isNow) {
@@ -1083,7 +1094,7 @@ function renderGuide(slots) {
 }
 
 // ======= 週間グラフ =======
-function renderWeekChart(times, temps, hums, winds, rads) {
+function renderWeekChart(times, temps, hums, winds, rads, pops) {
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
 
@@ -1096,18 +1107,22 @@ function renderWeekChart(times, temps, hums, winds, rads) {
     const label = d === 0 ? '今日' : `${dt.getMonth()+1}/${dt.getDate()}(${dayNames[dt.getDay()]})`;
 
     let maxWbgt = null;
+    let maxPop = null;
     times.forEach((t, i) => {
       if (!t.startsWith(dateStr)) return;
       const h = new Date(t).getHours();
       if (h < 6 || h > 20) return;
       const w = calcWBGT(temps[i], hums?.[i], winds?.[i], rads?.[i]);
       if (w !== null && (maxWbgt === null || w > maxWbgt)) maxWbgt = w;
+      const p = pops?.[i];
+      if (p !== null && p !== undefined && (maxPop === null || p > maxPop)) maxPop = p;
     });
-    weekData.push({ label, maxWbgt, dateStr });
+    weekData.push({ label, maxWbgt, maxPop, dateStr });
   }
 
   const labels = weekData.map(d => d.label);
   const values = weekData.map(d => d.maxWbgt);
+  const popValues = weekData.map(d => d.maxPop);
   const colors = weekData.map(d => {
     const r = getRiskLevel(d.maxWbgt, currentWork);
     return r ? r.color : '#445566';
@@ -1127,18 +1142,39 @@ function renderWeekChart(times, temps, hums, winds, rads) {
         borderColor: colors,
         borderWidth: 2,
         borderRadius: 6,
+        order: 2,
+        yAxisID: 'y',
+      }, {
+        type: 'line',
+        label: '最大降水確率',
+        data: popValues,
+        borderColor: '#3b82f6',
+        backgroundColor: '#3b82f6',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#3b82f6',
+        tension: 0.3,
+        spanGaps: true,
+        order: 1,
+        yAxisID: 'y1',
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: true, labels: { color: '#7a9bb5', font: { size: 9 }, boxWidth: 12 } } },
       scales: {
         x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a9bb5', font: { size: 9 } } },
         y: {
           grid: { color: 'rgba(255,255,255,0.04)' },
           ticks: { color: '#7a9bb5', font: { size: 9 }, callback: v => v + '℃' },
           min: Math.max(0, Math.min(...values.filter(v=>v!==null)) - 3),
+        },
+        y1: {
+          position: 'right',
+          min: 0, max: 100,
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#3b82f6', font: { size: 9 }, callback: v => v + '%' },
         }
       }
     },
