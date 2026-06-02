@@ -1253,7 +1253,7 @@ function renderChart(slots) {
         y: {
           position: 'left',
           grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#7a9bb5', font: { size: axisFontSize }, callback: v => v + '℃' },
+          ticks: { color: '#7a9bb5', font: { size: axisFontSize }, callback: v => (Math.round(v * 10) / 10) + '℃' },
           min: Math.min(...wbgts.filter(w=>w!==null)) - 3,
         },
         y2: {
@@ -1416,7 +1416,7 @@ function renderWeekChart(times, temps, hums, winds, rads, pops) {
         x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a9bb5', font: { size: 9 } } },
         y: {
           grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#7a9bb5', font: { size: 9 }, callback: v => v + '℃' },
+          ticks: { color: '#7a9bb5', font: { size: 9 }, callback: v => (Math.round(v * 10) / 10) + '℃' },
           min: Math.max(0, Math.min(...values.filter(v=>v!==null)) - 3),
         },
         y1: {
