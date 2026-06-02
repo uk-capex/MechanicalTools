@@ -254,7 +254,7 @@ body {
   <div class="header-inner">
     <span class="header-badge">CHECK</span>
     <h1>作業強度・リスク 自己判定</h1>
-    <a href="index.html" class="home-link">← HOME</a>
+    <a href="index.html" class="home-link" id="homeLink">← HOME</a>
   </div>
 </div>
 
@@ -377,6 +377,22 @@ body {
 </div>
 
 <script>
+// ===== 戻り先の切替（?from=murata / ?from=tsuchiura） =====
+const RETURN_MAP = {
+  murata:    { url:'work-heat-risk.html',          label:'← 村田に戻る' },
+  tsuchiura: { url:'Work_heat_risk_thk_tsune.html', label:'← 土浦に戻る' },
+};
+(function(){
+  const from = new URLSearchParams(location.search).get('from');
+  const dest = RETURN_MAP[from];
+  if (dest){
+    const link = document.getElementById('homeLink');
+    link.href = dest.url;
+    link.textContent = dest.label;
+  }
+  // from が無い／不明なときは既定の index.html（HOME）のまま
+})();
+
 const WORK = [
   { key:'軽作業',     icon:'🪑', color:'#22c55e', note:'監視・点検・軽い組立など' },
   { key:'中程度',     icon:'🔧', color:'#eab308', note:'工具操作・運転・一般作業など' },
