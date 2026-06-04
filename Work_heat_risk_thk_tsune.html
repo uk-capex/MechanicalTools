@@ -513,20 +513,21 @@ body {
 <body>
 
 <div class="header">
+  <!-- 上段：ナビ（ver / 強度判定 / HOME を右寄せ） -->
+  <div style="display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:8px;">
+    <span id="verBadge" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:0.02em;white-space:nowrap;"></span>
+    <a href="work-intensity-check.html?from=tsuchiura"
+       style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);text-decoration:none;white-space:nowrap;transition:color .2s;"
+       onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='var(--text2)'">🤔 強度判定</a>
+    <a href="index.html"
+       style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);text-decoration:none;white-space:nowrap;transition:color .2s;"
+       onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='var(--text2)'">← HOME</a>
+  </div>
+
+  <!-- 下段：バッジ＋タイトル（フル幅なので折り返さない） -->
   <div class="header-inner">
     <span class="header-badge">WBGT</span>
     <h1>熱中症リスクチェッカー</h1>
-    <span id="verBadge" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);flex-shrink:0;letter-spacing:0.02em;"></span>
-
-    <!-- ↓追加：HOMEの左に置く（margin-left:auto はこっちに） -->
-    <a href="work-intensity-check.html?from=tsuchiura"
-       style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);text-decoration:none;white-space:nowrap;flex-shrink:0;transition:color .2s;"
-       onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='var(--text2)'">🤔 強度判定</a>
-
-    <!-- ↓既存：margin-left:auto を削除しただけ -->
-    <a href="index.html"
-       style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);text-decoration:none;white-space:nowrap;flex-shrink:0;transition:color .2s;"
-       onmouseover="this.style.color='#f97316'" onmouseout="this.style.color='var(--text2)'">← HOME</a>
   </div>
 </div>
 
