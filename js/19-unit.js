@@ -127,6 +127,61 @@
         $("u-periph").textContent =
           `${((Math.PI * d * rpm) / 1000).toFixed(2)} m/min = ${((Math.PI * d * rpm) / 60000).toFixed(3)} m/s`;
       }
+      function convVol(from) {
+        // 全て m³ 基準で統一
+        const vals = {
+          m3: 1,
+          l: 1e-3, // 1 L = 0.001 m³
+          cm3: 1e-6, // cm³ = cc = mL
+          mm3: 1e-9,
+          in3: 1.6387064e-5, // (0.0254)³
+          ft3: 0.028316846592, // (0.3048)³
+          usgal: 0.003785411784, // 231 in³
+        };
+        const ids = {
+          m3: "u-vol-m3",
+          l: "u-vol-l",
+          cm3: "u-vol-cm3",
+          mm3: "u-vol-mm3",
+          in3: "u-vol-in3",
+          ft3: "u-vol-ft3",
+          usgal: "u-vol-usgal",
+        };
+        const m3_val = +$(ids[from]).value * vals[from];
+        for (const [k, f] of Object.entries(vals)) {
+          if (k === from) continue;
+          const v = m3_val / f;
+          let dec = 4;
+          if (k === "m3") dec = 6;
+          if (k === "l") dec = 4;
+          if (k === "cm3") dec = 2;
+          if (k === "mm3") dec = 0;
+          if (k === "in3") dec = 4;
+          if (k === "ft3") dec = 6;
+          if (k === "usgal") dec = 5;
+          $(ids[k]).value = v.toFixed(dec);
+        }
+      }
+      function convFlow(from) {
+        // 全て L/min 基準で統一
+        const vals = {
+          lpm: 1,
+          m3h: 1000 / 60, // 1 m³/h = 16.6667 L/min
+          gpm: 3.785411784, // 1 US gal/min
+        };
+        const ids = {
+          lpm: "u-flow-lpm",
+          m3h: "u-flow-m3h",
+          gpm: "u-flow-gpm",
+        };
+        const lpm_val = +$(ids[from]).value * vals[from];
+        for (const [k, f] of Object.entries(vals)) {
+          if (k === from) continue;
+          $(ids[k]).value = (lpm_val / f).toFixed(
+            k === "lpm" ? 3 : 4,
+          );
+        }
+      }
 
       // ════════════════════════════════════════
       // バージョン情報をコメントから読み込んで右上に表示
