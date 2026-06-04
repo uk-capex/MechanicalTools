@@ -4462,6 +4462,163 @@
                 </div>
               </div>
             </div>
+            <!-- ⑦ 体積 -->
+            <div class="conv-card">
+              <div class="conv-title">🧊 体積</div>
+              <div
+                class="two-col"
+                style="align-items: start"
+              >
+                <!-- 左列：メートル法 -->
+                <div>
+                  <div
+                    class="section-title"
+                    style="margin-bottom: 6px"
+                  >
+                    メートル法
+                  </div>
+                  <div class="field">
+                    <label>m³</label
+                    ><input
+                      type="number"
+                      id="u-vol-m3"
+                      step="0.000001"
+                      placeholder="m³"
+                      oninput="convVol('m3')"
+                    />
+                  </div>
+                  <div class="field">
+                    <label>L（リットル）</label
+                    ><input
+                      type="number"
+                      id="u-vol-l"
+                      step="0.0001"
+                      placeholder="L"
+                      oninput="convVol('l')"
+                    />
+                  </div>
+                  <div class="field">
+                    <label>cm³（cc・mL）</label
+                    ><input
+                      type="number"
+                      id="u-vol-cm3"
+                      step="0.01"
+                      placeholder="cm³"
+                      oninput="convVol('cm3')"
+                    />
+                  </div>
+                  <div class="field">
+                    <label>mm³</label
+                    ><input
+                      type="number"
+                      id="u-vol-mm3"
+                      step="1"
+                      placeholder="mm³"
+                      oninput="convVol('mm3')"
+                    />
+                  </div>
+                </div>
+                <!-- 右列：ヤード・ポンド法 -->
+                <div>
+                  <div
+                    class="section-title"
+                    style="margin-bottom: 6px"
+                  >
+                    ヤード・ポンド法
+                  </div>
+                  <div class="field">
+                    <label>in³（立方インチ）</label
+                    ><input
+                      type="number"
+                      id="u-vol-in3"
+                      step="0.0001"
+                      placeholder="in³"
+                      oninput="convVol('in3')"
+                    />
+                  </div>
+                  <div class="field">
+                    <label>ft³（立方フィート）</label
+                    ><input
+                      type="number"
+                      id="u-vol-ft3"
+                      step="0.000001"
+                      placeholder="ft³"
+                      oninput="convVol('ft3')"
+                    />
+                  </div>
+                  <div class="field">
+                    <label>US gal（米ガロン）</label
+                    ><input
+                      type="number"
+                      id="u-vol-usgal"
+                      step="0.00001"
+                      placeholder="US gal"
+                      oninput="convVol('usgal')"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--muted);
+                  margin-top: 6px;
+                "
+              >
+                1 L = 1,000 cm³(cc) = 1,000,000 mm³
+                &nbsp;｜&nbsp; 1 m³ = 1,000 L<br />
+                1 in³ = 16.387 cm³ &nbsp;｜&nbsp; 1 ft³ ≈
+                28.317 L &nbsp;｜&nbsp; 1 US gal ≈ 3.785 L
+              </div>
+            </div>
+            <!-- ⑧ 流量 -->
+            <div class="conv-card">
+              <div class="conv-title">
+                🚿 流量（L/min / m³/h / GPM）
+              </div>
+              <div class="field">
+                <label>L/min（毎分リットル）</label
+                ><input
+                  type="number"
+                  id="u-flow-lpm"
+                  step="0.001"
+                  placeholder="L/min"
+                  oninput="convFlow('lpm')"
+                />
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label>m³/h（毎時立方メートル）</label
+                  ><input
+                    type="number"
+                    id="u-flow-m3h"
+                    step="0.0001"
+                    placeholder="m³/h"
+                    oninput="convFlow('m3h')"
+                  />
+                </div>
+                <div class="field">
+                  <label>GPM（US gal/min）</label
+                  ><input
+                    type="number"
+                    id="u-flow-gpm"
+                    step="0.0001"
+                    placeholder="GPM"
+                    oninput="convFlow('gpm')"
+                  />
+                </div>
+              </div>
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--muted);
+                  margin-top: 2px;
+                "
+              >
+                1 m³/h = 16.667 L/min &nbsp;｜&nbsp; 1
+                GPM(US) = 3.785 L/min
+              </div>
+            </div>
           </div>
         </div>
       </div>
