@@ -813,8 +813,8 @@ body {
 
 <script>
 // ======= バージョン情報（ここを編集） =======
-const VERSION = '1.15';
-const VERSION_DATE = '20260612';
+const VERSION = '1.16';
+const VERSION_DATE = '20260624';
 
 // ======= 都道府県リスト =======
 const PREFECTURES = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
@@ -971,6 +971,7 @@ async function useGPS() {
 // ======= 作業種別選択 =======
 function selectWork(type) {
   currentWork = type;
+  lsSet(LS_WORK, type);
   document.querySelectorAll('.work-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('work-' + type).classList.add('active');
   if (lastData) renderView();
@@ -1001,7 +1002,7 @@ async function fetchData(silent) {
 }
 
 // ======= 描画 =======
-function renderView() {
+function renderView(skipScroll) {
   showLoading(false);
   const { time: times, temperature_2m: temps, weathercode: codes,
           relativehumidity_2m: hums, windspeed_10m: winds, shortwave_radiation: rads,
@@ -1035,7 +1036,7 @@ function renderView() {
   if (slots.length === 0) { showError('本日のデータがありません'); return; }
 
   renderSummary(slots);
-  renderTimeline(slots);
+  renderTimeline(slots, skipScroll);
   renderChart(slots);
   renderGuide(slots);
 
@@ -1106,7 +1107,7 @@ function renderSummary(slots) {
 }
 
 // ======= タイムライン =======
-function renderTimeline(slots) {
+function renderTimeline(slots, skipScroll) {
   const row = document.getElementById('timelineRow');
   row.innerHTML = '';
   slots.forEach(s => {
@@ -1139,7 +1140,7 @@ function renderTimeline(slots) {
       ${popTxt}
     `;
     row.appendChild(div);
-    if (s.isNow) {
+    if (s.isNow && !skipScroll) {
       setTimeout(() => div.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
     }
   });
@@ -1579,6 +1580,7 @@ function initDateBtns() {
 const LS_POINTS = 'whr_points';
 const LS_LOGPREFIX = 'whr_logs_';
 const LS_CORR = 'whr_corr';
+const LS_WORK = 'whr_work';
 
 // localStorageが使えない環境(プレビュー等)ではメモリにフォールバック
 const memStore = {};
@@ -1595,6 +1597,8 @@ function loadStore(){
   try { points = JSON.parse(lsGet(LS_POINTS)) || []; } catch(e){ points = []; }
   try { const c = JSON.parse(lsGet(LS_CORR)); if(c){ corr = Object.assign(corr, c); } } catch(e){}
   activePointId = corr.activePointId || null;
+  const sw = lsGet(LS_WORK);
+  if (sw && WORK_TYPES[sw]) { currentWork = sw; selectWork(sw); }
 }
 function saveCorr(){ corr.activePointId = activePointId; lsSet(LS_CORR, JSON.stringify(corr)); }
 function savePoints(){ lsSet(LS_POINTS, JSON.stringify(points)); }
@@ -1821,7 +1825,7 @@ function onCorrToggle(){
   corr.enabled = document.getElementById('corrToggle').checked; saveCorr();
   renderCorrCard();
   updateAccHints();
-  if(lastData) renderView();
+  if(lastData) renderView(true);
 }
 // 上の運用欄の補正値入力
 function onOpManualInput(){
@@ -1829,7 +1833,7 @@ function onOpManualInput(){
   const v = parseFloat(document.getElementById('opManualVal').value);
   corr.manual[activePointId] = isNaN(v)?null:v; saveCorr();
   renderCorrTable();
-  if(corr.enabled && lastData) renderView();
+  if(corr.enabled && lastData) renderView(true);
 }
 // 表の中での補正値入力
 function onTableManualInput(pid, el){
@@ -1839,7 +1843,7 @@ function onTableManualInput(pid, el){
     const op = document.getElementById('opManualVal');
     if(document.activeElement!==op) op.value = isNaN(v)?'':v;
   }
-  if(corr.enabled && pid===activePointId && lastData) renderView();
+  if(corr.enabled && pid===activePointId && lastData) renderView(true);
 }
 // 自動平均→確定値に採用
 function adoptAuto(){
@@ -1849,7 +1853,7 @@ function adoptAuto(){
   corr.manual[activePointId] = a; saveCorr();
   document.getElementById('opManualVal').value = a;
   renderCorrCard();
-  if(corr.enabled && lastData) renderView();
+  if(corr.enabled && lastData) renderView(true);
 }
 let corrTableOpen = false;
 function toggleCorrTable(){
