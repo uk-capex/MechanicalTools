@@ -467,12 +467,15 @@ function renderSet(){
   html += `</div>`;
 
   html += `<div class="set-sec"><h3>📤 エクスポート / 📥 インポート</h3>
-    <div class="hint">週1目安でエクスポート→プロジェクトファイルに保存。チャットで整理した更新版JSONはここに貼ってインポートで書き戻し。</div>
+    <div class="hint">週1目安で「ファイル保存」推奨。端末に.jsonとしてダウンロードされる（ブラウザデータが消えた時のバックアップ）。チャットで整理した更新版JSONはここに貼ってインポートで書き戻し。</div>
     <textarea id="ioArea" placeholder="エクスポートを押すとここに全データが出る。インポートはここにJSONを貼って実行"></textarea>
     <div class="set-btns">
-      <button class="pri" id="btnExport">エクスポート</button>
+      <button class="pri" id="btnExport">画面に表示</button>
+      <button class="pri" id="btnDownload">📥 ファイル保存</button>
       <button id="btnCopy">コピー</button>
       <button id="btnPasteIo">📋 貼り付け</button>
+      <button id="btnFilePick">📂 ファイルから読込</button>
+      <input type="file" id="filePicker" accept=".json,application/json" style="display:none">
       <button id="btnImport">インポート実行（上書き）</button>
     </div>
     <div class="hint">スキーマ: meta / stocks / macro_watch / logs / fetched / fx（source: ${esc(state.meta?.source||'')}）</div>
@@ -575,11 +578,36 @@ function bindMain(){
     });
     $('#btnExport')?.addEventListener('click', ()=>{
       $('#ioArea').value = JSON.stringify(state, null, 2);
-      toast('エクスポートした（コピーしてプロジェクトへ）');
+      toast('画面に表示した（コピーか、下の「ファイル保存」でダウンロードして）');
+    });
+    $('#btnDownload')?.addEventListener('click', ()=>{
+      const json = JSON.stringify(state, null, 2);
+      const blob = new Blob([json], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date();
+      const stamp = `${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,'0')}-${String(ts.getDate()).padStart(2,'0')}`;
+      a.href = url;
+      a.download = `portfolio-backup_${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('📥 ダウンロードした（端末のダウンロードフォルダへ）');
+    });
+    $('#btnFilePick')?.addEventListener('click', ()=> $('#filePicker').click());
+    $('#filePicker')?.addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => { $('#ioArea').value = ev.target.result; toast('ファイルを読み込んだ。内容を確認して「インポート実行」を押して'); };
+      reader.onerror = () => toast('❌ ファイル読込失敗');
+      reader.readAsText(file);
+      e.target.value = '';
     });
     $('#btnCopy')?.addEventListener('click', async ()=>{
       const v = $('#ioArea').value;
-      if(!v) return toast('先にエクスポートを');
+      if(!v) return toast('先に「画面に表示」を押して');
       try{ await navigator.clipboard.writeText(v); toast('コピーした'); }
       catch(e){ $('#ioArea').select(); toast('選択したので手動コピーして'); }
     });
