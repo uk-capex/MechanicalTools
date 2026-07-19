@@ -25,6 +25,12 @@ h1 .sub{font-size:10px;color:var(--dim);font-weight:400;margin-left:6px}
 .fx b{color:var(--text);font-size:14px}
 .fx.hot b{color:var(--red)}
 .hd-bar{display:flex;align-items:center;gap:10px;margin-top:8px}
+.btn-grp{display:flex;gap:6px;flex-wrap:wrap}
+.btn-sm{font-size:12px!important;padding:7px 12px!important;border-radius:8px!important;font-weight:600!important}
+.btn-all{background:var(--surface2);color:var(--text)}
+.card-upd{background:transparent;color:var(--dim);font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:20px;margin-left:auto}
+.card-upd:active{color:var(--teal);border-color:var(--teal)}
+.card-foot{display:flex;margin-top:8px}
 button{font-family:inherit;cursor:pointer;border:none;border-radius:8px}
 .btn-update{background:var(--teal);color:#0b2f2c;font-weight:700;font-size:14px;padding:9px 20px;border-radius:10px;transition:opacity .15s}
 .btn-update:disabled{opacity:.45;cursor:wait}
@@ -130,13 +136,18 @@ textarea{width:100%;height:200px;background:var(--bg);border:1px solid var(--bor
 <div class="wrap">
   <header>
     <div class="hd-top">
-      <h1>ポトフォ・ウォッチ<span class="sub">v1 / チャット連携版・判断材料の整理</span></h1>
+      <h1>ポトフォ・ウォッチ<span class="sub">v1.1 公開用 / 判断材料の整理・助言ではない</span></h1>
       <div class="fx" id="fxBox">USD/JPY<br><b>—</b></div>
     </div>
     <div class="hd-bar">
-      <button class="btn-update" id="btnGoManual">📋 手動更新モードへ</button>
-      <div class="upd-meta" id="updMeta">未更新</div>
+      <div class="btn-grp">
+        <button class="btn-update btn-sm" id="btnUpdCore">🎯本命</button>
+        <button class="btn-update btn-sm" id="btnUpdWatch">🟡ウォッチ</button>
+        <button class="btn-update btn-sm" id="btnUpdLottery">🎰宝くじ</button>
+        <button class="btn-update btn-sm btn-all" id="btnUpdAll">全銘柄</button>
+      </div>
     </div>
+    <div class="upd-meta" id="updMeta">未更新</div>
     <div id="progress"></div>
     <nav>
       <button data-tab="home" class="on">ホーム</button>
@@ -150,16 +161,17 @@ textarea{width:100%;height:200px;background:var(--bg);border:1px solid var(--bor
 <div id="toast"></div>
 
 <script>
-/* ============ 初期データ（空テンプレート） ============ */
-/* GitHub Pages等で公開する版。個人の保有株数・取得単価・トリガー等は含めない。
-   初回は「設定タブ→インポート」で自分のバックアップJSONを読み込んで使う想定。 */
+/* ============ 初期データ（空テンプレート・公開用） ============ */
+/* 公開リンク・リミックスでコードごと他人に見える前提のため、個人の保有株数・
+   取得単価・トリガー等はコードに含めない。初回は「設定タブ→インポート」で
+   自分のバックアップJSON（portfolio-backup_YYYY-MM-DD.json）を読み込んで使う。 */
 const SEED = {
   meta: { version: 1, source: "empty-template", fx_note: "" },
   stocks: [],
   macro_watch: [],
   logs: [],
-  fetched: {},
-  fx: null
+  fetched: {},   // { [id]: {price, yield_pct, per, as_of, alert, fetchedAt, dip_summary, dip_at} }
+  fx: null       // {rate, as_of, fetchedAt}
 };
 
 const STORAGE_KEY = 'portfolio-data';
@@ -180,45 +192,110 @@ function fmtTs(ms){ if(!ms) return '—'; const d=new Date(ms); return `${d.getM
 function fmtPrice(v, market){ if(v==null||isNaN(v)) return null; const n = Number(v); const s = n>=1000 ? n.toLocaleString('ja-JP',{maximumFractionDigits:1}) : n.toLocaleString('ja-JP',{maximumFractionDigits:2}); return market==='US' ? '$'+s : '¥'+s; }
 function age(ms){ return ms ? Date.now()-ms : Infinity; }
 
-/* ============ 環境チェック（GitHub Pages版：localStorage前提） ============ */
+/* ============ 環境チェック ============ */
+let envOk = true;
 function checkEnv(){
-  try{
-    localStorage.setItem('__test__','1'); localStorage.removeItem('__test__');
-  }catch(e){
+  if(typeof window.storage === 'undefined'){
+    envOk = false;
+    // メモリ内フォールバック（保存はされない）
+    window.storage = {
+      _m:{}, 
+      async get(k){ return this._m[k] ? {key:k, value:this._m[k]} : null; },
+      async set(k,v){ this._m[k]=v; return {key:k, value:v}; },
+      async delete(k){ delete this._m[k]; return {key:k, deleted:true}; },
+      async list(){ return {keys:Object.keys(this._m)}; }
+    };
     const w = document.createElement('div');
     w.className = 'alert-band err';
     w.style.margin = '0 0 10px';
-    w.innerHTML = `<div class="t red">⚠️ ブラウザのローカル保存が使えない</div>
-      <li>プライベートブラウジング等だとデータが保存されない可能性がある。通常モードで開いて。</li>`;
+    w.innerHTML = `<div class="t red">⚠️ アーティファクト環境の外で開いている</div>
+      <li>このツールはClaudeアプリ内でアーティファクトとして開いた時だけフル動作する（API・保存が環境側で処理される仕組み）。</li>
+      <li>ローカルやブラウザ単体では「更新」は全滅し、データも保存されない。Claudeのチャットからアーティファクトを開き直して。</li>`;
     document.querySelector('header').after(w);
   }
 }
 
-/* ============ storage（localStorage版） ============ */
+/* ============ storage（タイムアウト保護つき） ============ */
+const withTimeout = (p, ms, label) => Promise.race([
+  p,
+  new Promise((_,rej)=>setTimeout(()=>rej(new Error((label||'storage')+'タイムアウト')), ms))
+]);
+let storageDead = false;
 async function loadState(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) state = JSON.parse(raw);
-  }catch(e){ console.error('読込エラー', e); }
+    const r = await withTimeout(window.storage.get(STORAGE_KEY), 5000, '読込');
+    if(r && r.value) state = JSON.parse(r.value);
+  }catch(e){
+    if(e.message.includes('タイムアウト')){ storageDead = true; toast('⚠️ 保存領域が応答しない→メモリ内モードで起動'); }
+    /* キーなしはここに来るだけなので無視 */
+  }
   if(!state || !Array.isArray(state.stocks)){
     state = JSON.parse(JSON.stringify(SEED));
+    saveState(); // 待たない
   }
   state.fetched = state.fetched || {};
   state.logs = state.logs || [];
   if(!state.stocks.length){
-    toast('データが空。設定タブ→インポートで自分のバックアップJSONを読み込んで');
+    setTimeout(()=>toast('データが空。設定タブ→インポートで自分のバックアップJSONを読み込んで'), 400);
   }
 }
 async function saveState(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const r = await withTimeout(window.storage.set(STORAGE_KEY, JSON.stringify(state)), 4000, '保存');
+    if(!r) toast('⚠️ 保存に失敗した可能性');
+    if(storageDead){ storageDead = false; toast('✅ 保存が復旧した'); }
   }catch(e){
-    toast('⚠️ 保存失敗（容量超過の可能性）: '+e.message);
+    if(!storageDead){
+      storageDead = true;
+      toast('⚠️ 保存が応答しない（環境不調）。表示は反映済み、閉じると消えるのでエクスポート推奨');
+    }
   }
 }
 
-/* ============ 自動更新は非対応（GitHub Pages等では api.anthropic.com を直接叩けない） ============ */
-/* 手動更新モード（下部）でチャットのClaudeとやり取りする方式に統一 */
+/* ============ Claude API ============ */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function fmtResetTime(unixSec){
+  if(!unixSec) return null;
+  const d = new Date(unixSec*1000);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+async function callClaude(prompt, useSearch){
+  const body = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1000,
+    messages: [{role:'user', content: prompt}]
+  };
+  if(useSearch) body.tools = [{type:'web_search_20250305', name:'web_search'}];
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    let detail = '', resetsAt = null;
+    try{
+      const raw = await res.text();
+      detail = raw.slice(0,140);
+      // rate_limit_error本文からresetsAt（Unix秒）を拾う。ネストしたJSON文字列内にある想定でゆるく正規表現抽出
+      const m = raw.match(/"resetsAt"\s*:\s*(\d+)/);
+      if(m) resetsAt = Number(m[1]);
+    }catch(e){}
+    const err = new Error(`API ${res.status}${detail?': '+detail:''}`);
+    err.status = res.status;
+    err.resetsAt = resetsAt;
+    throw err;
+  }
+  const data = await res.json();
+  if(data.error) throw new Error('API error: '+(data.error.message||JSON.stringify(data.error)).slice(0,140));
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+}
+function parseJsonLoose(text){
+  const clean = text.replace(/```json|```/g,'').trim();
+  const m = clean.match(/\{[\s\S]*\}/);
+  return JSON.parse(m ? m[0] : clean);
+}
+
+/* ============ トリガー判定（機械的・数値比較のみ） ============ */
 function evalTrigger(stock, trg){
   const f = state.fetched[stock.id];
   if(!f || f.price==null) return {hit:false, dist:null};
@@ -235,19 +312,178 @@ function anomStocks(){
   return state.stocks.filter(s => state.fetched[s.id]?.alert);
 }
 
-function parseJsonLoose(text){
-  const clean = text.replace(/```json|```/g,'').trim();
-  const m = clean.match(/\{[\s\S]*\}/);
-  return JSON.parse(m ? m[0] : clean);
-}
-function buildBatchPrompt(stocks, withFx){
-  const lines = stocks.map(s => `- ${s.id} ${s.name}（${s.market==='JP'?'東証':'米国市場'}）`).join('\n');
+/* ============ 更新フロー ============ */
+function buildBatchPrompt(batch, withFx){
+  const lines = batch.map(s => `- ${s.id} ${s.name}（${s.market==='JP'?'東証':'米国市場'}）`).join('\n');
   let p = `以下の銘柄の「現在株価」「予想配当利回り(%)」「予想PER」をweb検索で調べて、JSONのみで返答してください。前置き・説明・Markdownフェンスは一切禁止。\n`;
   p += `形式: {"9432": {"price": 148.0, "yield_pct": 3.65, "per": 12.1, "as_of": "2026-07-19", "alert": null}}\n`;
   p += `ルール: 東証銘柄は円建て、米国銘柄はUSD建ての数値。as_ofは株価の日付。不明な値はnull。上場廃止・取引停止・株式併合・TOBなど通常取引に関わる異常を検知したら alert フィールドに日本語で簡潔に記載（なければnull）。\n`;
   p += `銘柄:\n${lines}`;
   if(withFx) p += `\nさらに "USDJPY" キーで現在のドル円レートを {"price": 162.4, "as_of": "..."} 形式で含めること。`;
   return p;
+}
+function buildDipPrompt(stock){
+  const chk = (stock.dip_checklist||[]).join(' / ') || '重要ニュース全般';
+  return `「${stock.name}（${stock.id}）」の直近1〜2週間のニュース・開示をweb検索し、次のチェック項目の観点だけで日本語200字以内に要約してください。チェック項目: ${chk}\n買い推奨・売り推奨は書かない。事実のみ。JSONのみで返答（フェンス禁止）: {"summary": "…"}`;
+}
+
+async function batchOnce(batch, withFx){
+  const text = await callClaude(buildBatchPrompt(batch, withFx), true);
+  try{ return parseJsonLoose(text); }
+  catch(e){ throw new Error('JSONパース失敗: '+text.slice(0,120)); }
+}
+// バックオフつきリトライ（500系はしつこく待って再試行／429は待っても解消しないため即座に投げ直す）
+async function batchWithRetry(batch, withFx, progLabel){
+  const waits = [0, 2500, 6000];
+  let lastErr = null;
+  for(let a=0; a<waits.length; a++){
+    if(waits[a]){ $('#progress').textContent = `${progLabel} 再試行${a}/2（${waits[a]/1000}秒待機）`; await sleep(waits[a]); }
+    try{ return await batchOnce(batch, withFx); }
+    catch(e){
+      if(e.status === 429) throw e; // 枠切れはリトライ無意味。即座に呼び出し元へ
+      lastErr = e;
+    }
+  }
+  throw lastErr;
+}
+
+async function runUpdate(targetStocks, scopeLabel){
+  const target = targetStocks && targetStocks.length ? targetStocks : state.stocks;
+  if(!target.length){
+    toast('銘柄データが空。先に設定タブ→インポートでJSONを読み込んで');
+    return;
+  }
+  const btns = [$('#btnUpdCore'), $('#btnUpdWatch'), $('#btnUpdLottery'), $('#btnUpdAll')];
+  btns.forEach(b=>b && (b.disabled = true));
+  const prog = $('#progress');
+  const now = Date.now();
+  const failed = [];
+  const errors = [];
+  let rateLimited = false;
+  let resetsAtSec = null;
+  // バッチ分割（6銘柄ずつ・呼び出し回数を減らして429を避ける）
+  const stocks = target.slice();
+  const batches = [];
+  for(let i=0;i<stocks.length;i+=6) batches.push(stocks.slice(i,i+6));
+
+  for(let bi=0; bi<batches.length && !rateLimited; bi++){
+    const label = `更新中… バッチ ${bi+1}/${batches.length}`;
+    prog.textContent = label;
+    const batch = batches[bi];
+    let parsed = null;
+    try{ parsed = await batchWithRetry(batch, bi===0, label); }
+    catch(e){
+      if(e.status === 429){
+        rateLimited = true; resetsAtSec = e.resetsAt;
+        batch.forEach(s=>{ if(!failed.includes(s.id)) failed.push(s.id); });
+        errors.push('枠切れ（429）のためここで中断');
+        break;
+      }
+      // フォールバック：1銘柄ずつ単発で取りにいく（小さいリクエストは落ちにくい）
+      console.error('batch fail → 単発フォールバック', e);
+      parsed = {};
+      for(let si=0; si<batch.length && !rateLimited; si++){
+        const s = batch[si];
+        prog.textContent = `${label} 単発取得 ${s.name}`;
+        await sleep(1200);
+        try{
+          const single = await batchOnce([s], bi===0 && si===0);
+          Object.assign(parsed, single);
+        }catch(e2){
+          if(e2.status === 429){
+            rateLimited = true; resetsAtSec = e2.resetsAt;
+            errors.push('枠切れ（429）のためここで中断');
+            // このバッチの残り銘柄も失敗扱いに
+            for(let sj=si; sj<batch.length; sj++){ if(!failed.includes(batch[sj].id)) failed.push(batch[sj].id); }
+            break;
+          }
+          failed.push(s.id);
+          errors.push(`${s.name}: ${e2.message}`);
+        }
+      }
+    }
+    if(rateLimited) break;
+    if(!parsed || !Object.keys(parsed).length){
+      batch.forEach(s=>{ if(!failed.includes(s.id)) failed.push(s.id); });
+      continue;
+    }
+    // FX
+    if(parsed.USDJPY && parsed.USDJPY.price != null){
+      state.fx = { rate: Number(parsed.USDJPY.price), as_of: parsed.USDJPY.as_of||null, fetchedAt: now };
+    }
+    for(const s of batch){
+      const r = parsed[s.id];
+      if(!r || r.price == null){ if(!failed.includes(s.id)) failed.push(s.id); continue; }
+      const prev = state.fetched[s.id] || {};
+      state.fetched[s.id] = {
+        ...prev,
+        price: Number(r.price),
+        yield_pct: r.yield_pct!=null ? Number(r.yield_pct) : null,
+        per: r.per!=null ? Number(r.per) : null,
+        as_of: r.as_of || null,
+        alert: r.alert || null,
+        fetchedAt: now
+      };
+    }
+    await saveState();
+    render(); // 途中経過も反映
+    if(bi < batches.length-1 && !rateLimited) await sleep(1500); // 連打で500を誘発しないようクールダウン
+  }
+
+  // トリガー判定 → 点灯銘柄のみ深掘り（ノイズ遮断：未点灯は何もしない）。枠切れ中は深掘りも行わない
+  const lit = litStocks();
+  if(!rateLimited){
+    for(let i=0;i<lit.length && !rateLimited; i++){
+      const s = lit[i];
+      prog.textContent = `点灯銘柄を深掘り中… ${s.name}（${i+1}/${lit.length}）`;
+      try{
+        const text = await callClaude(buildDipPrompt(s), true);
+        const j = parseJsonLoose(text);
+        if(j.summary){
+          state.fetched[s.id].dip_summary = j.summary;
+          state.fetched[s.id].dip_at = Date.now();
+        }
+      }catch(e){
+        if(e.status === 429){ rateLimited = true; resetsAtSec = e.resetsAt; errors.push('深掘り中に枠切れ（429）'); }
+        else console.error('dip fail', s.id, e);
+      }
+    }
+  }
+
+  // ログ追記
+  const prices = {};
+  state.stocks.forEach(s=>{ const f=state.fetched[s.id]; if(f&&f.price!=null) prices[s.id]=f.price; });
+  const anoms = anomStocks().map(s=>s.id);
+  state.logs.unshift({
+    ts: now, type:'update',
+    scope: scopeLabel || `個別・${target.length}件`,
+    prices,
+    fx: state.fx?.rate ?? null,
+    triggered: lit.map(s=>`${s.name}(${s.id})`),
+    anomalies: anoms,
+    failed,
+    errors,
+    rateLimited,
+    resetsAt: resetsAtSec
+  });
+  if(state.logs.length > 200) state.logs.length = 200;
+  await saveState();
+
+  prog.textContent = '';
+  btns.forEach(b=>b && (b.disabled = false));
+  render();
+  const msgs = [];
+  if(lit.length) msgs.push(`🔔 ${lit.length}銘柄が点灯`);
+  if(anoms.length) msgs.push(`🚨 異常検知 ${anoms.length}件`);
+  if(failed.length) msgs.push(`⚠️ ${failed.length}銘柄取得失敗（詳細はログタブ）`);
+  if(rateLimited){
+    const t = fmtResetTime(resetsAtSec);
+    toast(`⏸️ 枠切れ（429）で中断${t?`。${t}頃に復活見込み`:''}。取得済み分だけ反映済み`);
+  } else if(errors.length && failed.length === state.stocks.length){
+    toast(`❌ 自動更新は不通。設定タブの「手動更新モード」を使って`);
+  } else {
+    toast(msgs.length ? msgs.join(' / ') : '✅ 更新完了・点灯なし');
+  }
 }
 
 /* ============ 決算カレンダー ============ */
@@ -396,6 +632,7 @@ function renderCard(s){
     <div class="c-thesis">${esc(s.thesis)}</div>
     ${trgHtml}${anomHtml}${dipHtml}
     ${s.notes?`<div class="c-notes">📝 ${esc(s.notes)}</div>`:''}
+    <div class="card-foot"><button class="card-upd" data-sid="${esc(s.id)}">🔄 この銘柄だけ更新</button></div>
   </div>`;
 }
 
@@ -437,16 +674,28 @@ function renderLog(){
     if(l.fx) body += `\nUSDJPY ${l.fx}`;
     if(l.triggered && l.triggered.length) body += `\n<b>🔔 点灯: ${esc(l.triggered.join('、'))}</b>`;
     if(l.anomalies && l.anomalies.length) body += `\n🚨 異常: ${esc(l.anomalies.join('、'))}`;
+    if(l.rateLimited){
+      const t = fmtResetTime(l.resetsAt);
+      body += `\n⏸️ 枠切れ（429）で中断${t?`・${t}頃に復活見込み`:''}`;
+    }
     if(l.failed && l.failed.length) body += `\n⚠️ 取得失敗: ${esc(l.failed.join('、'))}`;
     if(l.errors && l.errors.length) body += `\n❌ ${esc(l.errors.join('\n❌ '))}`;
-    return `<div class="log-entry"><div class="log-ts">${l.manual?'✍️':'🔄'} ${fmtTs(l.ts)}${l.manual?'（手動）':''}</div><div class="log-body">${body}</div></div>`;
+    return `<div class="log-entry"><div class="log-ts">${l.manual?'✍️':'🔄'} ${fmtTs(l.ts)}${l.manual?'（手動）':''}${l.scope?` ・ ${esc(l.scope)}`:''}</div><div class="log-body">${body}</div></div>`;
   }).join('');
   return html;
 }
 
 function renderSet(){
-  let html = `<div class="set-sec"><h3>✍️ 更新方法（このダッシュボードはチャット連携型）</h3>
-    <div class="hint">①「取得用プロンプトをコピー」→ Claudeのチャットに貼って実勢を聞く（Claudeが検索して答える） → ② 返ってきたJSONをここに貼って「適用」。データはこの端末のブラウザに保存され、次に開いた時も引き継がれる。</div>
+  let html = `<div class="set-sec"><h3>🔌 接続診断</h3>
+    <div class="hint">①API疎通（web検索なし）→②検索つき、の順でテスト。①から失敗する場合はこの環境でAPI中継自体が不通＝下の手動更新モードで運用する（2026-07-19時点はこの状態）。復旧確認は①を押すだけでOK。</div>
+    <div class="set-btns">
+      <button class="pri" id="btnPing">① API疎通テスト</button>
+      <button id="btnPing2">② 検索つきテスト</button>
+    </div>
+    <div class="hint" id="pingResult" style="white-space:pre-wrap"></div>
+  </div>`;
+  html += `<div class="set-sec"><h3>✍️ 手動更新モード（API不通時の迂回路）</h3>
+    <div class="hint">①「取得用プロンプトをコピー」→ チャットのClaudeに貼って実勢を聞く → ② 返ってきたJSONを下に貼って「適用」。トリガー判定・ログ記録は自動更新と同じに走る。</div>
     <div class="set-btns"><button class="pri" id="btnCopyPrompt">① 取得用プロンプトをコピー</button><button id="btnPasteManual">📋 貼り付け</button></div>
     <textarea id="manualArea" style="height:120px;margin-top:8px" placeholder='② ここにJSONを貼る 例: {"9432":{"price":148,"yield_pct":3.65,"per":12.1,"as_of":"2026-07-19","alert":null},"USDJPY":{"price":162.4}}'></textarea>
     <div class="set-btns"><button class="pri" id="btnManualApply">② 適用（判定＋ログ記録）</button></div>
@@ -467,7 +716,7 @@ function renderSet(){
   html += `</div>`;
 
   html += `<div class="set-sec"><h3>📤 エクスポート / 📥 インポート</h3>
-    <div class="hint">週1目安で「ファイル保存」推奨。端末に.jsonとしてダウンロードされる（ブラウザデータが消えた時のバックアップ）。チャットで整理した更新版JSONはここに貼ってインポートで書き戻し。</div>
+    <div class="hint">週1目安で「ファイル保存」推奨。端末に.jsonとしてダウンロードされる。チャットで整理した更新版JSONはここに貼ってインポートで書き戻し。</div>
     <textarea id="ioArea" placeholder="エクスポートを押すとここに全データが出る。インポートはここにJSONを貼って実行"></textarea>
     <div class="set-btns">
       <button class="pri" id="btnExport">画面に表示</button>
@@ -485,6 +734,15 @@ function renderSet(){
 
 /* ============ events ============ */
 function bindMain(){
+  if(curTab==='home'){
+    document.querySelectorAll('.card-upd').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const stock = state.stocks.find(s=>s.id===btn.dataset.sid);
+        if(!stock) return;
+        runUpdateSafe([stock], `個別・${stock.name}`);
+      });
+    });
+  }
   if(curTab==='log'){
     $('#memoBtn')?.addEventListener('click', async ()=>{
       const v = $('#memoIn').value.trim();
@@ -517,6 +775,8 @@ function bindMain(){
         await saveState(); render();
       });
     });
+    const pingOut = msg => { const el=$('#pingResult'); if(el) el.textContent = msg; };
+    // 貼り付けボタン（スマホでtextarea直貼りが効かない対策）
     const pasteInto = async (targetSel) => {
       try{
         const txt = await navigator.clipboard.readText();
@@ -534,6 +794,7 @@ function bindMain(){
     $('#btnPasteIo')?.addEventListener('click', ()=>pasteInto('#ioArea'));
     // 手動更新モード
     $('#btnCopyPrompt')?.addEventListener('click', async ()=>{
+      if(!state.stocks.length) return toast('銘柄データが空。先にインポートして');
       const lines = state.stocks.map(s=>`- ${s.id} ${s.name}（${s.market==='JP'?'東証':'米国市場'}）`).join('\n');
       const p = `以下の銘柄の「現在株価」「予想配当利回り(%)」「予想PER」をweb検索で調べて、JSONのみで返答して。前置き・説明・Markdownフェンス禁止。\n形式: {"9432": {"price": 148.0, "yield_pct": 3.65, "per": 12.1, "as_of": "2026-07-19", "alert": null}}\nルール: 東証銘柄は円建て、米国銘柄はUSD建て。不明な値はnull。上場廃止・取引停止・TOB等の異常があればalertに日本語で記載。\nさらに "USDJPY" キーで現在のドル円レートを {"price": 162.4, "as_of": "..."} 形式で含めること。\n銘柄:\n${lines}`;
       try{ await navigator.clipboard.writeText(p); toast('コピーした。チャットのClaudeに貼って聞いて'); }
@@ -576,9 +837,29 @@ function bindMain(){
       toast(`✅ ${applied}銘柄を手動適用${lit.length?` / 🔔 ${lit.length}銘柄点灯`:''}`);
       saveState(); // 裏で保存（タイムアウト保護つき）
     });
+    $('#btnPing')?.addEventListener('click', async ()=>{
+      pingOut('① 実行中…');
+      try{
+        const t = await callClaude('JSONのみで返答: {"ok": true}', false);
+        const j = parseJsonLoose(t);
+        pingOut(j.ok ? '① ✅ API疎通OK。次は②を試して。' : '① ⚠️ 応答はあるが想定外: '+t.slice(0,100));
+      }catch(e){
+        pingOut('① ❌ 失敗: '+e.message+'\n→ Claudeアプリ内のアーティファクトとして開いているか確認。ローカルでは動かない。');
+      }
+    });
+    $('#btnPing2')?.addEventListener('click', async ()=>{
+      pingOut('② 実行中…（web検索を含むので少し待つ）');
+      try{
+        const t = await callClaude('NTT（9432）の現在株価をweb検索し、JSONのみで返答: {"price": 数値}', true);
+        const j = parseJsonLoose(t);
+        pingOut(j.price!=null ? `② ✅ 検索つきもOK（NTT ${j.price}円）。更新が失敗する場合はログタブのエラー詳細を見て。` : '② ⚠️ パースできたがprice無し: '+t.slice(0,100));
+      }catch(e){
+        pingOut('② ❌ 失敗: '+e.message);
+      }
+    });
     $('#btnExport')?.addEventListener('click', ()=>{
       $('#ioArea').value = JSON.stringify(state, null, 2);
-      toast('画面に表示した（コピーか、下の「ファイル保存」でダウンロードして）');
+      toast('画面に表示した（コピーか「ファイル保存」でダウンロードして）');
     });
     $('#btnDownload')?.addEventListener('click', ()=>{
       const json = JSON.stringify(state, null, 2);
@@ -593,7 +874,7 @@ function bindMain(){
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast('📥 ダウンロードした（端末のダウンロードフォルダへ）');
+      toast('📥 ダウンロードした');
     });
     $('#btnFilePick')?.addEventListener('click', ()=> $('#filePicker').click());
     $('#filePicker')?.addEventListener('change', (e)=>{
@@ -632,11 +913,40 @@ document.querySelectorAll('nav button').forEach(b=>{
     render();
   });
 });
-$('#btnGoManual').addEventListener('click', ()=>{
-  curTab = 'set';
-  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on', x.dataset.tab==='set'));
-  render();
-  setTimeout(()=>$('#manualArea')?.scrollIntoView({behavior:'smooth', block:'center'}), 50);
+function stocksByTier(tier){ return state.stocks.filter(s=>s.tier===tier); }
+function runUpdateSafe(target, scopeLabel){
+  return runUpdate(target, scopeLabel).catch(e=>{
+    $('#progress').textContent='';
+    [$('#btnUpdCore'),$('#btnUpdWatch'),$('#btnUpdLottery'),$('#btnUpdAll')].forEach(b=>b&&(b.disabled=false));
+    toast('❌ 更新エラー: '+e.message);
+  });
+}
+$('#btnUpdCore')?.addEventListener('click', ()=>{
+  const t = stocksByTier('core');
+  if(!t.length) return toast('本命枠の銘柄が登録されていない');
+  runUpdateSafe(t, `🎯本命・${t.length}件`);
+});
+$('#btnUpdWatch')?.addEventListener('click', ()=>{
+  const t = stocksByTier('watch');
+  if(!t.length) return toast('ウォッチ枠の銘柄が登録されていない');
+  runUpdateSafe(t, `🟡ウォッチ・${t.length}件`);
+});
+$('#btnUpdLottery')?.addEventListener('click', ()=>{
+  const t = stocksByTier('lottery');
+  if(!t.length) return toast('宝くじ枠の銘柄が登録されていない');
+  runUpdateSafe(t, `🎰宝くじ・${t.length}件`);
+});
+$('#btnUpdAll')?.addEventListener('click', ()=>{
+  const n = state.stocks.length;
+  if(!n) return toast('銘柄データが空。先にインポートして');
+  const ok = window.confirm(
+    `全銘柄（${n}件）をweb検索で更新します。\n` +
+    `トークン消費は大きめ（5時間の利用枠を数十%使う実績あり）。\n` +
+    `本命／ウォッチ／宝くじを個別に更新する方が軽く済みます。\n\n` +
+    `このまま全銘柄を実行しますか？`
+  );
+  if(!ok) return;
+  runUpdateSafe(state.stocks, `全銘柄・${n}件`);
 });
 
 /* ============ init ============ */
