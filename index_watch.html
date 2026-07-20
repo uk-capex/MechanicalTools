@@ -792,6 +792,7 @@ function bindMain(){
       btn.addEventListener('click', ()=>{
         const stock = state.stocks.find(s=>s.id===btn.dataset.sid);
         if(!stock) return;
+        if(!confirmUpdate(stock.name, 1)) return;
         runUpdateSafe([stock], `個別・${stock.name}`);
       });
     });
@@ -977,19 +978,26 @@ function runUpdateSafe(target, scopeLabel){
     toast('❌ 更新エラー: '+e.message);
   });
 }
+// 誤タップ対策：どの更新ボタンも実行前に必ずワンクッション挟む
+function confirmUpdate(label, count){
+  return window.confirm(`${label}（${count}件）を検索して更新しますか？\nトークン消費します。`);
+}
 $('#btnUpdCore')?.addEventListener('click', ()=>{
   const t = stocksByTier('core');
   if(!t.length) return toast('本命枠の銘柄が登録されていない');
+  if(!confirmUpdate('🎯本命', t.length)) return;
   runUpdateSafe(t, `🎯本命・${t.length}件`);
 });
 $('#btnUpdWatch')?.addEventListener('click', ()=>{
   const t = stocksByTier('watch');
   if(!t.length) return toast('ウォッチ枠の銘柄が登録されていない');
+  if(!confirmUpdate('🟡ウォッチ', t.length)) return;
   runUpdateSafe(t, `🟡ウォッチ・${t.length}件`);
 });
 $('#btnUpdLottery')?.addEventListener('click', ()=>{
   const t = stocksByTier('lottery');
   if(!t.length) return toast('宝くじ枠の銘柄が登録されていない');
+  if(!confirmUpdate('🎰宝くじ', t.length)) return;
   runUpdateSafe(t, `🎰宝くじ・${t.length}件`);
 });
 $('#btnUpdAll')?.addEventListener('click', ()=>{
