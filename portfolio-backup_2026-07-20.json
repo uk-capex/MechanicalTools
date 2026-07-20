@@ -1,0 +1,519 @@
+{
+  "meta": {
+    "version": 1,
+    "source": "ポートフォリオ整理_2026-07-18_v3 + 実勢反映",
+    "fx_note": "USDJPY 160円台は海外株買い見送り（株安×円高の二重待ち）"
+  },
+  "stocks": [
+    {
+      "id": "9432",
+      "name": "NTT",
+      "market": "JP",
+      "tier": "core",
+      "holding": {
+        "shares": 3000,
+        "avg_cost": 145.7
+      },
+      "thesis": "配当3.7%もらいながらIOWN/AIOWN種まき期（回収2029-2033）を待つ",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 145,
+          "label": "買い増し水準"
+        }
+      ],
+      "dip_checklist": [
+        "減配・還元方針の変更がないか",
+        "AIOWN進捗の言及"
+      ],
+      "earnings_next": "2026-08上旬",
+      "notes": "副首都バックアップ需要を間接保有。NT倍率圧縮は追い風"
+    },
+    {
+      "id": "9434",
+      "name": "ソフトバンク",
+      "market": "JP",
+      "tier": "core",
+      "holding": {
+        "shares": 500,
+        "avg_cost": 208.13,
+        "monthly_add": 200
+      },
+      "thesis": "高配当ベース＋PayPay再評価。毎月積立中",
+      "triggers": [],
+      "dip_checklist": [
+        "GPUコスト転嫁",
+        "AIクラウド外販進捗"
+      ],
+      "earnings_next": "2026-08",
+      "notes": ""
+    },
+    {
+      "id": "6622",
+      "name": "ダイヘン",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "送配電テーマ複数レーン（国内変圧器首位＋北米輸出＋半導体電源＋系統蓄電）。構造◎値段×のEaton同型",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 14000,
+          "label": "再評価（利回り1.5%）"
+        },
+        {
+          "type": "price_below",
+          "value": 10500,
+          "label": "本気買いゾーン（利回り2%）"
+        }
+      ],
+      "dip_checklist": [
+        "受注残・大口キャンセルの有無",
+        "北米トランス輸出が関税・政治で崩れてないか"
+      ],
+      "earnings_next": "2026-08上旬",
+      "notes": "単元約150万円→かぶミニ対象か楽天で要確認。下請法勧告(26/6)はガバナンス軽微減点。副首都×関西地場の重ね掛け候補"
+    },
+    {
+      "id": "4204",
+      "name": "積水化学",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "ペロブスカイト本丸。配当もらって種まき待ちのNTT同型",
+      "triggers": [],
+      "dip_checklist": [
+        "ペロブスカイトのコスト・量産進捗"
+      ],
+      "earnings_next": "2026-07-31",
+      "notes": "Q1決算の進捗確認後に買い判断（判断保留中）"
+    },
+    {
+      "id": "1662",
+      "name": "JAPEX",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "本業E&P堅実＋深海レアアースは無料オプション",
+      "triggers": [],
+      "dip_checklist": [
+        "原油市況と本業採算",
+        "レアアース言及"
+      ],
+      "earnings_next": "2026-08-06",
+      "notes": "ホルムズ情勢はリスク指標として監視"
+    },
+    {
+      "id": "NEE",
+      "name": "NextEra Energy",
+      "market": "US",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "再エネ＋蓄電の電力売り手。現値でも型に近い唯一の海外候補",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 78,
+          "label": "利回り3.2%圏"
+        }
+      ],
+      "dip_checklist": [
+        "DC向けパイプライン進捗",
+        "規制型料金の転嫁可否（GRID法案系）",
+        "Dominion統合認可の行方（トリガー水準の再計算要因）"
+      ],
+      "earnings_next": "2026-07-24",
+      "notes": "購入は株安×円高の二重待ち条件つき。Dominion統合申請あり、成立なら$78トリガーの前提再検討要"
+    },
+    {
+      "id": "ETN",
+      "name": "Eaton",
+      "market": "US",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "送配電機器の米大手。構造◎値段×",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 295,
+          "label": "利回り1.5%換算・52週安値割れ"
+        }
+      ],
+      "dip_checklist": [
+        "DC受注の伸び持続か"
+      ],
+      "earnings_next": "2026-07-31",
+      "notes": "購入は株安×円高の二重待ち条件つき。モビリティ部門$5.1Bスピンオフ発表"
+    },
+    {
+      "id": "7011",
+      "name": "三菱重工",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "ガスタービン寡占＋受注残7兆円",
+      "triggers": [],
+      "dip_checklist": [
+        "受注残とキャンセル有無のみ"
+      ],
+      "earnings_next": "2026-08-04",
+      "notes": "かぶミニなら少額積立可。26年受注ピーク説を併せて監視。NVIDIAとAIデータセンター冷却技術で提携報道(7/14-15)"
+    },
+    {
+      "id": "6954",
+      "name": "ファナック",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "NVIDIA提携のphysical AI・FAロボット",
+      "triggers": [],
+      "dip_checklist": [
+        "FA需要の底打ち",
+        "為替前提150円との乖離"
+      ],
+      "earnings_next": "2026-07-31",
+      "notes": "単元約72万円"
+    },
+    {
+      "id": "6721",
+      "name": "ウインテスト",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {
+        "shares": null,
+        "avg_cost": null
+      },
+      "thesis": "半導体検査×AIの黒字化したて低位株",
+      "triggers": [],
+      "dip_checklist": [
+        "Q2決算で通期予想への進捗率"
+      ],
+      "earnings_next": "2026-08-17",
+      "notes": "希薄化リスクあり。基本ほったらかし"
+    },
+    {
+      "id": "4596",
+      "name": "クボタ製薬HD",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {
+        "shares": null,
+        "avg_cost": 50
+      },
+      "thesis": "取得〜50円。半分利確で恩株化構想",
+      "triggers": [],
+      "dip_checklist": [
+        "資金繰り",
+        "パイプライン進捗（マイルストーン系の材料でボラ荒め）"
+      ],
+      "earnings_next": "2026-08",
+      "notes": ""
+    },
+    {
+      "id": "6740",
+      "name": "JDI",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {},
+      "thesis": "半導体・低位株枠。上場廃止クロックは2本走ってるが、いずれも即時性は低い（経過観察段階）",
+      "triggers": [],
+      "dip_checklist": [
+        "茂原工場売却の進捗（鳥取工場は26/3契約済み）",
+        "流通株式比率の特例適用可否（いちご保有分がみなし流通株式になるか）",
+        "純資産基準（債務超過）の1年ルール抵触有無"
+      ],
+      "earnings_next": "2026-08-10",
+      "notes": "純資産基準と流通株式比率基準(2028/3末)の2クロック。いちごが956億円追加注入済みで当面の資金繰りは確保。致命傷というより経過観察"
+    },
+    {
+      "id": "3350",
+      "name": "メタプラネット",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {},
+      "thesis": "放置枠",
+      "triggers": [],
+      "dip_checklist": [],
+      "earnings_next": null,
+      "notes": ""
+    }
+  ],
+  "macro_watch": [
+    {
+      "id": "USDJPY",
+      "label": "ドル円",
+      "note": "160円台は海外株見送り。円高巻き戻しが買い条件の片翼"
+    }
+  ],
+  "logs": [
+    {
+      "ts": 1784516080901,
+      "type": "update",
+      "scope": "🟡ウォッチ・7件",
+      "prices": {
+        "1662": 1664,
+        "3350": 221,
+        "4204": 2661,
+        "4596": 74,
+        "6622": 15120,
+        "6721": 89,
+        "6740": 49,
+        "6954": 6637,
+        "7011": 3681,
+        "9432": 151.1,
+        "9434": 220,
+        "NEE": 88.8,
+        "ETN": 399.99
+      },
+      "fx": 162.35,
+      "triggered": [],
+      "anomalies": [
+        "6622",
+        "NEE",
+        "6721",
+        "6740"
+      ],
+      "failed": [],
+      "errors": [],
+      "rateLimited": false,
+      "resetsAt": null
+    },
+    {
+      "ts": 1784515959720,
+      "type": "update",
+      "scope": "🟡ウォッチ・7件",
+      "prices": {
+        "1662": 1676,
+        "3350": 221,
+        "4204": 2665,
+        "4596": 74,
+        "6622": 15120,
+        "6721": 89,
+        "6740": 49,
+        "6954": 6637,
+        "7011": 3828,
+        "9432": 151.1,
+        "9434": 220,
+        "NEE": 89.31,
+        "ETN": 399.99
+      },
+      "fx": 162.39,
+      "triggered": [],
+      "anomalies": [
+        "6622",
+        "NEE",
+        "6721",
+        "6740"
+      ],
+      "failed": [],
+      "errors": [],
+      "rateLimited": false,
+      "resetsAt": null
+    },
+    {
+      "ts": 1784515931379,
+      "type": "update",
+      "scope": "🎰宝くじ・4件",
+      "prices": {
+        "1662": 1661,
+        "3350": 221,
+        "4204": 2665,
+        "4596": 74,
+        "6622": 14040,
+        "6721": 89,
+        "6740": 49,
+        "6954": 6637,
+        "7011": 3681,
+        "9432": 151.1,
+        "9434": 220,
+        "NEE": 89.35,
+        "ETN": 399.99
+      },
+      "fx": 162.5,
+      "triggered": [],
+      "anomalies": [
+        "NEE",
+        "6721",
+        "6740"
+      ],
+      "failed": [],
+      "errors": [],
+      "rateLimited": false,
+      "resetsAt": null
+    },
+    {
+      "ts": 1784515910068,
+      "type": "update",
+      "scope": "個別・NTT",
+      "prices": {
+        "1662": 1661,
+        "3350": 221,
+        "4204": 2665,
+        "4596": 69,
+        "6622": 14040,
+        "6721": 80,
+        "6740": 49,
+        "6954": 6637,
+        "7011": 3681,
+        "9432": 151.1,
+        "9434": 220,
+        "NEE": 89.35,
+        "ETN": 399.99
+      },
+      "fx": 162.4,
+      "triggered": [],
+      "anomalies": [
+        "NEE",
+        "4596",
+        "6740",
+        "3350"
+      ],
+      "failed": [],
+      "errors": [],
+      "rateLimited": false,
+      "resetsAt": null
+    },
+    {
+      "ts": 1784452468056,
+      "type": "update",
+      "prices": {
+        "1662": 1661,
+        "3350": 221,
+        "4204": 2665,
+        "4596": 69,
+        "6622": 14040,
+        "6721": 80,
+        "6740": 49,
+        "6954": 6637,
+        "7011": 3681,
+        "9432": 150.9,
+        "9434": 220,
+        "NEE": 89.35,
+        "ETN": 399.99
+      },
+      "fx": 162.35,
+      "triggered": [],
+      "anomalies": [
+        "NEE",
+        "4596",
+        "6740",
+        "3350"
+      ],
+      "failed": [],
+      "errors": [],
+      "rateLimited": false,
+      "resetsAt": null
+    }
+  ],
+  "fetched": {
+    "1662": {
+      "price": 1664,
+      "yield_pct": 2.58,
+      "per": 7.4,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784516080901
+    },
+    "3350": {
+      "price": 221,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784515931379
+    },
+    "4204": {
+      "price": 2661,
+      "yield_pct": 3.03,
+      "per": 13.2,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784516080901
+    },
+    "4596": {
+      "price": 74,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-10",
+      "alert": null,
+      "fetchedAt": 1784515931379
+    },
+    "6622": {
+      "price": 15120,
+      "yield_pct": null,
+      "per": null,
+      "as_of": "2026-07-14",
+      "alert": "予想PER・予想配当利回りの最新値（7月時点）は検索結果から確認できず。株探掲載の直近株価は2026/07/14終値15,120円。会社予想配当176円（2026/03期）、3月時点の利回り1.43%（株価12,290円基準）。現株価ベースの利回りはおよそ1.16%程度と推計されるが公式確認不可のためnull設定。",
+      "fetchedAt": 1784516080901
+    },
+    "6721": {
+      "price": 89,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-09",
+      "alert": "直近四半期も営業損失継続中。予想PERは赤字のため算出不可（配当予想ゼロ）。新株予約権の発行による希薄化リスクあり。",
+      "fetchedAt": 1784515931379
+    },
+    "6740": {
+      "price": 49,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-16",
+      "alert": "2026年3月期に74億円超の債務超過。香港子会社を2026年9月末に事業停止・清算予定。業績予想未公表のためPER・配当利回りは算出不可。",
+      "fetchedAt": 1784515931379
+    },
+    "6954": {
+      "price": 6637,
+      "yield_pct": 1.61,
+      "per": 37.17,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784516080901
+    },
+    "7011": {
+      "price": 3681,
+      "yield_pct": 0.77,
+      "per": 62.6,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784516080901
+    },
+    "9432": {
+      "price": 151.1,
+      "yield_pct": 3.65,
+      "per": 12.3,
+      "as_of": "2026-07-18",
+      "alert": null,
+      "fetchedAt": 1784515910068
+    },
+    "9434": {
+      "price": 220,
+      "yield_pct": 4,
+      "per": 19.1,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "NEE": {
+      "price": 88.8,
+      "yield_pct": 2.83,
+      "per": 23.88,
+      "as_of": "2026-07-17",
+      "alert": "NextEra EnergyはDominionとの約668億ドル規模の合併を申請中（2026年7月）。合併規制審査のリスクあり。",
+      "fetchedAt": 1784516080901
+    },
+    "ETN": {
+      "price": 399.99,
+      "yield_pct": 1.1,
+      "per": 39.11,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784516080901
+    }
+  },
+  "fx": {
+    "rate": 162.35,
+    "as_of": "2026-07-17",
+    "fetchedAt": 1784516080901
+  }
+}
