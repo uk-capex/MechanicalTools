@@ -1,0 +1,392 @@
+{
+  "meta": {
+    "version": 1,
+    "source": "ポートフォリオ整理_2026-07-18_v3 + 実勢反映",
+    "fx_note": "USDJPY 160円台は海外株買い見送り（株安×円高の二重待ち）"
+  },
+  "stocks": [
+    {
+      "id": "9432",
+      "name": "NTT",
+      "market": "JP",
+      "tier": "core",
+      "holding": {
+        "shares": 3000,
+        "avg_cost": 145.7
+      },
+      "thesis": "配当3.7%もらいながらIOWN/AIOWN種まき期（回収2029-2033）を待つ",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 145,
+          "label": "買い増し水準"
+        }
+      ],
+      "dip_checklist": [
+        "減配・還元方針の変更がないか",
+        "AIOWN進捗の言及"
+      ],
+      "earnings_next": "2026-08上旬",
+      "notes": "副首都バックアップ需要を間接保有。NT倍率圧縮は追い風"
+    },
+    {
+      "id": "9434",
+      "name": "ソフトバンク",
+      "market": "JP",
+      "tier": "core",
+      "holding": {
+        "shares": 500,
+        "avg_cost": 208.13,
+        "monthly_add": 200
+      },
+      "thesis": "高配当ベース＋PayPay再評価。毎月積立中",
+      "triggers": [],
+      "dip_checklist": [
+        "GPUコスト転嫁",
+        "AIクラウド外販進捗"
+      ],
+      "earnings_next": "2026-08",
+      "notes": ""
+    },
+    {
+      "id": "6622",
+      "name": "ダイヘン",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "送配電テーマ複数レーン（国内変圧器首位＋北米輸出＋半導体電源＋系統蓄電）。構造◎値段×のEaton同型",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 14000,
+          "label": "再評価（利回り1.5%）"
+        },
+        {
+          "type": "price_below",
+          "value": 10500,
+          "label": "本気買いゾーン（利回り2%）"
+        }
+      ],
+      "dip_checklist": [
+        "受注残・大口キャンセルの有無",
+        "北米トランス輸出が関税・政治で崩れてないか"
+      ],
+      "earnings_next": "2026-08上旬",
+      "notes": "単元約150万円→かぶミニ対象か楽天で要確認。下請法勧告(26/6)はガバナンス軽微減点。副首都×関西地場の重ね掛け候補"
+    },
+    {
+      "id": "4204",
+      "name": "積水化学",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "ペロブスカイト本丸。配当もらって種まき待ちのNTT同型",
+      "triggers": [],
+      "dip_checklist": [
+        "ペロブスカイトのコスト・量産進捗"
+      ],
+      "earnings_next": "2026-07-31",
+      "notes": "Q1決算の進捗確認後に買い判断（判断保留中）"
+    },
+    {
+      "id": "1662",
+      "name": "JAPEX",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "本業E&P堅実＋深海レアアースは無料オプション",
+      "triggers": [],
+      "dip_checklist": [
+        "原油市況と本業採算",
+        "レアアース言及"
+      ],
+      "earnings_next": "2026-08-06",
+      "notes": "ホルムズ情勢はリスク指標として監視"
+    },
+    {
+      "id": "NEE",
+      "name": "NextEra Energy",
+      "market": "US",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "再エネ＋蓄電の電力売り手。現値でも型に近い唯一の海外候補",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 78,
+          "label": "利回り3.2%圏"
+        }
+      ],
+      "dip_checklist": [
+        "DC向けパイプライン進捗",
+        "規制型料金の転嫁可否（GRID法案系）",
+        "Dominion統合認可の行方（トリガー水準の再計算要因）"
+      ],
+      "earnings_next": "2026-07-24",
+      "notes": "購入は株安×円高の二重待ち条件つき。Dominion統合申請あり、成立なら$78トリガーの前提再検討要"
+    },
+    {
+      "id": "ETN",
+      "name": "Eaton",
+      "market": "US",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "送配電機器の米大手。構造◎値段×",
+      "triggers": [
+        {
+          "type": "price_below",
+          "value": 295,
+          "label": "利回り1.5%換算・52週安値割れ"
+        }
+      ],
+      "dip_checklist": [
+        "DC受注の伸び持続か"
+      ],
+      "earnings_next": "2026-07-31",
+      "notes": "購入は株安×円高の二重待ち条件つき。モビリティ部門$5.1Bスピンオフ発表"
+    },
+    {
+      "id": "7011",
+      "name": "三菱重工",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "ガスタービン寡占＋受注残7兆円",
+      "triggers": [],
+      "dip_checklist": [
+        "受注残とキャンセル有無のみ"
+      ],
+      "earnings_next": "2026-08-04",
+      "notes": "かぶミニなら少額積立可。26年受注ピーク説を併せて監視。NVIDIAとAIデータセンター冷却技術で提携報道(7/14-15)"
+    },
+    {
+      "id": "6954",
+      "name": "ファナック",
+      "market": "JP",
+      "tier": "watch",
+      "holding": null,
+      "thesis": "NVIDIA提携のphysical AI・FAロボット",
+      "triggers": [],
+      "dip_checklist": [
+        "FA需要の底打ち",
+        "為替前提150円との乖離"
+      ],
+      "earnings_next": "2026-07-31",
+      "notes": "単元約72万円"
+    },
+    {
+      "id": "6721",
+      "name": "ウインテスト",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {
+        "shares": null,
+        "avg_cost": null
+      },
+      "thesis": "半導体検査×AIの黒字化したて低位株",
+      "triggers": [],
+      "dip_checklist": [
+        "Q2決算で通期予想への進捗率"
+      ],
+      "earnings_next": "2026-08-17",
+      "notes": "希薄化リスクあり。基本ほったらかし"
+    },
+    {
+      "id": "4596",
+      "name": "クボタ製薬HD",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {
+        "shares": null,
+        "avg_cost": 50
+      },
+      "thesis": "取得〜50円。半分利確で恩株化構想",
+      "triggers": [],
+      "dip_checklist": [
+        "資金繰り",
+        "パイプライン進捗（マイルストーン系の材料でボラ荒め）"
+      ],
+      "earnings_next": "2026-08",
+      "notes": ""
+    },
+    {
+      "id": "6740",
+      "name": "JDI",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {},
+      "thesis": "半導体・低位株枠。上場廃止クロックは2本走ってるが、いずれも即時性は低い（経過観察段階）",
+      "triggers": [],
+      "dip_checklist": [
+        "茂原工場売却の進捗（鳥取工場は26/3契約済み）",
+        "流通株式比率の特例適用可否（いちご保有分がみなし流通株式になるか）",
+        "純資産基準（債務超過）の1年ルール抵触有無"
+      ],
+      "earnings_next": "2026-08-10",
+      "notes": "純資産基準と流通株式比率基準(2028/3末)の2クロック。いちごが956億円追加注入済みで当面の資金繰りは確保。致命傷というより経過観察"
+    },
+    {
+      "id": "3350",
+      "name": "メタプラネット",
+      "market": "JP",
+      "tier": "lottery",
+      "holding": {},
+      "thesis": "放置枠",
+      "triggers": [],
+      "dip_checklist": [],
+      "earnings_next": null,
+      "notes": ""
+    }
+  ],
+  "macro_watch": [
+    {
+      "id": "USDJPY",
+      "label": "ドル円",
+      "note": "160円台は海外株見送り。円高巻き戻しが買い条件の片翼"
+    }
+  ],
+  "logs": [
+    {
+      "ts": 1784452468056,
+      "type": "update",
+      "prices": {
+        "1662": 1661,
+        "3350": 221,
+        "4204": 2665,
+        "4596": 69,
+        "6622": 14040,
+        "6721": 80,
+        "6740": 49,
+        "6954": 6637,
+        "7011": 3681,
+        "9432": 150.9,
+        "9434": 220,
+        "NEE": 89.35,
+        "ETN": 399.99
+      },
+      "fx": 162.35,
+      "triggered": [],
+      "anomalies": [
+        "NEE",
+        "4596",
+        "6740",
+        "3350"
+      ],
+      "failed": [],
+      "errors": [],
+      "rateLimited": false,
+      "resetsAt": null
+    }
+  ],
+  "fetched": {
+    "1662": {
+      "price": 1661,
+      "yield_pct": 2.58,
+      "per": 7.4,
+      "as_of": "2026-07-12",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "3350": {
+      "price": 221,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-17",
+      "alert": "純損失計上により予想PER算出不可（赤字）。ビットコイン価格変動により業績・株価が不安定な状態が継続中。",
+      "fetchedAt": 1784452468056
+    },
+    "4204": {
+      "price": 2665,
+      "yield_pct": 3.03,
+      "per": 14.2,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "4596": {
+      "price": 69,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-14",
+      "alert": "赤字継続により通期業績予想未開示、PER算出不能",
+      "fetchedAt": 1784452468056
+    },
+    "6622": {
+      "price": 14040,
+      "yield_pct": 1.25,
+      "per": null,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "6721": {
+      "price": 80,
+      "yield_pct": 0,
+      "per": 94.5,
+      "as_of": "2026-06-24",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "6740": {
+      "price": 49,
+      "yield_pct": 0,
+      "per": null,
+      "as_of": "2026-07-16",
+      "alert": "2026年3月期末に74億円の債務超過が発生し、東証プライム上場維持基準（純資産・流通株式比率）に不適合。上場廃止リスクあり",
+      "fetchedAt": 1784452468056
+    },
+    "6954": {
+      "price": 6637,
+      "yield_pct": null,
+      "per": 37.1,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "7011": {
+      "price": 3681,
+      "yield_pct": 0.77,
+      "per": 62.6,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "9432": {
+      "price": 150.9,
+      "yield_pct": 3.65,
+      "per": 12.3,
+      "as_of": "2026-07-16",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "9434": {
+      "price": 220,
+      "yield_pct": 4,
+      "per": 19.1,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    },
+    "NEE": {
+      "price": 89.35,
+      "yield_pct": 2.83,
+      "per": 20,
+      "as_of": "2026-07-17",
+      "alert": "ドミニオン・エナジーとの約670億ドル規模の合併を提案中（2026年6月発表）。規制当局の審査中であり、通常取引は継続しているが大型M&A進行中につき注意。",
+      "fetchedAt": 1784452468056
+    },
+    "ETN": {
+      "price": 399.99,
+      "yield_pct": 1.11,
+      "per": 39.14,
+      "as_of": "2026-07-17",
+      "alert": null,
+      "fetchedAt": 1784452468056
+    }
+  },
+  "fx": {
+    "rate": 162.35,
+    "as_of": "2026-07-17",
+    "fetchedAt": 1784452468056
+  }
+}
