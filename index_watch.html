@@ -44,9 +44,11 @@ nav button.on{background:var(--surface2);color:var(--text)}
 /* alert band */
 .alert-band{border:1px solid var(--amber);background:var(--amber-dim);border-radius:12px;padding:10px 12px;margin-bottom:14px}
 .alert-band.err{border-color:var(--red);background:var(--red-dim)}
+.alert-band.cont{border-color:var(--border);background:var(--surface)}
 .alert-band .t{font-weight:700;font-size:13px;margin-bottom:2px}
 .alert-band .t.amber{color:var(--amber)}
 .alert-band .t.red{color:var(--red)}
+.alert-band .t.dim{color:var(--muted)}
 .alert-band li{list-style:none;font-size:12.5px;color:var(--text);margin-top:2px}
 /* tier groups */
 .tier-h{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin:20px 2px 8px}
@@ -55,6 +57,7 @@ nav button.on{background:var(--surface2);color:var(--text)}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:10px;position:relative}
 .card.lit{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 22px -6px rgba(245,166,35,.5)}
 .card.anom{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+.card.cont{border-color:var(--dim)}
 .c-head{display:flex;align-items:baseline;gap:8px}
 .c-name{font-weight:700;font-size:15px}
 .c-code{font-family:var(--mono);font-size:11px;color:var(--dim)}
@@ -62,6 +65,7 @@ nav button.on{background:var(--surface2);color:var(--text)}
 .badge.lit-b{background:var(--amber);color:#3a2800}
 .badge.ok-b{background:var(--surface2);color:var(--muted)}
 .badge.anom-b{background:var(--red);color:#fff}
+.badge.cont-b{background:var(--surface2);color:var(--muted)}
 .c-price{display:flex;align-items:baseline;gap:8px;margin-top:7px;flex-wrap:wrap}
 .c-price .p{font-family:var(--mono);font-size:21px;font-weight:600}
 .c-price .p.none{color:var(--dim);font-size:14px}
@@ -90,6 +94,7 @@ nav button.on{background:var(--surface2);color:var(--text)}
 .dip .sum{font-size:12px;line-height:1.55}
 .dip .sum-asof{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:3px}
 .anom-msg{margin-top:8px;background:var(--red-dim);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--red)}
+.anom-msg.cont{background:var(--surface2);color:var(--muted)}
 .c-notes{font-size:11px;color:var(--dim);margin-top:7px;line-height:1.5}
 /* calendar */
 .cal-row{display:flex;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 13px;margin-bottom:8px;align-items:center}
@@ -311,6 +316,42 @@ function litStocks(){
 function anomStocks(){
   return state.stocks.filter(s => state.fetched[s.id]?.alert);
 }
+// 「新規」異常のみ（トップの赤バナー用）。既知の継続話は除外してノイズを減らす
+function freshAnomStocks(){
+  return anomStocks().filter(s => state.fetched[s.id]?.alertStatus !== 'continuing');
+}
+// 既知・継続中の異常（カード上では表示するが、バナーでは騒がない）
+function continuingAnomStocks(){
+  return anomStocks().filter(s => state.fetched[s.id]?.alertStatus === 'continuing');
+}
+/* 文字bigramのJaccard類似度。日本語は分かち書きされていないため、
+   単語分割の代わりに2文字の連続部分集合で「同じ話かどうか」を機械的に判定する */
+function bigrams(s){
+  const set = new Set();
+  const clean = String(s||'').replace(/\s+/g,'');
+  for(let i=0;i<clean.length-1;i++) set.add(clean.slice(i,i+2));
+  return set;
+}
+function alertSimilarity(a,b){
+  if(!a || !b) return 0;
+  const A = bigrams(a), B = bigrams(b);
+  if(!A.size || !B.size) return 0;
+  let inter = 0;
+  for(const g of A) if(B.has(g)) inter++;
+  const union = A.size + B.size - inter;
+  return union ? inter/union : 0;
+}
+const ALERT_SIM_THRESHOLD = 0.15; // 実測：同じ話の言い換えは0.24〜0.43、別の話は0.00〜0.01。間を取って安全側に設定
+function mergeAlert(prevFetched, newAlert, now){
+  const newA = newAlert || null;
+  if(!newA) return { alert: null, alertStatus: null, alertFirstSeen: null };
+  const prevA = prevFetched?.alert || null;
+  const sim = prevA ? alertSimilarity(prevA, newA) : 0;
+  if(prevA && sim >= ALERT_SIM_THRESHOLD){
+    return { alert: newA, alertStatus: 'continuing', alertFirstSeen: prevFetched.alertFirstSeen || now };
+  }
+  return { alert: newA, alertStatus: 'new', alertFirstSeen: now };
+}
 
 /* ============ 更新フロー ============ */
 function buildBatchPrompt(batch, withFx){
@@ -415,13 +456,14 @@ async function runUpdate(targetStocks, scopeLabel){
       const r = parsed[s.id];
       if(!r || r.price == null){ if(!failed.includes(s.id)) failed.push(s.id); continue; }
       const prev = state.fetched[s.id] || {};
+      const alertMerge = mergeAlert(prev, r.alert, now);
       state.fetched[s.id] = {
         ...prev,
         price: Number(r.price),
         yield_pct: r.yield_pct!=null ? Number(r.yield_pct) : null,
         per: r.per!=null ? Number(r.per) : null,
         as_of: r.as_of || null,
-        alert: r.alert || null,
+        ...alertMerge,
         fetchedAt: now
       };
     }
@@ -453,14 +495,16 @@ async function runUpdate(targetStocks, scopeLabel){
   // ログ追記
   const prices = {};
   state.stocks.forEach(s=>{ const f=state.fetched[s.id]; if(f&&f.price!=null) prices[s.id]=f.price; });
-  const anoms = anomStocks().map(s=>s.id);
+  const freshA = freshAnomStocks().map(s=>s.id);
+  const contA = continuingAnomStocks().map(s=>s.id);
   state.logs.unshift({
     ts: now, type:'update',
     scope: scopeLabel || `個別・${target.length}件`,
     prices,
     fx: state.fx?.rate ?? null,
     triggered: lit.map(s=>`${s.name}(${s.id})`),
-    anomalies: anoms,
+    anomalies: freshA,
+    anomaliesContinuing: contA,
     failed,
     errors,
     rateLimited,
@@ -474,7 +518,7 @@ async function runUpdate(targetStocks, scopeLabel){
   render();
   const msgs = [];
   if(lit.length) msgs.push(`🔔 ${lit.length}銘柄が点灯`);
-  if(anoms.length) msgs.push(`🚨 異常検知 ${anoms.length}件`);
+  if(freshA.length) msgs.push(`🚨 新規異常 ${freshA.length}件`);
   if(failed.length) msgs.push(`⚠️ ${failed.length}銘柄取得失敗（詳細はログタブ）`);
   if(rateLimited){
     const t = fmtResetTime(resetsAtSec);
@@ -533,10 +577,14 @@ function renderHeader(){
 function renderHome(){
   let html = '';
   // アラート帯
-  const lit = litStocks(), anoms = anomStocks();
-  if(anoms.length){
-    html += `<div class="alert-band err"><div class="t red">🚨 異常検知（要確認・日新電機事件の再発防止）</div><ul>` +
-      anoms.map(s=>`<li>${esc(s.name)}：${esc(state.fetched[s.id].alert)}</li>`).join('') + `</ul></div>`;
+  const lit = litStocks(), fresh = freshAnomStocks(), cont = continuingAnomStocks();
+  if(fresh.length){
+    html += `<div class="alert-band err"><div class="t red">🚨 異常検知（新規・要確認）</div><ul>` +
+      fresh.map(s=>`<li>${esc(s.name)}：${esc(state.fetched[s.id].alert)}</li>`).join('') + `</ul></div>`;
+  }
+  if(cont.length){
+    html += `<div class="alert-band cont"><div class="t dim">🔁 既知の注意事項が継続中（新規ではない）</div><ul>` +
+      cont.map(s=>`<li>${esc(s.name)}</li>`).join('') + `</ul></div>`;
   }
   if(lit.length){
     html += `<div class="alert-band"><div class="t amber">🔔 トリガー点灯中</div><ul>` +
@@ -559,11 +607,14 @@ function renderCard(s){
   const f = state.fetched[s.id] || {};
   const isLit = (s.triggers||[]).some(t=>evalTrigger(s,t).hit);
   const isAnom = !!f.alert;
+  const isFreshAnom = isAnom && f.alertStatus !== 'continuing';
+  const isContAnom = isAnom && f.alertStatus === 'continuing';
   const priceStale = f.fetchedAt && age(f.fetchedAt) > H24;
   const indStale = f.fetchedAt && age(f.fetchedAt) > D7;
 
   let badge;
-  if(isAnom) badge = `<span class="badge anom-b">🚨 異常</span>`;
+  if(isFreshAnom) badge = `<span class="badge anom-b">🚨 異常</span>`;
+  else if(isContAnom) badge = `<span class="badge cont-b">🔁 継続</span>`;
   else if(isLit) badge = `<span class="badge lit-b">🔔 点灯</span>`;
   else badge = `<span class="badge ok-b">静観</span>`;
 
@@ -623,9 +674,10 @@ function renderCard(s){
     dipHtml += `</div>`;
   }
 
-  const anomHtml = isAnom ? `<div class="anom-msg">🚨 ${esc(f.alert)}</div>` : '';
+  const anomHtml = isFreshAnom ? `<div class="anom-msg">🚨 ${esc(f.alert)}</div>`
+    : isContAnom ? `<div class="anom-msg cont">🔁 ${esc(f.alert)}</div>` : '';
 
-  return `<div class="card ${isLit?'lit':''} ${isAnom?'anom':''}">
+  return `<div class="card ${isLit?'lit':''} ${isFreshAnom?'anom':''} ${isContAnom?'cont':''}">
     <div class="c-head"><span class="c-name">${esc(s.name)}</span><span class="c-code">${esc(s.id)}${s.market==='US'?' 🇺🇸':''}</span>${badge}</div>
     <div class="c-price">${priceHtml}</div>
     ${ind}${hold}
@@ -673,7 +725,8 @@ function renderLog(){
     let body = ps || '取得なし';
     if(l.fx) body += `\nUSDJPY ${l.fx}`;
     if(l.triggered && l.triggered.length) body += `\n<b>🔔 点灯: ${esc(l.triggered.join('、'))}</b>`;
-    if(l.anomalies && l.anomalies.length) body += `\n🚨 異常: ${esc(l.anomalies.join('、'))}`;
+    if(l.anomalies && l.anomalies.length) body += `\n🚨 新規異常: ${esc(l.anomalies.join('、'))}`;
+    if(l.anomaliesContinuing && l.anomaliesContinuing.length) body += `\n🔁 継続中: ${esc(l.anomaliesContinuing.join('、'))}`;
     if(l.rateLimited){
       const t = fmtResetTime(l.resetsAt);
       body += `\n⏸️ 枠切れ（429）で中断${t?`・${t}頃に復活見込み`:''}`;
@@ -815,12 +868,13 @@ function bindMain(){
         const r = parsed[s.id];
         if(!r || r.price == null) continue;
         const prev = state.fetched[s.id] || {};
+        const alertMerge = mergeAlert(prev, r.alert, now);
         state.fetched[s.id] = { ...prev,
           price: Number(r.price),
           yield_pct: r.yield_pct!=null ? Number(r.yield_pct) : null,
           per: r.per!=null ? Number(r.per) : null,
           as_of: r.as_of || null,
-          alert: r.alert || null,
+          ...alertMerge,
           fetchedAt: now };
         applied++;
       }
@@ -828,13 +882,15 @@ function bindMain(){
       const lit = litStocks();
       const prices = {};
       state.stocks.forEach(s=>{ const f=state.fetched[s.id]; if(f&&f.price!=null) prices[s.id]=f.price; });
+      const freshA = freshAnomStocks().map(s=>s.id);
+      const contA = continuingAnomStocks().map(s=>s.id);
       state.logs.unshift({ ts: now, type:'update', manual:true, prices,
         fx: state.fx?.rate ?? null,
         triggered: lit.map(s=>`${s.name}(${s.id})`),
-        anomalies: anomStocks().map(s=>s.id), failed:[], errors:[] });
+        anomalies: freshA, anomaliesContinuing: contA, failed:[], errors:[] });
       if(state.logs.length > 200) state.logs.length = 200;
       render(); // ← 先に画面反映（保存待ちでフリーズさせない）
-      toast(`✅ ${applied}銘柄を手動適用${lit.length?` / 🔔 ${lit.length}銘柄点灯`:''}`);
+      toast(`✅ ${applied}銘柄を手動適用${lit.length?` / 🔔 ${lit.length}銘柄点灯`:''}${freshA.length?` / 🚨新規異常${freshA.length}件`:''}`);
       saveState(); // 裏で保存（タイムアウト保護つき）
     });
     $('#btnPing')?.addEventListener('click', async ()=>{
