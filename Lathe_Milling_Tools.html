@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-  <!-- build: 1.11 | 20260319 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.12 | 20260917 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -639,7 +639,7 @@
           </div>
           <div class="okk-note">
             <b>■</b> 推奨（計算値に最も近い段）　■ 使用可能な段<br>
-            ※ 主軸 25〜1500 rpm・12段、送り 0.04〜1.6 mm/rev・24段<br>
+            ※ 主軸 25〜1500 rpm・12段、送り 0.04〜1.6 mm/rev・17段<br>
             ※ 実機のギヤプレートで必ず確認してください
           </div>
         </div>
@@ -1406,7 +1406,7 @@
                   <td>1/10 勾配</td>
                   <td class="hl">1/10</td>
                   <td>2.862°</td>
-                  <td>5.724°</td>
+                  <td>5.725°</td>
                   <td>一般テーパ・旋盤</td>
                 </tr>
                 <tr>
@@ -1425,37 +1425,37 @@
                 </tr>
                 <tr>
                   <td>MT#1</td>
-                  <td class="hl">1/19.254</td>
-                  <td>1.491°</td>
-                  <td>2.982°</td>
+                  <td class="hl">1/20.047</td>
+                  <td>1.429°</td>
+                  <td>2.857°</td>
                   <td>モールステーパ</td>
                 </tr>
                 <tr>
                   <td>MT#2</td>
                   <td class="hl">1/20.020</td>
-                  <td>1.434°</td>
-                  <td>2.868°</td>
+                  <td>1.431°</td>
+                  <td>2.861°</td>
                   <td>モールステーパ</td>
                 </tr>
                 <tr>
                   <td>MT#3</td>
                   <td class="hl">1/19.922</td>
                   <td>1.438°</td>
-                  <td>2.876°</td>
+                  <td>2.875°</td>
                   <td>モールステーパ</td>
                 </tr>
                 <tr>
                   <td>MT#4</td>
                   <td class="hl">1/19.254</td>
-                  <td>1.491°</td>
-                  <td>2.982°</td>
+                  <td>1.488°</td>
+                  <td>2.975°</td>
                   <td>モールステーパ</td>
                 </tr>
                 <tr>
                   <td>MT#5</td>
                   <td class="hl">1/19.002</td>
-                  <td>1.508°</td>
-                  <td>3.016°</td>
+                  <td>1.507°</td>
+                  <td>3.015°</td>
                   <td>モールステーパ</td>
                 </tr>
                 <tr>
@@ -1553,20 +1553,20 @@
       const gl = millGrade === 'hss' ? 'ハイス (HSS)' : '超硬';
       const d = {
         endmill: {
-          carbide: 'Vc：60〒70 m/min / fz：0.01〒0.05 mm/刃<br>ap：工具径×1〒1.5 / ae：50% 以下',
-          hss: 'Vc：20〒35 m/min / fz：0.01〒0.03 mm/刃<br>ap：工具径×0.5〒1 / ae：30% 以下'
+          carbide: 'Vc：60〜70 m/min / fz：0.01〜0.05 mm/刃<br>ap：工具径×1〜1.5 / ae：50% 以下',
+          hss: 'Vc：20〜35 m/min / fz：0.01〜0.03 mm/刃<br>ap：工具径×0.5〜1 / ae：30% 以下'
         },
         ballmill: {
-          carbide: 'Vc：60〒100 m/min（有効径基準）/ fz：0.01〒0.04 mm/刃<br>ap：工具径×0.3〒0.5 / ae：30% 以下',
-          hss: 'Vc：20〒30 m/min（有効径基準）/ fz：0.008〒0.025 mm/刃<br>ap：工具径×0.2〒0.4 / ae：25% 以下'
+          carbide: 'Vc：60〜100 m/min（有効径基準）/ fz：0.01〜0.04 mm/刃<br>ap：工具径×0.3〜0.5 / ae：30% 以下',
+          hss: 'Vc：20〜30 m/min（有効径基準）/ fz：0.008〜0.025 mm/刃<br>ap：工具径×0.2〜0.4 / ae：25% 以下'
         },
         facemill: {
-          carbide: 'Vc：100〒200 m/min / fz：0.05〒0.2 mm/刃<br>ap：0.5〒3mm（荒）/ ae：工具径の60〒80%',
-          hss: 'Vc：25〒50 m/min / fz：0.03〒0.1 mm/刃<br>ap：0.3〒1.5mm / ae：工具径の60% 以下'
+          carbide: 'Vc：100〜200 m/min / fz：0.05〜0.2 mm/刃<br>ap：0.5〜3mm（荒）/ ae：工具径の60〜80%',
+          hss: 'Vc：25〜50 m/min / fz：0.03〜0.1 mm/刃<br>ap：0.3〜1.5mm / ae：工具径の60% 以下'
         },
         drill: {
-          carbide: 'Vc：60〒120 m/min / f：径×0.01〒0.03 mm/rev<br>深穴はステップ送りで切粉排出',
-          hss: 'Vc：20〒35 m/min / f：径×0.01〒0.025 mm/rev<br>深穴はステップ送りで切粉排出'
+          carbide: 'Vc：60〜120 m/min / f：径×0.01〜0.03 mm/rev<br>深穴はステップ送りで切粉排出',
+          hss: 'Vc：20〜35 m/min / f：径×0.01〜0.025 mm/rev<br>深穴はステップ送りで切粉排出'
         }
       };
       const nm = { endmill: 'エンドミル', ballmill: 'ボールエンドミル', facemill: '正面フライス', drill: 'ドリル' };
@@ -1746,8 +1746,7 @@
 
     // 主軸回転数 12段（25〜1500 rpm、R20系列）
     const MAZAK860_RPM = [25, 37, 54, 77, 112, 160, 240, 350, 500, 720, 1050, 1500];
-    // ※上記は12段だが最終端1500rpmを含め13要素持たせて実機幅をカバー。
-    // 送り量 24段（0.04〜1.6 mm/rev、R20系列 x2組）
+    // 送り量 17段（0.04〜1.6 mm/rev、R20系列）※実機の選択段に合わせる
     const MAZAK860_FEED = [
       0.04, 0.05, 0.063, 0.08, 0.1, 0.125, 0.16, 0.2,
       0.25, 0.315, 0.4, 0.5, 0.63, 0.8, 1.0, 1.25, 1.6
