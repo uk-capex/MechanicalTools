@@ -2568,7 +2568,8 @@
                   </option>
                   <option value="15">15°</option>
                   <option value="25">25°</option>
-                  <option value="40">40°</option>
+                  <option value="30">30°（NTN 7xxx 標準）</option>
+                  <option value="40">40°（B）</option>
                 </select>
               </div>
               <hr class="divider" />
@@ -2714,7 +2715,7 @@
               </div>
               <div class="card">
                 <div class="card-label">
-                  参考：L10h × 5倍寿命
+                  参考：L50（≈5×L10・平均寿命の目安）
                 </div>
                 <div class="card-value" id="bl-l10h5">
                   —<span class="card-unit"> h</span>
@@ -3824,7 +3825,9 @@
             <b>溝径</b>：リングが収まる溝の底径<br />
             <b>溝幅</b>：リングの板厚に対応した溝の幅<br />
             <b>溝深さ</b>：軸または穴面からの溝の深さ<br />
-            JIS B 2804 準拠
+            C形止め輪 JIS B 2804（呼び10〜80）。<br>
+            出典：ミスミ技術データ（JIS B 2804 抜粋）。<br>
+            呼び8以下はE形止め輪を検討。85以上は未収録。
           </div>
         </div>
         <div class="panel-right">
@@ -8902,8 +8905,8 @@
                 <th>ボルト<br>本数</th>
                 <th>ボルト<br>サイズ</th>
                 <th>ボルト首下<br>長さ目安(mm)</th>
-                <th>締付トルク<br>(N·m)</th>
-                <th>パッキン<br>内径×外径(mm)</th>
+                <th>最小締付トルク(N·m)<br>水・油 / ガス</th>
+                <th>ガスケット<br>内径×外径(mm)</th>
                 <th>推奨<br>パッキン材質</th>
                 <th>互換性/<br>共通化</th>
                 <th>備考</th>
@@ -8913,8 +8916,10 @@
           </table>
         </div>
         <div class="memo" style="font-size:11px;">
-          ※ 寸法はJIS B 2220 / JIS B 2290 / ISO 1127参考値。実際の施工はメーカカタログ・設計図で必ず確認してください。<br>
-          ※ 締付トルクはNBRパッキン使用・M16以下標準六角ボルト（強度区分4.8）での参考値。材質・パッキン種類により変動します。
+          ※ JISフランジ（A）の外径・PCD・ボルト本数・径は JIS B 2220 の値（ステンレス製管フランジ寸法表・ニチアス資料で照合）。<br>
+          ※ JISフランジの最小締付トルク・ガスケット寸法はニチアス資料の値（10K/20K：ジョイントシート表、5K/16K：TOMBO No.1133表。いずれも m=2.75・y=25.5、トルク係数0.2）。<b>実際の締付は最小値の1.2〜1.5倍</b>（ニチアス推奨）。他社ガスケットは各社値で確認。5Kはゴム系ガスケット推奨でガス系の値なし。<br>
+          ※ ボルト長さは根拠不明のため空欄。<br>
+          ※ 真空・ねじ込み・衛生（B/C/D）は未照合。
         </div>
       </div><!-- /panel-right -->
       </div><!-- /two-panel -->
@@ -8962,7 +8967,7 @@
               </div>
               <hr class="divider">
               <div class="memo" style="font-size:11px;">
-                <b>⚠ 開き角120°超は使用禁止</b><br>（クレーン等安全衛生規則）<br><br>
+                <b>⚠ 開き角120°超は使用禁止</b><br>（クレーン等安全衛生規則）<br>4点吊りは3本で負担として計算。<br><br>
                 各サブタブへ反映ボタンを押すと<br>
                 荷重・角度が各タブに自動セットされます。
               </div>
@@ -8989,7 +8994,7 @@
 
               <!-- アイボルト推奨 -->
               <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
-                <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">🔩 アイボルト（1点あたり）</div>
+                <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">🔩 アイボルト</div>
                 <div id="rc-eyebolt-result" style="font-size:12px;"></div>
               </div>
 
@@ -9011,9 +9016,10 @@
                 <label>構成</label>
                 <select id="wire-構成" onchange="wireFilter()">
                   <option value="all">すべて</option>
-                  <option value="6×7">6×7（IWRC）クレーン主巻き</option>
-                  <option value="6×19">6×19 汎用玉掛け</option>
-                  <option value="6×37">6×37 柔軟性重視</option>
+                  <option value="6×24">6×24 玉掛け最汎用（旧4号）</option>
+                  <option value="6×19">6×19（旧3号）</option>
+                  <option value="6×37">6×37 柔軟性重視（旧6号）</option>
+                  <option value="6×7">6×7 硬い・耐摩耗（旧1号）</option>
                 </select>
               </div>
               <hr class="divider">
@@ -9030,7 +9036,7 @@
               <!-- 玉掛け角度補正 -->
               <div class="section-title" style="margin-bottom:6px;">玉掛け角度補正</div>
               <div class="field">
-                <label>吊り角度 θ（片側、鉛直から）</label>
+                <label>吊り角度 θ（片側、水平から）</label>
                 <select id="wire-angle" onchange="wireAngleCalc()">
                   <option value="90">90°（垂直）張力係数 × 1.00</option>
                   <option value="60">60° 張力係数 × 1.15</option>
@@ -9078,7 +9084,7 @@
                   <tbody id="wire-tbody"></tbody>
                 </table>
               </div>
-              <div class="memo" style="margin-top:8px;">※ JIS G 3525 / G 3549 参考値。実際の使用はメーカーカタログで確認してください。</div>
+              <div class="memo" style="margin-top:8px;">※ JIS G 3525 A種（裸・普通より）の破断力。出典：テザック神鋼 規格表。断面積はメーカー参考値。</div>
             </div>
           </div>
         </div>
@@ -9093,7 +9099,7 @@
                 <select id="eb-type" onchange="eyeboltFilter()">
                   <option value="all">すべて</option>
                   <option value="JIS">JIS B 1168（一般）</option>
-                  <option value="SWIVEL">スイベルアイボルト</option>
+                  <option value="RUD">RUD ロードリング・プラス（VLBG-PLUS）</option>
                 </select>
               </div>
               <div class="field">
@@ -9103,11 +9109,11 @@
               <hr class="divider">
               <div class="section-title" style="margin-bottom:6px;">必要ねじ径の逆算</div>
               <div class="field">
-                <label>必要安全荷重 (kgf)</label>
+                <label>1個あたりの荷重 (kgf)</label>
                 <input type="number" id="eb-req" value="500" step="50" min="0" oninput="eyeboltReverse()">
               </div>
               <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;margin-top:4px;">
-                <div style="color:var(--muted);margin-bottom:4px;">推奨最小ねじ径</div>
+                <div style="color:var(--muted);margin-bottom:4px;">推奨最小ねじ径（1個あたり荷重で判定）</div>
                 <div id="eb-rec-size" style="font-size:18px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">—</div>
               </div>
               <hr class="divider">
@@ -9115,7 +9121,9 @@
                 <b>⚠ 横引き厳禁</b><br>
                 アイボルトは垂直吊りが原則。<br>
                 横方向荷重がかかると破断リスク。<br>
-                斜め吊りの場合はスイベルタイプ推奨。<br><br>
+                斜め吊りの場合はスイベルタイプ推奨。<br>
+                <b>JISを2個で斜め吊り：</b>45度づりの値は<br>2個合計。吊り荷の総重量で選ぶ。<br>
+                開き角90°超は不可。<br><br>
                 <b>締付け：</b>根元まで完全に締め込む<br>
                 <b>点検：</b>ねじ部の摩耗・変形を確認
               </div>
@@ -9125,16 +9133,15 @@
               <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
                 <table class="data-table">
                   <thead><tr>
-                    <th>規格</th><th>ねじ径</th>
-                    <th>垂直吊り<br>(kN)</th><th>垂直吊り<br>(kgf)</th>
-                    <th>60°吊り<br>(kgf)</th>
-                    <th>45°吊り<br>(kgf)</th>
-                    <th>質量<br>(kg)</th><th>備考</th>
+                    <th>規格・型式</th><th>ねじ径</th>
+                    <th>使用荷重<br>(kN)</th><th>使用荷重<br>(kgf)</th>
+                    <th>斜め吊り<br>(kgf)</th>
+                    <th>質量<br>(kg)</th><th>締付トルク<br>(N·m)</th><th>備考</th>
                   </tr></thead>
                   <tbody id="eb-tbody"></tbody>
                 </table>
               </div>
-              <div class="memo" style="margin-top:8px;">※ JIS B 1168 / メーカーカタログ参考値。斜め吊り時は荷重を大幅に低減してください。</div>
+              <div class="memo" style="margin-top:8px;">※ JIS：JIS B 1168:1994 付表1（垂直づり1個／45度づりは2個合計）。RUD：ルッドスパンセットジャパン カタログ Ed.24.2（全方向・安全率4）。</div>
             </div>
           </div>
         </div>
@@ -9145,11 +9152,9 @@
             <div class="panel-left">
               <div class="section-title">検索・絞り込み</div>
               <div class="field">
-                <label>形状</label>
+                <label>規格</label>
                 <select id="sh-type" onchange="shackleFilter()">
-                  <option value="all">すべて</option>
-                  <option value="bow">ボウ型（オメガ型）</option>
-                  <option value="dee">Dee型（D型）</option>
+                  <option value="all">JIS B 2801 等級M</option>
                 </select>
               </div>
               <div class="field">
@@ -9158,10 +9163,11 @@
               </div>
               <hr class="divider">
               <div class="memo">
-                <b>ボウ型</b>：多方向荷重に対応。玉掛け標準。<br>
-                <b>Dee型</b>：一方向荷重に強い。チェーン接続等。<br><br>
-                ピン径はワイヤー径の適合範囲を確認。<br>
-                ピンのネジ部は完全締め込みのこと。
+                <b>呼び＝本体径</b>（ピン径ではない）。<br>
+                等級Mはバウ・ストレート同じ使用荷重。<br>
+                呼び12〜18はねじ込みピン（SC/BC）。<br><br>
+                ピンのネジ部は完全締め込みのこと。<br>
+                刻印の使用荷重を必ず確認。
               </div>
             </div>
             <div class="panel-right">
@@ -9169,14 +9175,13 @@
               <div class="data-table-wrap" style="max-height:520px;overflow-y:auto;">
                 <table class="data-table">
                   <thead><tr>
-                    <th>形状</th><th>ピン径<br>(mm)</th><th>呼び</th>
-                    <th>WLL<br>(kN)</th><th>WLL<br>(tf)</th><th>WLL<br>(kgf)</th>
-                    <th>質量<br>(kg)</th><th>適合ワイヤー径<br>(mm)</th><th>備考</th>
+                    <th>呼び<br>(本体径mm)</th><th>形式</th>
+                    <th>使用荷重<br>(t)</th><th>使用荷重<br>(kN)</th><th>使用荷重<br>(kgf)</th><th>等級</th>
                   </tr></thead>
                   <tbody id="shackle-tbody"></tbody>
                 </table>
               </div>
-              <div class="memo" style="margin-top:8px;">※ JIS B 2801 / EN 13889 参考値。WLL = Working Load Limit（使用荷重限界）。安全係数4以上を確認してください。</div>
+              <div class="memo" style="margin-top:8px;">※ JIS B 2801:1996 表2 等級M の使用荷重。等級S/T/Vはこれより高い（製品の刻印を優先）。</div>
             </div>
           </div>
         </div>
@@ -9203,11 +9208,11 @@
                 <label>アンカー種別</label>
                 <select id="anc-type" onchange="ancFilter()">
                   <option value="all">すべて</option>
-                  <option value="chem">ケミカルアンカー（接着系・一般）</option>
-                  <option value="mu">旭化成 MUアンカー（カプセル打込み型）</option>
-                  <option value="all-anc">オールアンカー（拡張式）</option>
-                  <option value="wedge">ウェッジアンカー</option>
-                  <option value="female">メスネジアンカー（ドロップイン）</option>
+                  <option value="ap">旭化成 ARケミカルセッター AP（回転・打撃型）</option>
+                  <option value="mu">旭化成 ARケミカルセッター MU（打込み型）</option>
+                  <option value="all-anc">サンコーテクノ オールアンカー Cタイプ</option>
+                  <option value="wedge">ウェッジアンカー ⚠未照合</option>
+                  <option value="female">メスネジアンカー ⚠未照合</option>
                 </select>
               </div>
               <div class="field">
@@ -9219,8 +9224,8 @@
               <hr class="divider">
               <div class="memo">
                 <b>📐 施工寸法の注意</b><br>
-                ※ 寸法はJIS・JCAA認定品参考値。<br>
-                <b style="color:var(--warn);">ケミカルは必ずメーカーカタログで確認。</b><br>
+                ※ 旭化成AP/MU・サンコーCはメーカー値。<br>
+                <b style="color:var(--warn);">ウェッジ・メスネジは未照合。</b><br>
                 下穴径はメーカー・品番で異なります。<br><br>
                 <b>🧹 穿孔後の清掃（重要）</b><br>
                 ① 圧縮空気で2〜3回ブロー<br>
@@ -9228,7 +9233,10 @@
                 ③ 再度エアブロー<br>
                 <span style="color:var(--bad);">粉塵残留 → 強度大幅低下の原因！</span><br>
                 掃除機単独はNG。エアブロー必須。<br><br>
-                <b>🌡️ ケミカル硬化時間目安（MUアンカー）</b><br>
+                <b>🌡️ AP硬化時間（気中・メーカー値）</b><br>
+                -10℃:180分　0℃:60分　10℃:25分<br>
+                20℃:15分　30℃:10分<br>
+                <b>🌡️ MU硬化時間目安 ⚠未照合</b><br>
                 -5℃:360分　0℃:180分　5℃:120分<br>
                 10℃:70分　15℃:45分　20℃:30分<br>
                 25℃:25分　30℃:20分<br>
@@ -9255,7 +9263,7 @@
                     <th>埋込長<br>(mm)</th>
                     <th>端距離<br>最小(mm)</th>
                     <th>間隔<br>最小(mm)</th>
-                    <th>参考<br>トルク(N·m)</th>
+                    <th>締付<br>トルク(N·m)</th>
                     <th>備考</th>
                   </tr></thead>
                   <tbody id="anc-tbody"></tbody>
@@ -9276,11 +9284,11 @@
               <div class="field">
                 <label>アンカー種別</label>
                 <select id="calc-anc-type" onchange="ancCalc()">
-                  <option value="chem">ケミカルアンカー（一般）</option>
-                  <option value="mu">旭化成 MUアンカー</option>
-                  <option value="all-anc">オールアンカー</option>
-                  <option value="wedge">ウェッジアンカー</option>
-                  <option value="female">メスネジアンカー</option>
+                  <option value="ap">旭化成 AP（回転・打撃型）</option>
+                  <option value="mu">旭化成 MU（打込み型）</option>
+                  <option value="all-anc">サンコー オールアンカー C</option>
+                  <option value="wedge">ウェッジ ⚠未照合</option>
+                  <option value="female">メスネジ ⚠未照合</option>
                 </select>
               </div>
               <div class="field">
@@ -9295,6 +9303,7 @@
                   <option value="M22">M22</option>
                   <option value="M24">M24</option>
                   <option value="M30">M30</option>
+                  <option value="M36">M36</option>
                 </select>
               </div>
               <div class="field">
@@ -9347,7 +9356,7 @@
 
               <!-- 必要本数 -->
               <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;">
-                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">必要本数（安全率考慮済み）</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">必要本数（長期許容で判定）</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
                   <div>
                     <div style="font-size:10px;color:var(--muted);">引張のみ</div>
