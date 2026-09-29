@@ -19,19 +19,17 @@
       const infoBox = document.getElementById('fl-info-box');
       const FL_INFO = {
         all: `<span style="color:var(--muted);">← カテゴリーを選択すると接続方式の説明が表示されます</span>`,
-        A: `<b style="color:var(--accent);">JISフランジ（水・油・汎用ガス・蒸気）</b><br>
-<span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M12〜M27）<br>
-<span style="color:var(--muted);">シール材</span>　5K/10K：平パッキン（NBR/EPDM）<br>
-　　　　　16K：グラファイト/FKM（蒸気対応）<br>
-　　　　　20K：Oリング（溝型シート M/F）<br>
-<span style="color:var(--muted);">シート面</span>　5K：フラット　10K/16K：ライズドフェイス　20K：溝型<br>
-<span style="color:var(--muted);">16K の特徴</span>　蒸気・高圧用途専用クラス。25A〜100AはPCDが10Kと同じため<br>
-　　　　　ボルト本数・サイズも同一なら共通化可。50A/65Aは要注意。<br>
+        A: `<b style="color:var(--accent);">JISフランジ（JIS B 2220）</b><br>
+<span style="color:var(--muted);">接合寸法</span>　外径・PCD・ボルト本数・ボルト径は JIS B 2220 の値<br>
+<span style="color:var(--muted);">16K/20K</span>　接合寸法は同一（厚さなどが違う）<br>
+<span style="color:var(--muted);">ガスケット</span>　寸法は JIS B 2404、材質・締付トルクはガスケットメーカー値で決める<br>
 <hr style="border:none;border-top:1px solid var(--border);margin:6px 0;">
 <span style="color:var(--bad);">⚠ PCD の罠</span><br>
-同じ呼び径でも 5K・10K・16K・20K でPCDが異なる場合があります。<br>
-例）50A：5K=105mm　10K=120mm　16K=125mm　20K=130mm<br>
-例）25A：10K=16K=20K=PCD90mm　→ 共通化可`,
+同じ呼び径でもクラスでPCDが変わる。<br>
+例）50A：5K=105　10K=120　16K/20K=120（ただし10Kは4本、16K/20Kは8本）<br>
+例）80A：5K=145　10K=150　16K/20K=160<br>
+例）10A〜40A：10K と 16K/20K は接合寸法同一 → 共通化可<br>
+備考欄に他クラスとの比較を自動表示している。`,
 
         B: `<b style="color:#a0c4ff;">真空フランジ</b><br>
 <b style="color:var(--muted);">▍NW/KF（〜10⁻³ Pa）</b><br>
@@ -85,10 +83,13 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
           r.compatFlag === 'ng'   ? 'background:var(--bad-dim);'  :
           r.compatFlag === 'warn' ? 'background:var(--warn-dim);' : '';
         const compatIcon =
-          r.compatFlag === 'ng'   ? '<span style="color:var(--bad);">✕ 混用禁止</span>'  :
-          r.compatFlag === 'warn' ? '<span style="color:var(--warn);">⚠ 要確認</span>'   :
-                                    '<span style="color:var(--good);">✓ 互換OK</span>';
-        const torqueTxt = r.torque ? `${r.torque} N·m` : '—';
+          r.compatFlag === 'ng'   ? '<span style="color:var(--bad);">✕ 他クラスと互換なし</span>'  :
+          r.compatFlag === 'warn' ? '<span style="color:var(--warn);">⚠ 一部のみ共通</span>'   :
+                                    '<span style="color:var(--good);">✓ 他クラスと共通</span>';
+        const torqueTxt = !r.torque ? '—'
+          : (typeof r.torque === 'object')
+            ? `${r.torque.w}${r.torque.g != null ? ' / ' + r.torque.g : ''}<br><span style="font-size:9px;color:var(--muted);">${r.torque.src}</span>`
+            : `${r.torque} N·m`;
         const odTxt     = r.od     ? `${r.od}` : '—';
         const pcdTxt    = r.pcd    ? `${r.pcd}` : '—';
         const boltLTxt  = r.boltL  ? `${r.boltL}` : '—';
@@ -102,7 +103,7 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
           <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.boltSize}</td>
           <td style="text-align:center;">${boltLTxt}</td>
           <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${r.torque?'var(--warn)':'var(--muted)'};">${torqueTxt}</td>
-          <td style="font-size:11px;">${r.packOD}</td>
+          <td style="font-size:11px;">${r.packOD || '—'}</td>
           <td style="font-size:11px;color:var(--muted);">${r.packMat}</td>
           <td style="font-size:11px;white-space:nowrap;">${compatIcon}</td>
           <td style="font-size:11px;color:var(--muted);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.note}">${r.note||'—'}</td>
@@ -120,90 +121,123 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
        🪝 吊り具選定
     ══════════════════════════════════════════ */
 
+    /* JIS G 3525 ワイヤロープ A種（裸・普通より）破断力
+       出典: テザック神鋼 ワイヤロープ規格表（JIS G 3525 準拠）
+       A(標準断面積)はJIS記載なし・メーカー参考値 */
     const WIRE_DATA = [
-      {構成:'6×7',d:6,   A:13.8, Fb:16.0,  kg:0.13, note:'小型クレーン・ホイスト'},
-      {構成:'6×7',d:8,   A:24.6, Fb:28.7,  kg:0.24, note:''},
-      {構成:'6×7',d:9,   A:31.1, Fb:36.3,  kg:0.30, note:''},
-      {構成:'6×7',d:10,  A:38.4, Fb:44.8,  kg:0.37, note:''},
-      {構成:'6×7',d:12,  A:55.3, Fb:64.5,  kg:0.53, note:'汎用・玉掛け標準'},
-      {構成:'6×7',d:14,  A:75.3, Fb:87.8,  kg:0.73, note:''},
-      {構成:'6×7',d:16,  A:98.4, Fb:115,   kg:0.95, note:''},
-      {構成:'6×7',d:18,  A:124,  Fb:145,   kg:1.20, note:''},
-      {構成:'6×7',d:20,  A:154,  Fb:180,   kg:1.49, note:'重量物吊り'},
-      {構成:'6×7',d:22,  A:186,  Fb:217,   kg:1.80, note:''},
-      {構成:'6×7',d:24,  A:221,  Fb:258,   kg:2.14, note:''},
-      {構成:'6×7',d:26,  A:260,  Fb:304,   kg:2.52, note:''},
-      {構成:'6×7',d:28,  A:302,  Fb:352,   kg:2.92, note:''},
-      {構成:'6×7',d:30,  A:346,  Fb:404,   kg:3.35, note:'大型クレーン'},
-      {構成:'6×19',d:6,  A:13.8, Fb:15.4,  kg:0.13, note:'小型・精密作業'},
-      {構成:'6×19',d:8,  A:24.6, Fb:27.4,  kg:0.24, note:''},
-      {構成:'6×19',d:9,  A:31.1, Fb:34.6,  kg:0.30, note:''},
-      {構成:'6×19',d:10, A:38.4, Fb:42.7,  kg:0.37, note:''},
-      {構成:'6×19',d:12, A:55.3, Fb:61.5,  kg:0.53, note:'★最汎用。玉掛け標準'},
-      {構成:'6×19',d:14, A:75.3, Fb:83.8,  kg:0.73, note:''},
-      {構成:'6×19',d:16, A:98.4, Fb:109,   kg:0.95, note:''},
-      {構成:'6×19',d:18, A:124,  Fb:138,   kg:1.20, note:''},
-      {構成:'6×19',d:20, A:154,  Fb:171,   kg:1.49, note:''},
-      {構成:'6×19',d:22, A:186,  Fb:207,   kg:1.80, note:''},
-      {構成:'6×19',d:24, A:221,  Fb:246,   kg:2.14, note:''},
-      {構成:'6×19',d:26, A:260,  Fb:289,   kg:2.52, note:''},
-      {構成:'6×19',d:28, A:302,  Fb:336,   kg:2.92, note:''},
-      {構成:'6×19',d:30, A:346,  Fb:385,   kg:3.35, note:''},
-      {構成:'6×19',d:32, A:394,  Fb:438,   kg:3.81, note:''},
-      {構成:'6×19',d:36, A:499,  Fb:555,   kg:4.83, note:'大型設備搬入'},
-      {構成:'6×19',d:40, A:616,  Fb:685,   kg:5.96, note:''},
-      {構成:'6×37',d:10, A:38.4, Fb:41.7,  kg:0.37, note:'シーブ多用・ウインチ'},
-      {構成:'6×37',d:12, A:55.3, Fb:60.0,  kg:0.53, note:''},
-      {構成:'6×37',d:14, A:75.3, Fb:81.7,  kg:0.73, note:''},
-      {構成:'6×37',d:16, A:98.4, Fb:107,   kg:0.95, note:''},
-      {構成:'6×37',d:18, A:124,  Fb:135,   kg:1.20, note:''},
-      {構成:'6×37',d:20, A:154,  Fb:167,   kg:1.49, note:''},
-      {構成:'6×37',d:24, A:221,  Fb:240,   kg:2.14, note:''},
-      {構成:'6×37',d:28, A:302,  Fb:328,   kg:2.92, note:''},
-      {構成:'6×37',d:32, A:394,  Fb:428,   kg:3.81, note:''},
-      {構成:'6×37',d:36, A:499,  Fb:541,   kg:4.83, note:'大型クレーン'},
-      {構成:'6×37',d:40, A:616,  Fb:668,   kg:5.96, note:''},
+      {構成:'6×7', d:6, A:14.4, Fb:21.4, kg:0.134, note:''},
+      {構成:'6×7', d:8, A:25.5, Fb:38.1, kg:0.237, note:''},
+      {構成:'6×7', d:9, A:32.3, Fb:48.2, kg:0.3, note:''},
+      {構成:'6×7', d:10, A:39.9, Fb:59.5, kg:0.371, note:''},
+      {構成:'6×7', d:12, A:57.5, Fb:85.6, kg:0.534, note:'旧1号・硬い'},
+      {構成:'6×7', d:14, A:78.2, Fb:117, kg:0.727, note:''},
+      {構成:'6×7', d:16, A:102, Fb:152, kg:0.95, note:''},
+      {構成:'6×7', d:18, A:129, Fb:193, kg:1.2, note:''},
+      {構成:'6×7', d:20, A:160, Fb:238, kg:1.48, note:''},
+      {構成:'6×7', d:22, A:193, Fb:288, kg:1.8, note:''},
+      {構成:'6×7', d:24, A:230, Fb:343, kg:2.14, note:''},
+      {構成:'6×7', d:26, A:270, Fb:402, kg:2.51, note:''},
+      {構成:'6×7', d:28, A:313, Fb:466, kg:2.91, note:''},
+      {構成:'6×7', d:30, A:359, Fb:535, kg:3.34, note:''},
+      {構成:'6×7', d:32, A:409, Fb:609, kg:3.8, note:''},
+      {構成:'6×19', d:6, A:14.3, Fb:19.4, kg:0.131, note:''},
+      {構成:'6×19', d:8, A:25.4, Fb:34.6, kg:0.233, note:''},
+      {構成:'6×19', d:9, A:32.2, Fb:43.8, kg:0.295, note:''},
+      {構成:'6×19', d:10, A:39.7, Fb:54.0, kg:0.364, note:''},
+      {構成:'6×19', d:12, A:57.2, Fb:77.8, kg:0.524, note:'旧3号'},
+      {構成:'6×19', d:14, A:77.8, Fb:106, kg:0.713, note:''},
+      {構成:'6×19', d:16, A:102, Fb:138, kg:0.932, note:''},
+      {構成:'6×19', d:18, A:129, Fb:175, kg:1.18, note:''},
+      {構成:'6×19', d:20, A:159, Fb:216, kg:1.46, note:''},
+      {構成:'6×19', d:22, A:192, Fb:261, kg:1.76, note:''},
+      {構成:'6×19', d:24, A:229, Fb:311, kg:2.1, note:''},
+      {構成:'6×19', d:26, A:268, Fb:365, kg:2.46, note:''},
+      {構成:'6×19', d:28, A:311, Fb:424, kg:2.85, note:''},
+      {構成:'6×24', d:6, A:12.9, Fb:17.7, kg:0.12, note:''},
+      {構成:'6×24', d:8, A:22.9, Fb:31.6, kg:0.212, note:''},
+      {構成:'6×24', d:9, A:29.0, Fb:39.9, kg:0.269, note:''},
+      {構成:'6×24', d:10, A:35.8, Fb:49.3, kg:0.332, note:''},
+      {構成:'6×24', d:12, A:51.6, Fb:71.0, kg:0.478, note:'★玉掛け最汎用（旧4号）'},
+      {構成:'6×24', d:14, A:70.2, Fb:96.6, kg:0.651, note:''},
+      {構成:'6×24', d:16, A:91.6, Fb:126, kg:0.85, note:''},
+      {構成:'6×24', d:18, A:116, Fb:160, kg:1.08, note:''},
+      {構成:'6×24', d:20, A:143, Fb:197, kg:1.33, note:''},
+      {構成:'6×24', d:22, A:173, Fb:239, kg:1.61, note:''},
+      {構成:'6×24', d:24, A:206, Fb:284, kg:1.91, note:''},
+      {構成:'6×24', d:26, A:242, Fb:333, kg:2.24, note:''},
+      {構成:'6×24', d:28, A:281, Fb:387, kg:2.6, note:''},
+      {構成:'6×24', d:30, A:322, Fb:444, kg:2.99, note:''},
+      {構成:'6×24', d:32, A:367, Fb:505, kg:3.4, note:''},
+      {構成:'6×24', d:36, A:464, Fb:639, kg:4.3, note:''},
+      {構成:'6×24', d:40, A:573, Fb:789, kg:5.31, note:''},
+      {構成:'6×37', d:6, A:14.2, Fb:19.1, kg:0.129, note:''},
+      {構成:'6×37', d:8, A:25.3, Fb:34.0, kg:0.23, note:''},
+      {構成:'6×37', d:9, A:32.0, Fb:43.0, kg:0.291, note:''},
+      {構成:'6×37', d:10, A:39.5, Fb:53.1, kg:0.359, note:''},
+      {構成:'6×37', d:12, A:56.9, Fb:76.5, kg:0.517, note:'旧6号・柔軟'},
+      {構成:'6×37', d:14, A:77.4, Fb:104, kg:0.704, note:''},
+      {構成:'6×37', d:16, A:101, Fb:136, kg:0.92, note:''},
+      {構成:'6×37', d:18, A:128, Fb:172, kg:1.16, note:''},
+      {構成:'6×37', d:20, A:158, Fb:212, kg:1.44, note:''},
+      {構成:'6×37', d:22, A:191, Fb:257, kg:1.74, note:''},
+      {構成:'6×37', d:24, A:228, Fb:306, kg:2.07, note:''},
+      {構成:'6×37', d:26, A:267, Fb:359, kg:2.43, note:''},
+      {構成:'6×37', d:28, A:310, Fb:416, kg:2.82, note:''},
+      {構成:'6×37', d:30, A:356, Fb:478, kg:3.23, note:''},
+      {構成:'6×37', d:32, A:404, Fb:544, kg:3.68, note:''},
+      {構成:'6×37', d:36, A:512, Fb:688, kg:4.66, note:''},
+      {構成:'6×37', d:40, A:632, Fb:850, kg:5.75, note:''},
     ];
 
+    /* アイボルト
+       JIS : JIS B 1168:1994 付表1 使用荷重（垂直づり1個）。45度づりは「2個につき」の合計値で垂直と同値。
+             質量はJIS参考値（ミスミ掲載値）
+       RUD : ルッド ロードリング・プラス VLBG-PLUS（全方向・安全率4）
+             出典: ルッドスパンセットジャパン リフティングポイントカタログ Edition-24.2
+       v   : 使用荷重 kN（RUDは t×9.80665） */
     const EYEBOLT_DATA = [
-      {type:'JIS', size:'M8',  v:1.57, a60:0.79, a45:0.49, kg:0.03, note:'小型機器・計器類'},
-      {type:'JIS', size:'M10', v:2.45, a60:1.23, a45:0.76, kg:0.05, note:''},
-      {type:'JIS', size:'M12', v:3.43, a60:1.72, a45:1.07, kg:0.09, note:'★最汎用'},
-      {type:'JIS', size:'M16', v:6.86, a60:3.43, a45:2.13, kg:0.19, note:''},
-      {type:'JIS', size:'M20', v:9.81, a60:4.91, a45:3.05, kg:0.37, note:'中型機器'},
-      {type:'JIS', size:'M24', v:14.7, a60:7.35, a45:4.57, kg:0.61, note:''},
-      {type:'JIS', size:'M30', v:24.5, a60:12.3, a45:7.63, kg:1.20, note:'重量機器'},
-      {type:'JIS', size:'M36', v:34.3, a60:17.2, a45:10.7, kg:2.06, note:''},
-      {type:'JIS', size:'M42', v:49.0, a60:24.5, a45:15.2, kg:3.30, note:'大型設備'},
-      {type:'JIS', size:'M48', v:63.7, a60:31.9, a45:19.8, kg:4.80, note:''},
-      {type:'SWIVEL', size:'M12', v:4.90, a60:4.90, a45:4.90, kg:0.15, note:'斜め吊り対応'},
-      {type:'SWIVEL', size:'M16', v:9.81, a60:9.81, a45:9.81, kg:0.28, note:'360°回転'},
-      {type:'SWIVEL', size:'M20', v:14.7, a60:14.7, a45:14.7, kg:0.52, note:''},
-      {type:'SWIVEL', size:'M24', v:24.5, a60:24.5, a45:24.5, kg:0.85, note:''},
-      {type:'SWIVEL', size:'M30', v:39.2, a60:39.2, a45:39.2, kg:1.70, note:''},
-      {type:'SWIVEL', size:'M36', v:58.8, a60:58.8, a45:58.8, kg:2.90, note:''},
-    ];
+      {type:'JIS', size:'M8',  d:8,  v:0.785, kg:0.03, note:'小型機器・計器類'},
+      {type:'JIS', size:'M10', d:10, v:1.47,  kg:0.06, note:''},
+      {type:'JIS', size:'M12', d:12, v:2.16,  kg:0.12, note:'★最汎用'},
+      {type:'JIS', size:'M16', d:16, v:4.41,  kg:0.22, note:''},
+      {type:'JIS', size:'M20', d:20, v:6.18,  kg:0.39, note:'中型機器'},
+      {type:'JIS', size:'M24', d:24, v:9.32,  kg:0.80, note:''},
+      {type:'JIS', size:'M30', d:30, v:14.7,  kg:1.56, note:'重量機器'},
+      {type:'JIS', size:'M36', d:36, v:22.6,  kg:2.90, note:''},
+      {type:'JIS', size:'M42', d:42, v:33.3,  kg:4.40, note:'大型設備'},
+      {type:'JIS', size:'M48', d:48, v:44.1,  kg:6.10, note:''},
+      {type:'RUD', size:'M8',  d:8,  t:0.63, model:'VLBG-PLUS 0.63t M8',  kg:0.30, torque:30,   note:''},
+      {type:'RUD', size:'M10', d:10, t:0.9,  model:'VLBG-PLUS 0.9t M10',  kg:0.31, torque:60,   note:''},
+      {type:'RUD', size:'M12', d:12, t:1.35, model:'VLBG-PLUS 1.35t M12', kg:0.34, torque:150,  note:''},
+      {type:'RUD', size:'M16', d:16, t:2.0,  model:'VLBG-PLUS 2t M16',    kg:0.55, torque:150,  note:''},
+      {type:'RUD', size:'M20', d:20, t:3.5,  model:'VLBG-PLUS 3.5t M20',  kg:1.30, torque:400,  note:''},
+      {type:'RUD', size:'M24', d:24, t:4.5,  model:'VLBG-PLUS 4.5t M24',  kg:1.40, torque:760,  note:''},
+      {type:'RUD', size:'M30', d:30, t:6.7,  model:'VLBG-PLUS 6.7t M30',  kg:3.22, torque:1000, note:''},
+      {type:'RUD', size:'M36', d:36, t:8.0,  model:'VLBG-PLUS 8t M36',    kg:6.00, torque:800,  note:''},
+      {type:'RUD', size:'M42', d:42, t:10.0, model:'VLBG-PLUS 10t M42',   kg:6.60, torque:1000, note:''},
+      {type:'RUD', size:'M42', d:42, t:15.0, model:'VLBG-PLUS 15t M42',   kg:10.9, torque:1500, note:'大型リング'},
+      {type:'RUD', size:'M48', d:48, t:20.0, model:'VLBG-PLUS 20t M48',   kg:11.6, torque:2000, note:''},
+    ].map(r => r.type === 'RUD' ? {...r, v:+(r.t * 9.80665).toFixed(2)} : r);
 
+    /* RUD VLBG-PLUS 吊り方係数（カタログ「吊り方における基本使用荷重G」）
+       G(吊れる総重量) = 基本使用荷重 × 係数。β=吊り具の鉛直からの傾斜角（=開き角/2）
+       4点吊りは3本で負担する前提（カタログ値 2.1 / 1.5 に一致） */
+    function rudLoadFactor(n, beta) {
+      if (n === 1) return 1.0;
+      if (beta === 0) return n === 2 ? 2.0 : 3.0;   // 平行垂直吊り（3+4本は3本分）
+      if (beta > 60) return 0;                      // 範囲外
+      if (n === 2) return beta <= 45 ? 1.4 : 1.0;
+      return beta <= 45 ? 2.1 : 1.5;                // 3点・4点
+    }
+
+    /* シャックル JIS B 2801:1996 等級M 使用荷重（t）
+       呼び = 本体径 d（ピン径ではない）。呼び12〜18はSC/BC（ねじ込みピン）、20以上はSB/BB等
+       出典: JIS B 2801-1996 表2（大洋製器 使用荷重一覧） */
     const SHACKLE_DATA = [
-      {shape:'bow', pin:13, nom:'13mm', wll:9.8,  t:1.0,  kg:0.16, wire:'6〜8',   note:''},
-      {shape:'bow', pin:16, nom:'16mm', wll:15.7, t:1.6,  kg:0.30, wire:'8〜10',  note:''},
-      {shape:'bow', pin:19, nom:'19mm', wll:22.6, t:2.3,  kg:0.50, wire:'10〜12', note:'★汎用'},
-      {shape:'bow', pin:22, nom:'22mm', wll:31.9, t:3.25, kg:0.80, wire:'12〜14', note:''},
-      {shape:'bow', pin:25, nom:'25mm', wll:44.1, t:4.5,  kg:1.16, wire:'14〜16', note:''},
-      {shape:'bow', pin:28, nom:'28mm', wll:58.8, t:6.0,  kg:1.65, wire:'16〜18', note:''},
-      {shape:'bow', pin:32, nom:'32mm', wll:78.5, t:8.0,  kg:2.40, wire:'18〜20', note:''},
-      {shape:'bow', pin:35, nom:'35mm', wll:98.1, t:10.0, kg:3.20, wire:'20〜22', note:'重量物'},
-      {shape:'bow', pin:40, nom:'40mm', wll:137,  t:14.0, kg:4.80, wire:'22〜26', note:''},
-      {shape:'bow', pin:45, nom:'45mm', wll:176,  t:18.0, kg:6.90, wire:'26〜30', note:''},
-      {shape:'bow', pin:50, nom:'50mm', wll:216,  t:22.0, kg:9.50, wire:'30〜36', note:'大型吊り'},
-      {shape:'dee', pin:13, nom:'13mm', wll:9.8,  t:1.0,  kg:0.12, wire:'6〜8',   note:''},
-      {shape:'dee', pin:16, nom:'16mm', wll:15.7, t:1.6,  kg:0.22, wire:'8〜10',  note:''},
-      {shape:'dee', pin:19, nom:'19mm', wll:22.6, t:2.3,  kg:0.37, wire:'10〜12', note:'★汎用'},
-      {shape:'dee', pin:22, nom:'22mm', wll:31.9, t:3.25, kg:0.59, wire:'12〜14', note:''},
-      {shape:'dee', pin:25, nom:'25mm', wll:44.1, t:4.5,  kg:0.87, wire:'14〜16', note:''},
-      {shape:'dee', pin:28, nom:'28mm', wll:58.8, t:6.0,  kg:1.22, wire:'16〜18', note:''},
-      {shape:'dee', pin:32, nom:'32mm', wll:78.5, t:8.0,  kg:1.78, wire:'18〜20', note:''},
-      {shape:'dee', pin:35, nom:'35mm', wll:98.1, t:10.0, kg:2.35, wire:'20〜22', note:''},
-      {shape:'dee', pin:40, nom:'40mm', wll:137,  t:14.0, kg:3.50, wire:'22〜26', note:''},
-      {shape:'dee', pin:45, nom:'45mm', wll:176,  t:18.0, kg:5.10, wire:'26〜30', note:''},
-    ];
+      [12,1.0],[14,1.25],[16,1.6],[18,2.0],[20,2.5],[22,3.15],[24,3.6],[26,4.0],[28,4.8],
+      [30,5.0],[32,6.3],[34,7.0],[36,8.0],[38,9.0],[40,10.0],[42,11.0],[44,12.5],[46,13.0],
+      [48,14.0],[50,16.0],[55,18.0],[60,20.0],[65,25.0],
+    ].map(([nom, t]) => ({
+      nom, t, wll: +(t * 9.80665).toFixed(2),
+      form: nom <= 18 ? 'SC / BC（ねじ込み）' : 'SB / BB（ボルト・ナット）ほか',
+    }));
