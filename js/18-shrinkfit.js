@@ -71,6 +71,43 @@
         },
       };
 
+
+      // ── 低温側の収縮量（20℃基準の ΔL/L、代表値）2026-09 追加 ──
+      // 線膨張係数は低温ほど小さくなるため、常温αで冷やし嵌めを計算すると収縮を過大評価する（危険側）。
+      // 値：アルミ −196℃ 0.39% は文献値（Ekin, 293→77 K）。他は低温物性の代表値（要照合・管理表C項）
+      const LOWT_CONTR = {
+        S45C:    { c78: 0.00100, c196: 0.00190 },
+        SCM440:  { c78: 0.00100, c196: 0.00190 },
+        FC250:   { c78: 0.00088, c196: 0.00166 },
+        FCD600:  { c78: 0.00092, c196: 0.00174 },
+        SUS304:  { c78: 0.00142, c196: 0.00281 },
+        SUS440C: { c78: 0.00095, c196: 0.00180 },
+        A5052:   { c78: 0.00204, c196: 0.00393 },
+        A2017:   { c78: 0.00200, c196: 0.00385 },
+        C3604:   { c78: 0.00180, c196: 0.00340 },
+      };
+      // 20℃→T(℃) の収縮ひずみ（T<20）。表がない材料・0℃以上は常温α
+      function shContraction(key, alpha, T) {
+        const t = LOWT_CONTR[key];
+        if (T >= 0 || !t) return alpha * (20 - T);
+        const e0 = alpha * 20;                       // 20→0℃ は常温α
+        if (T >= -78) return e0 + (t.c78 - e0) * (0 - T) / 78;
+        if (T >= -196) return t.c78 + (t.c196 - t.c78) * (-78 - T) / 118;
+        return t.c196;                                // −196℃より下は頭打ち
+      }
+      // 収縮ひずみ eps を得るのに必要な温度（20℃から冷却）
+      function shTempForContraction(key, alpha, eps) {
+        const t = LOWT_CONTR[key];
+        if (!t || eps <= alpha * 20) return 20 - eps / alpha;
+        let lo = -196, hi = 0;
+        if (eps > t.c196) return null;               // 液体窒素でも届かない
+        for (let k = 0; k < 60; k++) {
+          const mid = (lo + hi) / 2;
+          if (shContraction(key, alpha, mid) > eps) lo = mid; else hi = mid;
+        }
+        return (lo + hi) / 2;
+      }
+
       function shrinkSyncMat(side) {
         const sel = $(`sh-mat${side}-sel`);
         const key = sel.value;
@@ -135,12 +172,15 @@
 
         // ── 温度計算（既存） ──
         const dHole = alphaH * D * (THt - TH0);
-        const dShaft = alphaS * D * (TS0 - TSt);
+        const keyS = $("sh-matS-sel").value;
+        // 軸：初期温度TS0→冷却TSt。低温側は材料別の収縮量表を使用
+        const dShaft = D * (shContraction(keyS, alphaS, TSt) - shContraction(keyS, alphaS, TS0));
         const effClear = dHole + dShaft;
         const reqClear = delta + margin;
         const surplus = effClear - reqClear;
         const needDT_hole = reqClear / (alphaH * D);
-        const needDT_shaft = reqClear / (alphaS * D);
+        const needT_shaft = shTempForContraction(keyS, alphaS, reqClear / D);
+        const needDT_shaft = needT_shaft === null ? Infinity : 20 - needT_shaft;
 
         // ── 推奨締めしろ計算 ──
         // 穴側：引張応力（外径∞近似で σ_hoop = E * δ/D）
@@ -264,12 +304,15 @@
           `+ ${needDT_hole.toFixed(0)} ℃`;
         $("sh-rev-hole-sub").textContent =
           `20℃ → ${(20 + needDT_hole).toFixed(0)} ℃`;
-        $("sh-rev-shaft").textContent =
-          `− ${needDT_shaft.toFixed(0)} ℃`;
-        $("sh-rev-shaft-sub").textContent =
-          `20℃ → ${(20 - needDT_shaft).toFixed(0)} ℃`;
+        $("sh-rev-shaft").textContent = isFinite(needDT_shaft)
+          ? `− ${needDT_shaft.toFixed(0)} ℃` : "冷却のみでは不可";
+        $("sh-rev-shaft-sub").textContent = isFinite(needDT_shaft)
+          ? `20℃ → ${(20 - needDT_shaft).toFixed(0)} ℃`
+          : "液体窒素(−196℃)でも不足。穴加熱を併用";
 
-        const LN2 = alphaS * D * 216;
+        const LN2 = D * shContraction(keyS, alphaS, -196);
+        const DRY = D * shContraction(keyS, alphaS, -78);
+        const lowNote = LOWT_CONTR[keyS] ? "（低温で小さくなるαを考慮）" : "（任意材料のため常温α使用＝過大評価の可能性）";
         $("sh-memo").innerHTML =
-          `<b>実務メモ</b><br>材質から算出した推奨締め代：<b>${delta_min.toFixed(3)} 〜 ${delta_max.toFixed(3)} mm</b>（安全率 S = ${safety}）<br>液体窒素（20℃→−196℃）で軸を冷やした場合の収縮量：<b>${LN2.toFixed(3)} mm</b><br>両側温調（穴加熱＋軸冷却）は必要温度差が小さく済み、歪み・焼戻しリスクを低減できる。`;
+          `<b>実務メモ</b><br>材質から算出した推奨締め代：<b>${delta_min.toFixed(3)} 〜 ${delta_max.toFixed(3)} mm</b>（安全率 S = ${safety}）<br>軸の冷却収縮量${lowNote}：液体窒素（−196℃）<b>${LN2.toFixed(3)} mm</b>／ドライアイス（−78℃）<b>${DRY.toFixed(3)} mm</b><br>両側温調（穴加熱＋軸冷却）は必要温度差が小さく済み、歪み・焼戻しリスクを低減できる。<br><span style="color:var(--warn)">※推奨締め代はボス外径を考慮しない簡易式（σ≈E·δ/D）。ボス外径が穴径の2倍未満の薄肉では応力が大きくなるため厚肉円筒の式で要確認。下限（上限×30%）は伝達トルクから決めた値ではない目安。</span>`;
       }

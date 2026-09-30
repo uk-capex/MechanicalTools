@@ -39,14 +39,14 @@
 <b style="color:var(--muted);">▍JIS丸フランジ（JIS B 2290）〜10⁻⁵ Pa〜10⁻⁸ Pa</b><br>
 <span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M5〜M16）<br>
 <span style="color:var(--muted);">シール材</span>　Oリング溝（P系/G系）+ NBR/FKM/Cuガスケット<br>
-<span style="color:var(--muted);">特徴</span>　　国内真空装置の標準。DN16〜DN630。汎用性高い<br>
+<span style="color:var(--muted);">特徴</span>　　国内真空装置の標準。DN16〜DN630。<span style="color:var(--warn);">寸法表は未照合</span><br>
 　　　　　Oリング材質で到達真空度が変わる<br>
 <b style="color:var(--muted);">▍ISO-F（〜10⁻⁷ Pa）</b><br>
 <span style="color:var(--muted);">締結方式</span>　ボルト（M8〜M10）<br>
 <span style="color:var(--muted);">シール材</span>　Oリング（NBR/FKM/Viton）<br>
 <span style="color:var(--muted);">特徴</span>　　大口径対応。ディフュージョンポンプ等に多用<br>
 <b style="color:var(--muted);">▍ICF / ConFlat（〜10⁻¹⁰ Pa）</b><br>
-<span style="color:var(--muted);">締結方式</span>　ボルト（M6〜M8）<br>
+<span style="color:var(--muted);">締結方式</span>　ボルト（M4〜M8）。ICFの呼び＝フランジ外径（ICF34〜253）<br>
 <span style="color:var(--muted);">シール材</span>　メタルガスケット（Al/Cu）→ナイフエッジが食い込む<br>
 <span style="color:var(--muted);">特徴</span>　　超高真空専用。<span style="color:var(--bad);">ガスケット再使用不可</span>。フランジ面傷つけ厳禁`,
 

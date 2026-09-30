@@ -2,6 +2,7 @@
       // TAB: 管用ネジ
       // ════════════════════════════════════════
       // SGP外径: JIS G 3452, 肉厚: スケジュール標準
+      // SUS: JIS G 3459 Sch10S の肉厚に修正 2026-09（旧値は規格外の値）。銅管は未照合
       // SUS: JIS G 3459, 銅管: JIS H 3300 Kタイプ
       // 管用テーパネジ: JIS B 0203
       // [呼びA, インチ呼び, SGP外径, SGP肉厚, SUS外径, SUS肉厚, 銅外径, 銅肉厚,
@@ -12,7 +13,7 @@
           sgp_od: 10.5,
           sgp_t: 2.0,
           sus_od: 10.5,
-          sus_t: 1.0,
+          sus_t: 1.2,
           cu_od: 9.52,
           cu_t: 0.89,
           rc: "Rc 1/8",
@@ -27,7 +28,7 @@
           sgp_od: 13.8,
           sgp_t: 2.3,
           sus_od: 13.8,
-          sus_t: 1.2,
+          sus_t: 1.65,
           cu_od: 12.7,
           cu_t: 0.89,
           rc: "Rc 1/4",
@@ -42,7 +43,7 @@
           sgp_od: 17.3,
           sgp_t: 2.3,
           sus_od: 17.3,
-          sus_t: 1.2,
+          sus_t: 1.65,
           cu_od: 15.88,
           cu_t: 1.02,
           rc: "Rc 3/8",
@@ -57,7 +58,7 @@
           sgp_od: 21.7,
           sgp_t: 2.8,
           sus_od: 21.7,
-          sus_t: 1.6,
+          sus_t: 2.1,
           cu_od: 19.05,
           cu_t: 1.07,
           rc: "Rc 1/2",
@@ -72,7 +73,7 @@
           sgp_od: 27.2,
           sgp_t: 2.8,
           sus_od: 27.2,
-          sus_t: 1.6,
+          sus_t: 2.1,
           cu_od: 22.22,
           cu_t: 1.14,
           rc: "Rc 3/4",
@@ -87,7 +88,7 @@
           sgp_od: 34.0,
           sgp_t: 3.2,
           sus_od: 34.0,
-          sus_t: 1.6,
+          sus_t: 2.8,
           cu_od: 28.58,
           cu_t: 1.27,
           rc: "Rc 1",
@@ -102,7 +103,7 @@
           sgp_od: 42.7,
           sgp_t: 3.5,
           sus_od: 42.7,
-          sus_t: 1.6,
+          sus_t: 2.8,
           cu_od: 34.93,
           cu_t: 1.4,
           rc: "Rc 1-1/4",
@@ -117,7 +118,7 @@
           sgp_od: 48.6,
           sgp_t: 3.5,
           sus_od: 48.6,
-          sus_t: 1.6,
+          sus_t: 2.8,
           cu_od: 41.28,
           cu_t: 1.52,
           rc: "Rc 1-1/2",
@@ -132,7 +133,7 @@
           sgp_od: 60.5,
           sgp_t: 3.8,
           sus_od: 60.5,
-          sus_t: 2.0,
+          sus_t: 2.8,
           cu_od: 53.98,
           cu_t: 1.78,
           rc: "Rc 2",
@@ -147,7 +148,7 @@
           sgp_od: 76.3,
           sgp_t: 4.2,
           sus_od: 76.3,
-          sus_t: 2.0,
+          sus_t: 3.0,
           cu_od: 66.68,
           cu_t: 2.03,
           rc: "Rc 2-1/2",
@@ -162,7 +163,7 @@
           sgp_od: 89.1,
           sgp_t: 4.2,
           sus_od: 89.1,
-          sus_t: 2.0,
+          sus_t: 3.0,
           cu_od: 79.38,
           cu_t: 2.29,
           rc: "Rc 3",
@@ -177,7 +178,7 @@
           sgp_od: 114.3,
           sgp_t: 4.5,
           sus_od: 114.3,
-          sus_t: 2.0,
+          sus_t: 3.0,
           cu_od: 104.78,
           cu_t: 2.79,
           rc: "Rc 4",
@@ -192,7 +193,7 @@
           sgp_od: 139.8,
           sgp_t: 4.5,
           sus_od: 139.8,
-          sus_t: 2.0,
+          sus_t: 3.4,
           cu_od: 130.18,
           cu_t: 3.05,
           rc: "Rc 5",
@@ -207,7 +208,7 @@
           sgp_od: 165.2,
           sgp_t: 5.0,
           sus_od: 165.2,
-          sus_t: 2.0,
+          sus_t: 3.4,
           cu_od: 155.58,
           cu_t: 3.4,
           rc: "Rc 6",
@@ -222,7 +223,7 @@
           sgp_od: 216.3,
           sgp_t: 5.8,
           sus_od: 216.3,
-          sus_t: 2.0,
+          sus_t: 4.0,
           cu_od: null,
           cu_t: null,
           rc: null,
@@ -236,7 +237,7 @@
           sgp_od: 267.4,
           sgp_t: 6.6,
           sus_od: 267.4,
-          sus_t: 2.0,
+          sus_t: 4.0,
           cu_od: null,
           cu_t: null,
           rc: null,
@@ -280,7 +281,7 @@
         } else if (ptype === "sus") {
           od = d.sus_od;
           t = d.sus_t;
-          typeLabel = "SUS（JIS G 3459）";
+          typeLabel = "SUS（JIS G 3459 Sch10S）";
         } else {
           od = d.cu_od;
           t = d.cu_t;

@@ -28,24 +28,24 @@
         },
         oil22: {
           rho: 860,
-          mu: 22e-3,
-          label: "鉱物油 VG22",
+          mu: 18.9e-3, // 22 mm²/s × 860 kg/m³（40℃）
+          label: "鉱物油 VG22（40℃）",
           isAir: false,
           vMin: 0.5,
           vMax: 2.0,
         },
         oil46: {
           rho: 870,
-          mu: 46e-3,
-          label: "鉱物油 VG46",
+          mu: 40.0e-3, // 46 mm²/s × 870 kg/m³（40℃）
+          label: "鉱物油 VG46（40℃）",
           isAir: false,
           vMin: 0.5,
           vMax: 2.0,
         },
         oil68: {
           rho: 875,
-          mu: 68e-3,
-          label: "鉱物油 VG68",
+          mu: 59.5e-3, // 68 mm²/s × 875 kg/m³（40℃）
+          label: "鉱物油 VG68（40℃）",
           isAir: false,
           vMin: 0.5,
           vMax: 2.0,
