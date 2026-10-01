@@ -2,8 +2,10 @@
       // TAB: 管用ネジ
       // ════════════════════════════════════════
       // SGP外径: JIS G 3452, 肉厚: スケジュール標準
-      // SUS: JIS G 3459 Sch10S の肉厚に修正 2026-09（旧値は規格外の値）。銅管は未照合
-      // SUS: JIS G 3459, 銅管: JIS H 3300 Kタイプ
+      // SUS: JIS G 3459 Sch10S の肉厚に修正 2026-09（旧値は規格外の値）
+      // 銅管: JIS H 3300 配管用銅管の寸法（K/L/M）に修正 2026-09（KMCT 建築用銅管標準寸法で照合）
+      //   旧値は Lタイプ肉厚で、6A〜15A が1サイズずれ（15A に 5/8=19.05 を割当て等）→内径過大
+      //   6A と 200A 以上は JIS H 3300 に該当なし。Kタイプは 50A まで、Mタイプは 10A から
       // 管用テーパネジ: JIS B 0203
       // [呼びA, インチ呼び, SGP外径, SGP肉厚, SUS外径, SUS肉厚, 銅外径, 銅肉厚,
       //  Rcネジ呼び, ピッチ, ヤマ数/25.4, 有効径, タップ下穴径, テーパ基準径]
@@ -14,8 +16,8 @@
           sgp_t: 2.0,
           sus_od: 10.5,
           sus_t: 1.2,
-          cu_od: 9.52,
-          cu_t: 0.89,
+          cu_od: null,
+          cu_t: null,
           rc: "Rc 1/8",
           pitch: 0.9071,
           tpi: 28,
@@ -29,8 +31,8 @@
           sgp_t: 2.3,
           sus_od: 13.8,
           sus_t: 1.65,
-          cu_od: 12.7,
-          cu_t: 0.89,
+          cu_od: 9.52,
+          cu_t: { K: 0.89, L: 0.76, M: null },
           rc: "Rc 1/4",
           pitch: 1.3368,
           tpi: 19,
@@ -44,8 +46,8 @@
           sgp_t: 2.3,
           sus_od: 17.3,
           sus_t: 1.65,
-          cu_od: 15.88,
-          cu_t: 1.02,
+          cu_od: 12.70,
+          cu_t: { K: 1.24, L: 0.89, M: 0.64 },
           rc: "Rc 3/8",
           pitch: 1.3368,
           tpi: 19,
@@ -59,8 +61,8 @@
           sgp_t: 2.8,
           sus_od: 21.7,
           sus_t: 2.1,
-          cu_od: 19.05,
-          cu_t: 1.07,
+          cu_od: 15.88,
+          cu_t: { K: 1.24, L: 1.02, M: 0.71 },
           rc: "Rc 1/2",
           pitch: 1.8143,
           tpi: 14,
@@ -75,7 +77,7 @@
           sus_od: 27.2,
           sus_t: 2.1,
           cu_od: 22.22,
-          cu_t: 1.14,
+          cu_t: { K: 1.65, L: 1.14, M: 0.81 },
           rc: "Rc 3/4",
           pitch: 1.8143,
           tpi: 14,
@@ -90,7 +92,7 @@
           sus_od: 34.0,
           sus_t: 2.8,
           cu_od: 28.58,
-          cu_t: 1.27,
+          cu_t: { K: 1.65, L: 1.27, M: 0.89 },
           rc: "Rc 1",
           pitch: 2.3091,
           tpi: 11,
@@ -104,8 +106,8 @@
           sgp_t: 3.5,
           sus_od: 42.7,
           sus_t: 2.8,
-          cu_od: 34.93,
-          cu_t: 1.4,
+          cu_od: 34.92,
+          cu_t: { K: 1.65, L: 1.40, M: 1.07 },
           rc: "Rc 1-1/4",
           pitch: 2.3091,
           tpi: 11,
@@ -120,7 +122,7 @@
           sus_od: 48.6,
           sus_t: 2.8,
           cu_od: 41.28,
-          cu_t: 1.52,
+          cu_t: { K: 1.83, L: 1.52, M: 1.24 },
           rc: "Rc 1-1/2",
           pitch: 2.3091,
           tpi: 11,
@@ -135,7 +137,7 @@
           sus_od: 60.5,
           sus_t: 2.8,
           cu_od: 53.98,
-          cu_t: 1.78,
+          cu_t: { K: 2.11, L: 1.78, M: 1.47 },
           rc: "Rc 2",
           pitch: 2.3091,
           tpi: 11,
@@ -150,7 +152,7 @@
           sus_od: 76.3,
           sus_t: 3.0,
           cu_od: 66.68,
-          cu_t: 2.03,
+          cu_t: { K: null, L: 2.03, M: 1.65 },
           rc: "Rc 2-1/2",
           pitch: 2.3091,
           tpi: 11,
@@ -165,7 +167,7 @@
           sus_od: 89.1,
           sus_t: 3.0,
           cu_od: 79.38,
-          cu_t: 2.29,
+          cu_t: { K: null, L: 2.29, M: 1.83 },
           rc: "Rc 3",
           pitch: 2.3091,
           tpi: 11,
@@ -180,7 +182,7 @@
           sus_od: 114.3,
           sus_t: 3.0,
           cu_od: 104.78,
-          cu_t: 2.79,
+          cu_t: { K: null, L: 2.79, M: 2.41 },
           rc: "Rc 4",
           pitch: 2.3091,
           tpi: 11,
@@ -195,7 +197,7 @@
           sus_od: 139.8,
           sus_t: 3.4,
           cu_od: 130.18,
-          cu_t: 3.05,
+          cu_t: { K: null, L: 3.18, M: 2.77 },
           rc: "Rc 5",
           pitch: 2.3091,
           tpi: 11,
@@ -210,7 +212,7 @@
           sus_od: 165.2,
           sus_t: 3.4,
           cu_od: 155.58,
-          cu_t: 3.4,
+          cu_t: { K: null, L: 3.56, M: 3.10 },
           rc: "Rc 6",
           pitch: 2.3091,
           tpi: 11,
@@ -264,7 +266,30 @@
         32: { str: 37.9, tpDr: 37.5, g: 39.2, len: [18.5, 13.4] },
         40: { str: 43.8, tpDr: 43.4, g: 45.0, len: [18.5, 13.4] },
         50: { str: 55.4, tpDr: 54.9, g: 57.0, len: [22.8, 16.9] },
+        // 65・80：東大生研 試作工場「管用テーパねじ下穴」表（旭機工と同形式：リーマなし／リーマ使用）2026-09
+        // 100〜150：同表に内径（有効ねじ部最小位置＝108.051 等）のみ記載でドリル径なし →
+        //   65・80 と同じ決め方（その内径を 0.5mm 単位で切下げ＝リーマなし、さらに −0.5＝リーマ使用）で算出 ※計算値
+        // len：JIS B 0203 表（テーパめねじ 不完全ねじ部あり l ／なし t）
+        // g：G（JIS B 0202）めねじ内径 D1＋0.3（内径許容差 0〜+0.64 の中央付近）※計算値。大径は旋盤中ぐり前提
+        65:  { str: 70.5,  tpDr: 70.0,  g: 72.5,  len: [26.7, 18.6] },
+        80:  { str: 83.0,  tpDr: 82.5,  g: 85.2,  len: [29.8, 21.1] },
+        100: { str: 108.0, tpDr: 107.5, g: 110.4, len: [35.8, 25.9], calc: true },
+        125: { str: 133.0, tpDr: 132.5, g: 135.8, len: [40.1, 29.3], calc: true },
+        150: { str: 158.5, tpDr: 158.0, g: 161.2, len: [40.1, 29.3], calc: true },
       };
+
+      // 管種別の外径・肉厚（銅管は cu-K / cu-L / cu-M）。該当なしは null
+      function pipeDims(sizeA, ptype) {
+        const d = PIPE_DB[sizeA];
+        if (!d) return null;
+        if (ptype === "sgp")
+          return { od: d.sgp_od, t: d.sgp_t, label: "SGP（JIS G 3452）" };
+        if (ptype === "sus")
+          return { od: d.sus_od, t: d.sus_t, label: "SUS（JIS G 3459 Sch10S）" };
+        const ty = ptype.slice(3); // K / L / M
+        if (!d.cu_od || !d.cu_t || d.cu_t[ty] == null) return null;
+        return { od: d.cu_od, t: d.cu_t[ty], label: `銅管（JIS H 3300 ${ty}タイプ）` };
+      }
 
       function calcPipe() {
         const ptype = $("pipe-type").value;
@@ -273,44 +298,41 @@
         if (!d) return;
 
         // 種別ごとのOD/肉厚
-        let od, t, typeLabel;
-        if (ptype === "sgp") {
-          od = d.sgp_od;
-          t = d.sgp_t;
-          typeLabel = "SGP（JIS G 3452）";
-        } else if (ptype === "sus") {
-          od = d.sus_od;
-          t = d.sus_t;
-          typeLabel = "SUS（JIS G 3459 Sch10S）";
-        } else {
-          od = d.cu_od;
-          t = d.cu_t;
-          typeLabel = "銅管（JIS H 3300 K）";
-        }
-
-        const id = od - 2 * t;
-
-        // メインカード
+        const dims = pipeDims(size, ptype);
         $("pipe-a").innerHTML =
           `${size}<span class="card-unit"> A</span>`;
         $("pipe-inch").innerHTML = d.inch;
+        if (!dims) {
+          $("pipe-od").innerHTML = "—";
+          $("pipe-tbody").innerHTML =
+            `<tr><td colspan="3" style="color:var(--muted)">この呼び径・タイプの銅管は JIS H 3300 にありません（Kタイプは50Aまで、Mタイプは10Aから、6A・200A以上は規格外）</td></tr>`;
+        }
+        const od = dims ? dims.od : null;
+        const t = dims ? dims.t : null;
+        const typeLabel = dims ? dims.label : "";
+        const isCu = ptype.startsWith("cu-");
+        const dg = isCu ? 2 : 1;
+        const id = dims ? od - 2 * t : null;
+
+        if (dims) {
+        // メインカード
         $("pipe-od").innerHTML =
-          `${od.toFixed(1)}<span class="card-unit"> mm</span>`;
+          `${od.toFixed(dg)}<span class="card-unit"> mm</span>`;
 
         // 配管詳細テーブル
         const rows = [
           ["配管種別", typeLabel, "JIS 規格"],
           ["呼び径（A）", `${size} A`, ""],
           ["インチ呼び", d.inch, "参考"],
-          ["外径 OD", `${od.toFixed(1)} mm`, "JIS 規格値"],
+          ["外径 OD", `${od.toFixed(dg)} mm`, "JIS 規格値"],
           [
             "肉厚 t",
-            `${t.toFixed(1)} mm`,
+            `${t.toFixed(dg)} mm`,
             ptype === "sgp"
               ? "標準肉厚"
               : ptype === "sus"
-                ? "Sch5S相当"
-                : "K タイプ",
+                ? "Sch10S"
+                : `${ptype.slice(3)} タイプ`,
           ],
           [
             "内径 ID（参考）",
@@ -329,6 +351,7 @@
               `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif">${r[2]}</td></tr>`,
           )
           .join("");
+        }
 
         // 管用テーパネジ詳細
         let thread_rows;
@@ -344,13 +367,18 @@
             ["有効径（基準径の位置）", `${d.eff_d.toFixed(3)} mm`, "JIS B 0203"],
             ["谷の径 d1（基準径の位置）", `${d.d1.toFixed(3)} mm`, "JIS B 0203"],
             ["テーパ", "1/16（1:16）", "全角 3°34′（片側 1°47′）"],
-            ["Rc 下穴①ストレート", tp ? f1(tp.str) : "メーカー表参照", "ドリルのみ（リーマなし）"],
+            ["Rc 下穴①ストレート", tp ? f1(tp.str) : "—", tp && tp.calc ? "計算値（65・80と同じ決め方）。実際は旋盤中ぐり" : "ドリルのみ（リーマなし）"],
             ["Rc 下穴②テーパ",
               tp ? `${tp.tpDr.toFixed(1)} mm → 端面 φ${d.d1.toFixed(3)}` : "メーカー表参照",
               "ドリル後、1/16テーパリーマで端面径まで仕上げ"],
             ["有効ねじ部の長さ（最小）",
-              tp ? `${tp.len[0]} mm（不完全ねじ部なし時 ${tp.len[1]} mm）` : "—", "JIS B 0203"],
-            ["G（平行）下穴（参考）", tp ? f1(tp.g) : "—", "Gねじの場合。Rcとは別物"],
+              tp && tp.len ? `${tp.len[0]} mm（不完全ねじ部なし時 ${tp.len[1]} mm）` : "—", "JIS B 0203"],
+            ["G（平行）下穴（参考）", tp && tp.g ? f1(tp.g) : "—", size >= 65 ? "Gねじの場合。内径 D1＋0.3 の計算値（旋盤中ぐり目安）" : "Gねじの場合。Rcとは別物"],
+            ...(tp && tp.len && size >= 65 ? [[
+              "旋盤中ぐり目安（Rc）",
+              `φ${(d.d1 - (tp.len[0] - 3.46) / 16).toFixed(3)} 以下`,
+              `有効ねじ部の最小位置（端面から ${(tp.len[0] - 3.46).toFixed(1)}mm）の内径。ストレートならこれ以下、テーパなら端面 φ${d.d1.toFixed(3)}→1/16で`,
+            ]] : []),
             ["シール方法", "シールテープ / ペースト", "Rc/R の場合（Gはガスケット等）"],
           ];
         }

@@ -36,14 +36,14 @@
 <span style="color:var(--muted);">締結方式</span>　クランプ1本のみ（ボルト不要・着脱30秒）<br>
 <span style="color:var(--muted);">シール材</span>　センタリングリング内蔵Oリング（NBR/FKM）<br>
 <span style="color:var(--muted);">特徴</span>　　薄型フランジ。実験・研究装置の標準。再使用可<br>
-<b style="color:var(--muted);">▍JIS丸フランジ（JIS B 2290）〜10⁻⁵ Pa〜10⁻⁸ Pa</b><br>
-<span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M5〜M16）<br>
-<span style="color:var(--muted);">シール材</span>　Oリング溝（P系/G系）+ NBR/FKM/Cuガスケット<br>
-<span style="color:var(--muted);">特徴</span>　　国内真空装置の標準。DN16〜DN630。<span style="color:var(--warn);">寸法表は未照合</span><br>
-　　　　　Oリング材質で到達真空度が変わる<br>
+<b style="color:var(--muted);">▍JIS真空フランジ VG/VF（JIS B 2290 附属書＝旧JIS）</b><br>
+<span style="color:var(--muted);">締結方式</span>　ボルト・ナット（M8〜M16、SS400）<br>
+<span style="color:var(--muted);">シール材</span>　VG側の溝に Oリング V系（V24〜V530）。VF は溝なし<br>
+<span style="color:var(--muted);">特徴</span>　　国内真空装置で広く使う。呼びは管の A 呼称（10A〜500A）<br>
+　　　　　<span style="color:var(--warn);">ISO-F（JIS B 2290 本体）とは寸法が違い互換なし</span><br>
 <b style="color:var(--muted);">▍ISO-F（〜10⁻⁷ Pa）</b><br>
-<span style="color:var(--muted);">締結方式</span>　ボルト（M8〜M10）<br>
-<span style="color:var(--muted);">シール材</span>　Oリング（NBR/FKM/Viton）<br>
+<span style="color:var(--muted);">締結方式</span>　ボルト（M8〜M10）。ISO 1609＝JIS B 2290 本体<br>
+<span style="color:var(--muted);">シール材</span>　センタリングリング付き Oリング（NBR/FKM）<br>
 <span style="color:var(--muted);">特徴</span>　　大口径対応。ディフュージョンポンプ等に多用<br>
 <b style="color:var(--muted);">▍ICF / ConFlat（〜10⁻¹⁰ Pa）</b><br>
 <span style="color:var(--muted);">締結方式</span>　ボルト（M4〜M8）。ICFの呼び＝フランジ外径（ICF34〜253）<br>
@@ -241,3 +241,18 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
       nom, t, wll: +(t * 9.80665).toFixed(2),
       form: nom <= 18 ? 'SC / BC（ねじ込み）' : 'SB / BB（ボルト・ナット）ほか',
     }));
+
+
+    /* ── フランジのボルト首下長さ（2026-09 追加）── */
+    function flBoltLen() {
+      const T = { M10:[8,2.0,1.5], M12:[10,2.3,1.75], M16:[13,3.2,2.0], M20:[16,3.2,2.5], M22:[18,4.0,2.5], M24:[19,4.5,3.0] };
+      const g = id => parseFloat(document.getElementById(id)?.value) || 0;
+      const sz = document.getElementById('fl-bl-size')?.value; if (!sz || !T[sz]) return;
+      const [m, w, P] = T[sz];
+      const nW = parseInt(document.getElementById('fl-bl-w').value);
+      const raw = g('fl-bl-t1') + g('fl-bl-t2') + g('fl-bl-g') + nW * w + m + 3 * P;
+      const L = Math.ceil(raw / 5) * 5;
+      document.getElementById('fl-bl-result').innerHTML =
+        `必要 ${raw.toFixed(1)} mm → <b style="color:var(--accent);font-size:15px;">${sz}×${L}</b>（ナット高さ ${m}・座金厚 ${w}×${nW}・ねじ3山 ${(3*P).toFixed(1)}）`;
+    }
+    document.addEventListener('DOMContentLoaded', () => { try { flBoltLen(); } catch (e) {} });

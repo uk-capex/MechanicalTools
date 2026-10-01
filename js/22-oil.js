@@ -348,38 +348,39 @@
 
       // 銘柄対応表 2026-09 作り直し：旧データに実在しない銘柄名が多数あったため、
       // 確認できた銘柄のみ掲載（ENEOS・出光は各社商品紹介資料で確認）。「—」は未照合。購入時は必ずTDSで確認
+      // 2026-09 出光のギヤ・タービン・グリース、Shell/Mobil のウレア・Li-X を追加（出光SDS製品一覧・販売店掲載で実在確認）
       const BRAND_HYD = [
         ["VG 22", "Shell Tellus S2 M 22", "Mobil DTE 10 Excel 22（HV）", "出光 ダフニー スーパーハイドロA 22", "ENEOS スーパーハイランド 22", "Castrol Hyspin AWS 22"],
         ["VG 32", "Shell Tellus S2 M 32", "Mobil DTE 10 Excel 32（HV）", "出光 ダフニー スーパーハイドロA 32", "ENEOS スーパーハイランド 32", "Castrol Hyspin AWS 32"],
         ["VG 46", "Shell Tellus S2 M 46", "Mobil DTE 10 Excel 46（HV）", "出光 ダフニー スーパーハイドロA 46", "ENEOS スーパーハイランド 46", "Castrol Hyspin AWS 46"],
-        ["VG 68", "Shell Tellus S2 M 68", "Mobil DTE 10 Excel 68（HV）", "—", "ENEOS スーパーハイランド 68", "Castrol Hyspin AWS 68"],
+        ["VG 68", "Shell Tellus S2 M 68", "Mobil DTE 10 Excel 68（HV）", "出光 ダフニー スーパーハイドロA 68", "ENEOS スーパーハイランド 68", "Castrol Hyspin AWS 68"],
         ["VG 100", "Shell Tellus S2 M 100", "Mobil DTE 10 Excel 100（HV）", "—", "ENEOS スーパーハイランド 100", "Castrol Hyspin AWS 100"],
       ];
 
       const BRAND_GEAR = [
-        ["VG 68（EP）", "Shell Omala S2 GX 68", "Mobilgear 600 XP 68", "—", "ENEOS ボンノックTS 68", "Castrol Alpha SP 68"],
-        ["VG 100（EP）", "Shell Omala S2 GX 100", "Mobilgear 600 XP 100", "—", "ENEOS ボンノックTS 100", "Castrol Alpha SP 100"],
-        ["VG 150（EP）", "Shell Omala S2 GX 150", "Mobilgear 600 XP 150", "—", "ENEOS ボンノックTS 150", "Castrol Alpha SP 150"],
-        ["VG 220（EP）", "Shell Omala S2 GX 220", "Mobilgear 600 XP 220", "—", "ENEOS ボンノックTS 220", "Castrol Alpha SP 220"],
-        ["VG 320（EP）", "Shell Omala S2 GX 320", "Mobilgear 600 XP 320", "—", "ENEOS ボンノックTS 320", "Castrol Alpha SP 320"],
-        ["VG 460（EP）", "Shell Omala S2 GX 460", "Mobilgear 600 XP 460", "—", "ENEOS ボンノックTS 460", "Castrol Alpha SP 460"],
+        ["VG 68（EP）", "Shell Omala S2 GX 68", "Mobilgear 600 XP 68", "出光 ダフニー スーパーギヤーオイル 68", "ENEOS ボンノックTS 68", "Castrol Alpha SP 68"],
+        ["VG 100（EP）", "Shell Omala S2 GX 100", "Mobilgear 600 XP 100", "出光 ダフニー スーパーギヤーオイル 100", "ENEOS ボンノックTS 100", "Castrol Alpha SP 100"],
+        ["VG 150（EP）", "Shell Omala S2 GX 150", "Mobilgear 600 XP 150", "出光 ダフニー スーパーギヤーオイル 150", "ENEOS ボンノックTS 150", "Castrol Alpha SP 150"],
+        ["VG 220（EP）", "Shell Omala S2 GX 220", "Mobilgear 600 XP 220", "出光 ダフニー スーパーギヤーオイル 220", "ENEOS ボンノックTS 220", "Castrol Alpha SP 220"],
+        ["VG 320（EP）", "Shell Omala S2 GX 320", "Mobilgear 600 XP 320", "出光 ダフニー スーパーギヤーオイル 320", "ENEOS ボンノックTS 320", "Castrol Alpha SP 320"],
+        ["VG 460（EP）", "Shell Omala S2 GX 460", "Mobilgear 600 XP 460", "出光 ダフニー スーパーギヤーオイル 460", "ENEOS ボンノックTS 460", "Castrol Alpha SP 460"],
         ["VG 68（合成）", "Shell Omala S4 GX 68", "—", "—", "ENEOS ボンノックAX 68", "—"],
         ["VG 220（合成）", "Shell Omala S4 GX 220", "—", "—", "ENEOS ボンノックAX 220", "—"],
         ["VG 320（合成）", "Shell Omala S4 GX 320", "—", "—", "ENEOS ボンノックAX 320", "—"],
       ];
 
       const BRAND_TURB = [
-        ["VG 32", "Shell Turbo T 32", "Mobil DTE 732", "—", "ENEOS FBKタービン 32", "—"],
-        ["VG 46", "Shell Turbo T 46", "Mobil DTE 746", "—", "ENEOS FBKタービン 46", "—"],
-        ["VG 68", "Shell Turbo T 68", "Mobil DTE 768", "—", "ENEOS FBKタービン 68", "—"],
+        ["VG 32", "Shell Turbo T 32", "Mobil DTE 732", "出光 ダフニー タービンオイル 32", "ENEOS FBKタービン 32", "—"],
+        ["VG 46", "Shell Turbo T 46", "Mobil DTE 746", "出光 ダフニー タービンオイル 46", "ENEOS FBKタービン 46", "—"],
+        ["VG 68", "Shell Turbo T 68", "Mobil DTE 768", "出光 ダフニー タービンオイル 68", "ENEOS FBKタービン 68", "—"],
       ];
 
       const BRAND_GREASE = [
-        ["汎用 #2（Li）", "Shell Gadus S2 V100 2", "Mobilux EP 2", "—", "ENEOS エピノックグリースAP(N)2", "—"],
+        ["汎用 #2（Li）", "Shell Gadus S2 V100 2", "Mobilux EP 2", "出光 ダフニーグリース MP No.2", "ENEOS エピノックグリースAP(N)2", "—"],
         ["汎用 #3（Li）", "Shell Gadus S2 V100 3", "Mobilux EP 3", "—", "ENEOS エピノックグリースAP(N)3", "—"],
-        ["高温 #2（Li-X 合成）", "—", "Mobilith SHC 220", "—", "—", "—"],
-        ["極圧 #2（Li+EP）", "Shell Gadus S2 V220 2", "—", "—", "ENEOS エピノックグリースAP(N)2", "—"],
-        ["ウレア #2", "—", "—", "—", "ENEOS パイロノックグリース ユニバーサル 2", "—"],
+        ["高温 #2（Li-X）", "Shell Gadus S3 V220C 2", "Mobilith SHC 220（合成）", "出光 ダフニー エポネックスSR No.2", "—", "—"],
+        ["極圧 #2（Li+EP）", "Shell Gadus S2 V220 2", "Mobilux EP 2", "出光 ダフニーグリース MP No.2", "ENEOS エピノックグリースAP(N)2", "—"],
+        ["ウレア #2", "Shell Gadus S3 T100 2", "Mobil Polyrex EM（電動機軸受向け）", "出光 ダフニー ポリレックスアルファ No.2（合成油）", "ENEOS パイロノックグリース ユニバーサル 2", "—"],
         ["食品用 #2（NSF H1）", "—", "Mobilgrease FM 102", "—", "—", "—"],
         ["直動ガイド用", "—（グリース：各ガイドメーカー指定品）", "Mobil Vactra Oil No.2（摺動面油）", "—", "—", "THK AFB-LF"],
       ];

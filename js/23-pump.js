@@ -112,11 +112,8 @@
       }
 
       function psGetID(sizeA, ptype) {
-        const d = PIPE_DB[sizeA];
-        if (!d) return null;
-        if (ptype === "sgp") return d.sgp_od - 2 * d.sgp_t;
-        if (ptype === "sus") return d.sus_od - 2 * d.sus_t;
-        return d.cu_od - 2 * d.cu_t;
+        const dm = pipeDims(sizeA, ptype); // 17-pipethread.js
+        return dm ? dm.od - 2 * dm.t : null;
       }
 
       function psCalcOne(id_mm, Q_m3s, rho, mu, L_m) {

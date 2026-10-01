@@ -27,8 +27,12 @@
         <b style="color:var(--accent);">${r.id}</b> を選択 &nbsp;|&nbsp;
         内径 d1: <b>${r.d1} mm</b> &nbsp; 線径 d2: <b>${r.d2} mm</b><br>
         ${r.bSta == null
-          ? '<span style="color:var(--warn);">この系列の溝寸法はJIS B 2406の対象外（メーカー資料・JIS B 2290参照）</span><br>'
-          : `溝幅 b: <b>${r.bSta}</b> mm（+0.25/0）&nbsp; 溝深さ t: <b>${r.tSta}</b> mm（0/−0.05）&nbsp; 溝底R: <b>${r.C}</b><br>`}
+          ? '<span style="color:var(--warn);">溝寸法データなし</span><br>'
+          : r.series === 'S'
+            ? `溝幅 G: <b>${r.bSta}</b> mm（+0.25/0）&nbsp; 溝深さ: <b>${r.tSta}</b> mm（円筒面＝(D1−d)/2、平面＝H 0/−0.10）<br><span style="font-size:11px;color:var(--muted);">S系はJIS B 2406対象外。桜シールS規格表の推奨溝（圧縮率 約${Math.round((r.d2-r.tSta)/r.d2*100)}%。細線径のため一般の固定用目安より高め）</span><br>`
+          : r.series === 'V'
+            ? `溝幅 e: <b>${r.bSta}</b> mm（+0.1/0）&nbsp; 溝深さ S: <b>${r.tSta}</b> mm（0/−0.2）&nbsp; 溝内径 G1 ≒ 呼び番号<br><span style="font-size:11px;color:var(--muted);">JIS B 2290 附属書（旧JIS真空フランジ VG）の溝${r.id === 'V15' ? '。V15 は対応フランジなしのため線径4の溝を準用' : ''}</span><br>`
+            : `溝幅 b: <b>${r.bSta}</b> mm（+0.25/0）&nbsp; 溝深さ t: <b>${r.tSta}</b> mm（0/−0.05）&nbsp; 溝底R: <b>${r.C}</b><br>`}
         <span style="color:var(--muted);">→ 圧縮率計算タブへ自動入力するには下のボタンを</span>
         <button onclick="orToComp(${r.d2},${r.tSta ?? 0},${r.d1})" style="margin-left:8px;padding:2px 8px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);border-radius:4px;cursor:pointer;font-size:11px;">
           📐 圧縮率計算へ
@@ -121,7 +125,7 @@
         good:['有機溶剤','燃料油','鉱物油','酸類','アルカリ（薄）'],
         bad:['アセトン','MEK','アミン類','熱水（>150℃）'],
         feature:'耐熱・耐薬品性最高クラス。高価。高温油圧や化学機械に最適。',
-        note:'価格はNBRの約10〜20倍。'
+        note:'NBRより大幅に高価。アミン系添加剤入りの油・熱水には注意。'
       },
       {
         id:'VMQ', name:'VMQ（シリコン）', color:'#a0c4ff',
@@ -142,10 +146,10 @@
       {
         id:'CR', name:'CR（クロロプレン/ネオプレン）', color:'var(--warn)',
         temp:'-40〜+120℃', hardness:'A60±5',
-        good:['冷媒フロン','弱酸','アルカリ','海水','空気'],
+        good:['旧冷媒（R12等）','弱酸','アルカリ','海水','空気'],
         bad:['強酸','芳香族溶剤','ケトン'],
-        feature:'耐フロン・耐候・難燃性あり。冷凍機・空調・屋外用。',
-        note:'冷媒用Oリングとして重宝。'
+        feature:'耐候・難燃性あり。屋外用。R134a等の現行冷媒＋冷凍機油は HNBR 等をメーカー確認。',
+        note:'鉱物油への耐性は中程度（NBRより劣る）。'
       },
       {
         id:'PTFE', name:'PTFE（テフロン）', color:'#c9a0ff',
@@ -190,30 +194,34 @@
       if(!checked.length) wrap.innerHTML = `<div style="color:var(--muted);padding:12px;">材質を選択してください</div>`;
     }
 
-    /* ── オイルシールデータ (JIS B 2402-1参考) ── */
+    /* ── オイルシールデータ（JIS B 2402-1:2013 表1 で照合）── */
     const OS_DATA = [
-      // [d, D, B, ハウジング公差, 軸公差]
-      [8,22,7,'H8','h8'],[10,22,7,'H8','h8'],[10,25,7,'H8','h8'],
-      [12,22,7,'H8','h8'],[12,25,7,'H8','h8'],[12,30,7,'H8','h8'],
-      [14,25,7,'H8','h8'],[15,25,7,'H8','h8'],[15,30,7,'H8','h8'],[15,35,7,'H8','h8'],
-      [16,30,7,'H8','h8'],[17,30,7,'H8','h8'],[17,35,7,'H8','h8'],
-      [18,30,7,'H8','h8'],[18,35,7,'H8','h8'],[20,35,7,'H8','h8'],
-      [20,40,7,'H8','h8'],[20,47,7,'H8','h8'],[22,35,7,'H8','h8'],
-      [22,40,7,'H8','h8'],[25,40,7,'H8','h8'],[25,47,7,'H8','h8'],
-      [25,52,7,'H8','h8'],[28,47,7,'H8','h8'],[30,45,8,'H8','h8'],
-      [30,47,8,'H8','h8'],[30,50,8,'H8','h8'],[30,52,8,'H8','h8'],
-      [32,47,8,'H8','h8'],[32,52,8,'H8','h8'],[35,50,8,'H8','h8'],
-      [35,52,8,'H8','h8'],[35,55,8,'H8','h8'],[35,62,8,'H8','h8'],
-      [38,55,8,'H8','h8'],[40,55,8,'H8','h8'],[40,60,8,'H8','h8'],
-      [40,62,8,'H8','h8'],[42,62,8,'H8','h8'],[45,60,8,'H8','h8'],
-      [45,65,8,'H8','h8'],[45,68,10,'H8','h8'],[48,65,8,'H8','h8'],
-      [50,65,8,'H8','h8'],[50,70,10,'H8','h8'],[50,72,10,'H8','h8'],
-      [55,72,10,'H8','h8'],[55,80,10,'H8','h8'],[60,80,10,'H8','h8'],
-      [60,85,10,'H8','h8'],[65,85,10,'H8','h8'],[65,90,10,'H8','h8'],
-      [70,90,10,'H8','h8'],[70,95,10,'H8','h8'],[75,95,10,'H8','h8'],
-      [75,100,10,'H8','h8'],[80,100,10,'H8','h8'],[80,105,10,'H8','h8'],
-      [85,110,12,'H8','h8'],[90,115,12,'H8','h8'],[95,120,12,'H8','h8'],
-      [100,125,12,'H8','h8'],[110,140,12,'H8','h8'],[120,150,15,'H8','h8'],
+      // [d, D, b, JIS表1（ISO 6194-1）に載っている寸法か]
+      // 2026-09 JIS B 2402-1:2013（＝ISO 6194-1:2007 表1）で照合。表に載る d×D は表の幅 b に修正
+      //   （30×47・30×52 は 8→7、55×72・55×80・60×80・60×85 は 10→8、120×150 は 15→12）
+      //   false の行は表で確認できなかった市販サイズ（NOK 等にはある。幅違いの市販品も多い）
+      [6,16,7,true],[6,22,7,true],[7,22,7,true],[8,22,7,true],
+      [8,24,7,true],[9,22,7,true],[10,22,7,true],[10,25,7,true],
+      [12,22,7,false],[12,24,7,true],[12,25,7,true],[12,30,7,true],
+      [14,25,7,false],[15,25,7,false],[15,26,7,true],[15,30,7,true],
+      [15,35,7,true],[16,30,7,true],[17,30,7,false],[17,35,7,false],
+      [18,30,7,true],[18,35,7,true],[20,35,7,true],[20,40,7,true],
+      [20,47,7,false],[22,35,7,false],[22,40,7,false],[25,40,7,true],
+      [25,47,7,false],[25,52,7,false],[28,47,7,false],[30,42,7,true],
+      [30,45,8,false],[30,47,7,true],[30,50,8,false],[30,52,7,true],
+      [32,45,8,true],[32,47,8,true],[32,52,8,true],[35,50,8,true],
+      [35,52,8,true],[35,55,8,true],[35,62,8,false],[38,55,8,true],
+      [38,58,8,true],[38,62,8,true],[40,55,8,true],[40,60,8,false],
+      [40,62,8,true],[42,55,8,true],[42,62,8,false],[45,60,8,false],
+      [45,62,8,true],[45,65,8,false],[45,68,10,false],[48,65,8,false],
+      [50,65,8,false],[50,70,10,false],[50,72,10,false],[55,72,8,true],
+      [55,80,8,true],[60,80,8,true],[60,85,8,true],[65,85,10,true],
+      [65,90,10,true],[70,90,10,true],[70,95,10,true],[75,95,10,true],
+      [75,100,10,true],[80,100,10,true],[80,105,10,false],[80,110,10,true],
+      [85,110,12,true],[85,120,12,true],[90,115,12,false],[90,120,12,true],
+      [95,120,12,false],[100,125,12,false],[110,140,12,false],[120,150,12,true],
+      [150,180,15,true],[160,190,15,true],[170,200,15,true],[180,210,15,true],
+      [190,220,15,true],[200,230,15,true],
     ];
 
     function osFilter() {
@@ -229,23 +237,14 @@
       }
       document.getElementById('os-count').textContent = `${rows.length} 件`;
       tbody.innerHTML = rows.map(r => {
-        const d = r[0], D = r[1], B = r[2];
-        // 各種呼び番号を生成
-        const tcCode  = `TC${d}×${D}×${B}`;           // 通称
-        const jisCode = `JIS D ${d} ${D} ${B}`;         // JIS呼び記号
-        const isoCode = `TYPE 4 ${d} ${D} ${B}`;        // ISO呼び記号
-        // NOK品番: AE + d(3桁) + D(3桁) + E0  ※参考生成
-        const nokCode = `AE${String(d).padStart(2,'0')}${String(D).padStart(3,'0')}E0`;
-        // 武蔵: AD + 同様
-        const muCode  = `AD${String(d).padStart(2,'0')}${String(D).padStart(3,'0')}E0`;
+        const d = r[0], D = r[1], B = r[2], iso = r[3];
+        const code = `${String(d).padStart(3,'0')}${String(D).padStart(3,'0')}`;  // JIS 表7 寸法表示コード
         return `<tr>
           <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;">${d}</td>
           <td>${D}</td><td>${B}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);">${tcCode}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">${jisCode}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">${isoCode}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${nokCode}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${muCode}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);">TC ${d}×${D}×${B}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">${code}</td>
+          <td style="font-size:11px;color:${iso ? 'var(--good)' : 'var(--muted)'};">${iso ? '✓ JIS表1' : '市販サイズ'}</td>
         </tr>`;
       }).join('');
     }
@@ -257,14 +256,14 @@
         use:['recipro','static','vacuum'], press:['low','mid','high'],
         feature:'最も汎用的なシール。溝設計が重要。静的・動的両対応。圧縮率管理がポイント。',
         pros:'小型・軽量・安価・種類豊富', cons:'溝加工が必要。高速摺動には不向き。',
-        pressRange:'〜35MPa（静的）、〜10MPa（動的）',
+        pressRange:'バックアップリングなし 約10MPaまで目安、ありで更に高圧（すき間・硬さによる）',
         speedRange:'往復動 1.5m/s以下推奨',
         temp:'-60〜+200℃（材質による）'
       },
       {
         name:'Uパッキン（リップパッキン）', icon:'🌙',
         use:['recipro'], press:['low','mid','high'],
-        feature:'油圧・空圧シリンダの往復動に最適。方向性あり（片方向シール）。バックアップ不要。',
+        feature:'油圧・空圧シリンダの往復動に最適。方向性あり（片方向シール）。高圧ではバックアップリング併用。',
         pros:'低摩擦・低リーク・自己補償機能', cons:'一方向シール。組み付け向き注意。',
         pressRange:'〜40MPa',
         speedRange:'0.01〜1.5m/s',
@@ -283,8 +282,8 @@
         name:'オイルシール（リップシール）', icon:'🌀',
         use:['rotate'], press:['low'],
         feature:'回転軸の油漏れ防止専用。バネ付きリップが軸に密着。主に大気側漏れ防止。',
-        pros:'高速回転対応・取り付け簡単・安価', cons:'高圧不可（通常0.05MPa以下）',
-        pressRange:'〜0.05MPa（基本的に大気圧側）',
+        pros:'高速回転対応・取り付け簡単・安価', cons:'高圧不可（JIS 0〜30kPa）。耐圧形は別型式',
+        pressRange:'0〜0.03MPa（JIS B 2402-1）。耐圧形（NOK TCV等）は0.3MPa〜',
         speedRange:'周速4〜15m/s（型式による）',
         temp:'-40〜+150℃（NBR）'
       },
@@ -292,7 +291,7 @@
         name:'メカニカルシール', icon:'⚙️',
         use:['rotate'], press:['low','mid','high'],
         feature:'回転機器（ポンプ・攪拌機）の完全密封。端面密封方式。漏れ最小。',
-        pros:'低漏れ・高速・長寿命', cons:'高価・組み付け精度必要・冷却水要',
+        pros:'低漏れ・高速・長寿命', cons:'高価・組み付け精度必要・ドライ運転厳禁（条件により冷却・フラッシング要）',
         pressRange:'〜3MPa（標準型）',
         speedRange:'〜25m/s',
         temp:'流体依存（〜200℃）'
@@ -431,32 +430,35 @@
       {cat:'B', pclass:'NW',  nom:'NW40', od:55,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'45×30',   packMat:'NBR/FKM',      compatKey:'NW-40', compatFlag:'ok',note:'ターボポンプ排気口等に使用'},
       {cat:'B', pclass:'NW',  nom:'NW50', od:75,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'57×38',   packMat:'NBR/FKM',      compatKey:'NW-50', compatFlag:'ok',note:''},
       {cat:'B', pclass:'NW',  nom:'NW63', od:83,  pcd:null,boltN:0, boltSize:'クランプ', boltL:null,torque:null,packOD:'71×50',   packMat:'NBR/FKM',      compatKey:'NW-63', compatFlag:'ok',note:'⚠KFは50まで。63以上はISO-K/F（要確認）'},
-      {cat:'B', pclass:'ISO-F',nom:'ISO63',  od:130,pcd:110,boltN:4, boltSize:'M8',  boltL:25, torque:8,   packOD:'75.0×61.2',packMat:'NBR/FKM/Viton',compatKey:'ISO-63', compatFlag:'ok',note:'ISO-F(ISO 1609)：ボルト締め。Oリング＋センタリング（※記憶ベース・要照合）'},
-      {cat:'B', pclass:'ISO-F',nom:'ISO100', od:165,pcd:145, boltN:8, boltSize:'M8',  boltL:25, torque:8,   packOD:'114×98',   packMat:'NBR/FKM/Viton',compatKey:'ISO-100',compatFlag:'ok',note:'※要照合'},
-      {cat:'B', pclass:'ISO-F',nom:'ISO160', od:225,pcd:200, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'172×154',  packMat:'NBR/FKM/Viton',compatKey:'ISO-160',compatFlag:'ok',note:'※要照合'},
-      {cat:'B', pclass:'ISO-F',nom:'ISO200', od:285,pcd:260, boltN:12, boltSize:'M10', boltL:30, torque:15,  packOD:'213×192',  packMat:'NBR/FKM/Viton',compatKey:'ISO-200',compatFlag:'ok',note:'※要照合'},
-      {cat:'B', pclass:'ICF',  nom:'ICF34',  od:34,pcd:27,boltN:6,boltSize:'M4',  boltL:20, torque:4,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-34', compatFlag:'ok',note:'ICF(ConFlat)：メタルガスケット・ナイフエッジ。超高真空用（ミスミ規格表で照合）'},
-      {cat:'B', pclass:'ICF',  nom:'ICF70',  od:70,  pcd:58.7,boltN:6,boltSize:'M6',  boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-70', compatFlag:'ok',note:'超高真空専用。フランジ面傷つけ厳禁'},
-      {cat:'B', pclass:'ICF',  nom:'ICF114', od:114, pcd:92.1, boltN:8,boltSize:'M8',  boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-114',compatFlag:'ok',note:'半導体・研究装置の高真空配管で標準'},
-      {cat:'B', pclass:'ICF',  nom:'ICF152', od:152, pcd:130.2, boltN:16,boltSize:'M8', boltL:20, torque:8,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-152',compatFlag:'ok',note:''},
-      // ═══ B: JIS 丸フランジ（JIS B 2290）===
-      // 締結：ボルト・ナット / シール：Oリング溝（JIS B 2401 P系またはG系）
-      // 真空度目安：〜10⁻⁵Pa（ゴムOリング）/ 〜10⁻⁸Pa（メタルOリング）
-      {cat:'B', pclass:'JIS-F', nom:'DN16（25A）',  od:45,  pcd:32,  boltN:4, boltSize:'M5',  boltL:20, torque:3,   packOD:'P18(d1:17.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-16',  compatFlag:'ok',note:'JIS B 2290 最小径。小型真空装置・計装配管'},
-      {cat:'B', pclass:'JIS-F', nom:'DN25（32A）',  od:58,  pcd:44,  boltN:4, boltSize:'M6',  boltL:20, torque:5,   packOD:'P22(d1:21.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-25',  compatFlag:'ok',note:'真空チャンバー小口径ポート・ゲートバルブに多用'},
-      {cat:'B', pclass:'JIS-F', nom:'DN40（50A）',  od:75,  pcd:60,  boltN:4, boltSize:'M8',  boltL:25, torque:8,   packOD:'P35(d1:34.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-40',  compatFlag:'ok',note:'ターボポンプ排気ポート・フォアライン標準サイズ'},
-      {cat:'B', pclass:'JIS-F', nom:'DN50（65A）',  od:90,  pcd:74,  boltN:4, boltSize:'M8',  boltL:25, torque:8,   packOD:'P44(d1:43.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-50',  compatFlag:'ok',note:''},
-      {cat:'B', pclass:'JIS-F', nom:'DN63（80A）',  od:110, pcd:90,  boltN:6, boltSize:'M8',  boltL:25, torque:8,   packOD:'P56(d1:55.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-63',  compatFlag:'ok',note:'スパッタ装置・CVD装置の主配管に多用'},
-      {cat:'B', pclass:'JIS-F', nom:'DN80（100A）', od:130, pcd:110, boltN:6, boltSize:'M8',  boltL:25, torque:8,   packOD:'P70(d1:69.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-80',  compatFlag:'ok',note:''},
-      {cat:'B', pclass:'JIS-F', nom:'DN100（125A）',od:152, pcd:130, boltN:8, boltSize:'M8',  boltL:25, torque:8,   packOD:'P90(d1:89.8)',  packMat:'NBR/FKM/Cu',  compatKey:'JISF-100', compatFlag:'warn',note:'⚠JIS B 2290 真空フランジは未照合。規格が異なるため互換なし'},
-      {cat:'B', pclass:'JIS-F', nom:'DN125（150A）',od:180, pcd:156, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'P115(d1:114.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-125', compatFlag:'ok',note:'大型真空チャンバーメインポート'},
-      {cat:'B', pclass:'JIS-F', nom:'DN160（200A）',od:218, pcd:192, boltN:8, boltSize:'M10', boltL:30, torque:15,  packOD:'P150(d1:149.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-160', compatFlag:'ok',note:''},
-      {cat:'B', pclass:'JIS-F', nom:'DN200（250A）',od:270, pcd:240, boltN:12,boltSize:'M10', boltL:30, torque:15,  packOD:'P190(d1:189.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-200', compatFlag:'ok',note:'大型装置・ロードロック室ポート'},
-      {cat:'B', pclass:'JIS-F', nom:'DN250（300A）',od:325, pcd:292, boltN:12,boltSize:'M12', boltL:35, torque:25,  packOD:'P240(d1:239.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-250', compatFlag:'ok',note:''},
-      {cat:'B', pclass:'JIS-F', nom:'DN320（400A）',od:410, pcd:370, boltN:16,boltSize:'M12', boltL:35, torque:25,  packOD:'P310(d1:309.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-320', compatFlag:'ok',note:'大型真空チャンバー本体フランジ'},
-      {cat:'B', pclass:'JIS-F', nom:'DN400（500A）',od:505, pcd:460, boltN:20,boltSize:'M12', boltL:35, torque:25,  packOD:'P390(d1:389.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-400', compatFlag:'ok',note:''},
-      {cat:'B', pclass:'JIS-F', nom:'DN500（600A）',od:615, pcd:565, boltN:20,boltSize:'M16', boltL:45, torque:55,  packOD:'P490(d1:489.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-500', compatFlag:'ok',note:'大型スパッタ・蒸着装置チャンバー本体'},
-      {cat:'B', pclass:'JIS-F', nom:'DN630（800A）',od:765, pcd:710, boltN:24,boltSize:'M16', boltL:45, torque:55,  packOD:'P630(d1:629.8)',packMat:'NBR/FKM/Cu',  compatKey:'JISF-630', compatFlag:'ok',note:'超大型チャンバー。Cuガスケット使用が多い'},
+      {cat:'B', pclass:'ISO-F',nom:'ISO63', od:130,pcd:110,boltN:4, boltSize:'M8', boltL:null, torque:null, packOD:'センタリングリング外径70', packMat:'NBR/FKM',compatKey:'ISO-63',compatFlag:'ok',note:'ISO-F(ISO 1609＝JIS B 2290本体)：ボルト締め。Oリング＋センタリングリング。寸法は Kurt J. Lesker ほか規格表で照合'},
+      {cat:'B', pclass:'ISO-F',nom:'ISO80', od:145,pcd:125,boltN:8, boltSize:'M8', boltL:null, torque:null, packOD:'センタリングリング外径83', packMat:'NBR/FKM',compatKey:'ISO-80',compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ISO-F',nom:'ISO100', od:165,pcd:145,boltN:8, boltSize:'M8', boltL:null, torque:null, packOD:'センタリングリング外径102', packMat:'NBR/FKM',compatKey:'ISO-100',compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ISO-F',nom:'ISO160', od:225,pcd:200,boltN:8, boltSize:'M10', boltL:null, torque:null, packOD:'センタリングリング外径153', packMat:'NBR/FKM',compatKey:'ISO-160',compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ISO-F',nom:'ISO200', od:285,pcd:260,boltN:12, boltSize:'M10', boltL:null, torque:null, packOD:'センタリングリング外径213', packMat:'NBR/FKM',compatKey:'ISO-200',compatFlag:'ok',note:''},
+      {cat:'B', pclass:'ICF',  nom:'ICF34',  od:34,pcd:27,boltN:6,boltSize:'M4',  boltL:null, torque:null,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-34', compatFlag:'ok',note:'ICF(ConFlat)：メタルガスケット・ナイフエッジ。超高真空用（外径・PCD・ボルトはミスミ規格表で照合。締付はガスケットメーカー指示）'},
+      {cat:'B', pclass:'ICF',  nom:'ICF70',  od:70,  pcd:58.7,boltN:6,boltSize:'M6',  boltL:null, torque:null,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-70', compatFlag:'ok',note:'超高真空専用。フランジ面傷つけ厳禁'},
+      {cat:'B', pclass:'ICF',  nom:'ICF114', od:114, pcd:92.1, boltN:8,boltSize:'M8',  boltL:null, torque:null,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-114',compatFlag:'ok',note:'半導体・研究装置の高真空配管で標準'},
+      {cat:'B', pclass:'ICF',  nom:'ICF152', od:152, pcd:130.2, boltN:16,boltSize:'M8', boltL:null, torque:null,   packOD:'メタルOリング',packMat:'Al/Cu',       compatKey:'ICF-152',compatFlag:'ok',note:''},
+      // ═══ B: JIS 真空フランジ VG/VF（JIS B 2290:1998 附属書＝旧JIS 1968、国内で一般的）═══
+      // 2026-09 バルカー寸法編「真空装置用フランジの溝寸法」で全面差替え（旧データは呼び・寸法とも規格にない値だった）
+      // od=D, pcd=C, 厚さT（その他のフランジ）、ボルト材 SS400。boltL＝VG+VF 2枚締めの首下目安（2T＋座金2枚＋ナット高さ＋3山、5mm切上げ）
+      {cat:'B', pclass:'JIS-F', nom:'10A（VG/VF10）', od:70, pcd:50, boltN:4, boltSize:'M8', boltL:30, torque:null, packOD:'Oリング V24', packMat:'NBR/FKM', compatKey:'JISVG-10', compatFlag:'ok', note:'厚さT8・適用管外径17.3。溝 G1=24・G2=34・深さ3（Oリング V24）。VG（溝付き）＋VF（溝なし）で組む。ISO（JIS B 2290本体）とは寸法が異なり互換なし'},
+      {cat:'B', pclass:'JIS-F', nom:'20A（VG/VF20）', od:80, pcd:60, boltN:4, boltSize:'M8', boltL:30, torque:null, packOD:'Oリング V34', packMat:'NBR/FKM', compatKey:'JISVG-20', compatFlag:'ok', note:'厚さT8・適用管外径27.2。溝 G1=34・G2=44・深さ3（Oリング V34）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'25A（VG/VF25）', od:90, pcd:70, boltN:4, boltSize:'M8', boltL:30, torque:null, packOD:'Oリング V40', packMat:'NBR/FKM', compatKey:'JISVG-25', compatFlag:'ok', note:'厚さT8・適用管外径34。溝 G1=40・G2=50・深さ3（Oリング V40）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'40A（VG/VF40）', od:105, pcd:85, boltN:4, boltSize:'M8', boltL:35, torque:null, packOD:'Oリング V55', packMat:'NBR/FKM', compatKey:'JISVG-40', compatFlag:'ok', note:'厚さT10・適用管外径48.6。溝 G1=55・G2=65・深さ3（Oリング V55）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'50A（VG/VF50）', od:120, pcd:100, boltN:4, boltSize:'M8', boltL:35, torque:null, packOD:'Oリング V70', packMat:'NBR/FKM', compatKey:'JISVG-50', compatFlag:'ok', note:'厚さT10・適用管外径60.5。溝 G1=70・G2=80・深さ3（Oリング V70）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'65A（VG/VF65）', od:145, pcd:120, boltN:4, boltSize:'M10', boltL:40, torque:null, packOD:'Oリング V85', packMat:'NBR/FKM', compatKey:'JISVG-65', compatFlag:'ok', note:'厚さT10・適用管外径76.3。溝 G1=85・G2=95・深さ3（Oリング V85）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'80A（VG/VF80）', od:160, pcd:135, boltN:4, boltSize:'M10', boltL:45, torque:null, packOD:'Oリング V100', packMat:'NBR/FKM', compatKey:'JISVG-80', compatFlag:'ok', note:'厚さT12・適用管外径89.1。溝 G1=100・G2=110・深さ3（Oリング V100）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'100A（VG/VF100）', od:185, pcd:160, boltN:8, boltSize:'M10', boltL:45, torque:null, packOD:'Oリング V120', packMat:'NBR/FKM', compatKey:'JISVG-100', compatFlag:'ok', note:'厚さT12・適用管外径114.3。溝 G1=120・G2=130・深さ3（Oリング V120）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'125A（VG/VF125）', od:210, pcd:185, boltN:8, boltSize:'M10', boltL:45, torque:null, packOD:'Oリング V150', packMat:'NBR/FKM', compatKey:'JISVG-125', compatFlag:'ok', note:'厚さT12・適用管外径139.8。溝 G1=150・G2=160・深さ3（Oリング V150）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'150A（VG/VF150）', od:235, pcd:210, boltN:8, boltSize:'M10', boltL:45, torque:null, packOD:'Oリング V175', packMat:'NBR/FKM', compatKey:'JISVG-150', compatFlag:'ok', note:'厚さT12・適用管外径165.2。溝 G1=175・G2=185・深さ3（Oリング V175）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'200A（VG/VF200）', od:300, pcd:270, boltN:8, boltSize:'M12', boltL:55, torque:null, packOD:'Oリング V225', packMat:'NBR/FKM', compatKey:'JISVG-200', compatFlag:'ok', note:'厚さT16・適用管外径216.3。溝 G1=225・G2=241・深さ4.5（Oリング V225）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'250A（VG/VF250）', od:350, pcd:320, boltN:12, boltSize:'M12', boltL:55, torque:null, packOD:'Oリング V275', packMat:'NBR/FKM', compatKey:'JISVG-250', compatFlag:'ok', note:'厚さT16・適用管外径267.4。溝 G1=275・G2=291・深さ4.5（Oリング V275）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'300A（VG/VF300）', od:400, pcd:370, boltN:12, boltSize:'M12', boltL:55, torque:null, packOD:'Oリング V325', packMat:'NBR/FKM', compatKey:'JISVG-300', compatFlag:'ok', note:'厚さT16・適用管外径318.5。溝 G1=325・G2=341・深さ4.5（Oリング V325）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'350A（VG/VF350）', od:450, pcd:420, boltN:12, boltSize:'M12', boltL:60, torque:null, packOD:'Oリング V380', packMat:'NBR/FKM', compatKey:'JISVG-350', compatFlag:'ok', note:'厚さT20・適用管外径355.6。溝 G1=380・G2=396・深さ4.5（Oリング V380）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'400A（VG/VF400）', od:520, pcd:480, boltN:12, boltSize:'M16', boltL:70, torque:null, packOD:'Oリング V430', packMat:'NBR/FKM', compatKey:'JISVG-400', compatFlag:'ok', note:'厚さT20・適用管外径406.4。溝 G1=430・G2=446・深さ4.5（Oリング V430）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'450A（VG/VF450）', od:575, pcd:535, boltN:16, boltSize:'M16', boltL:70, torque:null, packOD:'Oリング V480', packMat:'NBR/FKM', compatKey:'JISVG-450', compatFlag:'ok', note:'厚さT20・適用管外径457.2。溝 G1=480・G2=504・深さ7（Oリング V480）。VG（溝付き）＋VF（溝なし）で組む'},
+      {cat:'B', pclass:'JIS-F', nom:'500A（VG/VF500）', od:625, pcd:585, boltN:16, boltSize:'M16', boltL:70, torque:null, packOD:'Oリング V530', packMat:'NBR/FKM', compatKey:'JISVG-500', compatFlag:'ok', note:'厚さT22・適用管外径508。溝 G1=530・G2=554・深さ7（Oリング V530）。VG（溝付き）＋VF（溝なし）で組む'},
       {cat:'C', pclass:'R',   nom:'R1/8',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/8',  compatFlag:'ok',note:'Rねじ（旧PT）テーパーオスねじ。Rcねじと組み合わせ'},
       {cat:'C', pclass:'R',   nom:'R1/4',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-1/4',  compatFlag:'ok',note:'最も一般的な計装・エア配管サイズ'},
       {cat:'C', pclass:'R',   nom:'R3/8',  od:null,pcd:null,boltN:0,boltSize:'—',    boltL:null,torque:null,packOD:'テーパーシール',packMat:'PTFE/麻',     compatKey:'R-3/8',  compatFlag:'ok',note:''},

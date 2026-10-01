@@ -5,14 +5,17 @@
       // NTN CAT.No.2203 の値に更新 2026-09（Cr,C0r,許容回転数,質量）
       //  深溝玉 60/62/63/64・アンギュラ 72/73（接触角30°）・自動調心玉 12/13（S）
       //  円筒ころ NU/N/NJ：208以上／308以上は標準形、204〜207／304〜307はEA形（標準形が廃止のため）
-      //  E形・EA形は標準形より定格が大きい。606〜609・NA/RNA は未照合
+      //  E形・EA形は標準形より定格が大きい。NU208〜218EA・308〜314EA（ULTAGE、樹脂保持器）、NU220E・316E〜320E を追加 2026-09
+      //   （NTN CAT.No.2203 円筒ころ寸法表。ころ内接円径 Fw が標準形と違い互換性なし。N/NJ 形も同じ定格）
+      //  NA/RNA49：NTN CAT.No.2300/J ソリッド形針状ころ軸受の値に更新 2026-09
+      //  606〜609：NTN CAT.No.2203 ミニアチュア・小径玉軸受表（609 は 609JX2）で照合 2026-09
       // Fmin: 最小荷重 kN（下で 0.01Cr/0.02Cr に再計算）  mass: kg（概算）
       const BEARING_DB = [
         // ── 深溝玉軸受 60xx (極小系列) ──
-        ["606", 6, 17, 6, 1.72, 0.71, 45000, 60000, 0.02, 0.004],
-        ["607", 7, 19, 6, 2.06, 0.87, 40000, 55000, 0.03, 0.006],
-        ["608", 8, 22, 7, 3.25, 1.37, 36000, 50000, 0.04, 0.009],
-        ["609", 9, 24, 7, 3.58, 1.53, 34000, 48000, 0.04, 0.011],
+        ["606", 6, 17, 6, 2.43, 0.865, 35000, 42000, 0.02, 0.006],
+        ["607", 7, 19, 6, 2.48, 0.91, 34000, 40000, 0.03, 0.008],
+        ["608", 8, 22, 7, 3.70, 1.40, 32000, 37000, 0.04, 0.012],
+        ["609", 9, 24, 7, 3.75, 1.45, 31000, 36000, 0.04, 0.014],
         // ── 深溝玉軸受 600x ──
         ["6000", 10, 26, 8, 5.05, 1.96, 29000, 34000, 0.06, 0.019],
         ["6001", 12, 28, 8, 5.65, 2.39, 26000, 30000, 0.06, 0.021],
@@ -129,31 +132,52 @@
         ["NU206", 30, 62, 16, 46, 37.5, 11000, 15600, 0.77, 0.226],
         ["NU207", 35, 72, 17, 59.5, 50, 9500, 13200, 1.02, 0.327],
         ["NU208", 40, 80, 18, 48.5, 43, 9400, 11000, 1.21, 0.378],
+        ["NU208EA", 40, 80, 18, 66.0, 55.5, 8500, 12000, 0.0, 0.426],
         ["NU209", 45, 85, 19, 51, 47, 8400, 9900, 1.38, 0.432],
+        ["NU209EA", 45, 85, 19, 74.5, 66.5, 7600, 10800, 0.0, 0.495],
         ["NU210", 50, 90, 20, 53.5, 51, 7600, 9000, 1.5, 0.47],
+        ["NU210EA", 50, 90, 20, 81.5, 76.5, 6900, 9700, 0.0, 0.503],
         ["NU211", 55, 100, 21, 64.5, 62.5, 6900, 8200, 1.83, 0.638],
+        ["NU211EA", 55, 100, 21, 102, 98.5, 6300, 8900, 0.0, 0.675],
         ["NU212", 60, 110, 22, 76, 75, 6400, 7600, 2.16, 0.818],
+        ["NU212EA", 60, 110, 22, 115, 107, 5800, 8200, 0.0, 0.923],
         ["NU213", 65, 120, 23, 93, 94.5, 5900, 7000, 2.54, 1.02],
+        ["NU213EA", 65, 120, 23, 127, 119, 5400, 7600, 0.0, 1.21],
         ["NU214", 70, 125, 24, 92.5, 95, 5500, 6500, 2.68, 1.12],
+        ["NU214EA", 70, 125, 24, 140, 137, 5000, 7100, 0.0, 1.3],
         ["NU215", 75, 130, 25, 107, 111, 5100, 6000, 2.86, 1.23],
+        ["NU215EA", 75, 130, 25, 154, 156, 4700, 6600, 0.0, 1.41],
         ["NU216", 80, 140, 26, 118, 122, 4800, 5700, 3.36, 1.5],
+        ["NU216EA", 80, 140, 26, 165, 167, 4400, 6100, 0.0, 1.67],
         ["NU217", 85, 150, 28, 134, 140, 4500, 5300, 3.92, 1.87],
+        ["NU217EA", 85, 150, 28, 198, 199, 4100, 5800, 0.0, 2.11],
         ["NU218", 90, 160, 30, 169, 178, 4300, 5000, 4.48, 2.3],
+        ["NU218EA", 90, 160, 30, 215, 217, 3900, 5500, 0.0, 2.44],
         ["NU220", 100, 180, 34, 203, 217, 3800, 4500, 5.7, 3.33],
+        ["NU220E", 100, 180, 34, 277, 305, 3500, 4100, 0.0, 3.66],
         // ── 円筒ころ軸受 NU3xx ──
         ["NU304", 20, 52, 15, 37.5, 26.9, 13000, 18000, 0.56, 0.176],
         ["NU305", 25, 62, 17, 49, 37.5, 11000, 15600, 0.72, 0.275],
         ["NU306", 30, 72, 19, 63, 50, 9300, 13200, 0.96, 0.398],
         ["NU307", 35, 80, 21, 83.5, 71, 8100, 11500, 1.21, 0.545],
         ["NU308", 40, 90, 23, 65, 57, 8000, 9400, 1.5, 0.658],
+        ["NU308EA", 40, 90, 23, 98.5, 81.5, 7200, 10200, 0.0, 0.754],
         ["NU309", 45, 100, 25, 82, 71, 7200, 8400, 1.9, 0.877],
+        ["NU309EA", 45, 100, 25, 115, 98.5, 6500, 9100, 0.0, 0.996],
         ["NU310", 50, 110, 27, 96.5, 86, 6500, 7700, 2.16, 1.14],
+        ["NU310EA", 50, 110, 27, 130, 113, 5900, 8300, 0.0, 1.3],
         ["NU311", 55, 120, 29, 123, 111, 5900, 7000, 2.54, 1.45],
+        ["NU311EA", 55, 120, 29, 162, 143, 5300, 7600, 0.0, 1.65],
         ["NU312", 60, 130, 31, 137, 126, 5500, 6500, 3.0, 1.8],
+        ["NU312EA", 60, 130, 31, 177, 157, 4900, 7000, 0.0, 2.05],
         ["NU314", 70, 150, 35, 175, 168, 4700, 5500, 3.9, 2.71],
+        ["NU314EA", 70, 150, 35, 242, 222, 4200, 6000, 0.0, 3.1],
         ["NU316", 80, 170, 39, 211, 207, 4100, 4800, 4.84, 3.86],
+        ["NU316E", 80, 170, 39, 284, 282, 3700, 4400, 0.0, 4.22],
         ["NU318", 90, 190, 43, 266, 265, 3700, 4300, 5.7, 5.3],
+        ["NU318E", 90, 190, 43, 350, 355, 3300, 3900, 0.0, 5.72],
         ["NU320", 100, 215, 47, 330, 335, 3300, 3800, 7.3, 7.49],
+        ["NU320E", 100, 215, 47, 420, 425, 2900, 3500, 0.0, 8.57],
         // ── 円筒ころ軸受 N2xx ──
         ["N204", 20, 47, 14, 32.5, 24.7, 15000, 21600, 0.45, 0.115],
         ["N205", 25, 52, 15, 34.5, 27.7, 13000, 18000, 0.55, 0.151],
@@ -209,30 +233,30 @@
         ["1318", 90, 190, 43, 117, 44.5, 3200, 3800, 0.0, 5.83],
         ["1320", 100, 215, 47, 140, 57.5, 2800, 3400, 0.0, 8.4],
         // ── 針状ころ軸受 NA49xx ──
-        ["NA4900", 10, 22, 13, 6.55, 5.2, 22000, 28000, 0.0, 0.022],
-        ["NA4901", 12, 24, 13, 7.1, 5.85, 19000, 24000, 0.0, 0.024],
-        ["NA4902", 15, 28, 13, 8.06, 6.95, 17000, 22000, 0.0, 0.029],
-        ["NA4903", 17, 30, 13, 8.51, 7.35, 15000, 19000, 0.0, 0.031],
-        ["NA4904", 20, 37, 17, 13.2, 12.2, 13000, 17000, 0.0, 0.068],
-        ["NA4905", 25, 42, 17, 14.3, 13.7, 11000, 15000, 0.0, 0.079],
-        ["NA4906", 30, 47, 17, 15.3, 15.3, 9500, 13000, 0.0, 0.088],
-        ["NA4907", 35, 55, 20, 21.2, 21.6, 8500, 11000, 0.0, 0.15],
-        ["NA4908", 40, 62, 22, 26.5, 27.5, 7500, 10000, 0.0, 0.2],
-        ["NA4909", 45, 68, 22, 28.1, 30.0, 7000, 9500, 0.0, 0.225],
-        ["NA4910", 50, 72, 22, 28.6, 31.5, 6300, 8500, 0.0, 0.24],
-        ["NA4911", 55, 80, 25, 37.7, 42.5, 5600, 7500, 0.0, 0.35],
-        ["NA4912", 60, 85, 25, 38.5, 44.5, 5300, 7000, 0.0, 0.375],
-        ["NA4914", 70, 100, 30, 55.5, 67.0, 4500, 6000, 0.0, 0.62],
-        ["NA4916", 80, 110, 30, 57.2, 72.5, 4000, 5300, 0.0, 0.68],
-        ["NA4920", 100, 140, 40, 97.5, 137, 3000, 4000, 0.0, 1.6],
+        ["NA4900", 10, 22, 13, 9.55, 9.2, 16000, 24000, 0.0, 0.024],
+        ["NA4901", 12, 24, 13, 10.6, 10.9, 15000, 23000, 0.0, 0.026],
+        ["NA4902", 15, 28, 13, 11.5, 12.8, 13000, 20000, 0.0, 0.036],
+        ["NA4903", 17, 30, 13, 12.4, 14.6, 12000, 18000, 0.0, 0.037],
+        ["NA4904", 20, 37, 17, 23.6, 25.5, 11000, 16000, 0.0, 0.074],
+        ["NA4905", 25, 42, 17, 26.7, 31.5, 8500, 13000, 0.0, 0.088],
+        ["NA4906", 30, 47, 17, 28.3, 35.5, 7500, 11000, 0.0, 0.101],
+        ["NA4907", 35, 55, 20, 35.5, 50, 6500, 9500, 0.0, 0.171],
+        ["NA4908", 40, 62, 22, 48.5, 66.5, 5500, 8500, 0.0, 0.232],
+        ["NA4909", 45, 68, 22, 51, 73, 5000, 7500, 0.0, 0.27],
+        ["NA4910", 50, 72, 22, 53.5, 80, 4700, 7000, 0.0, 0.276],
+        ["NA4911", 55, 80, 25, 65, 99.5, 4300, 6500, 0.0, 0.396],
+        ["NA4912", 60, 85, 25, 68, 108, 4000, 6000, 0.0, 0.427],
+        ["NA4914", 70, 100, 30, 95, 156, 3300, 5000, 0.0, 0.727],
+        ["NA4916", 80, 110, 30, 100, 174, 2900, 4400, 0.0, 0.82],
+        ["NA4920", 100, 140, 40, 140, 260, 2300, 3500, 0.0, 1.93],
         // ── 針状ころ軸受 RNA49xx（内輪なし）──
-        ["RNA4904", null, 37, 17, 13.2, 12.2, 13000, 17000, 0.0, 0.055],
-        ["RNA4906", null, 47, 17, 15.3, 15.3, 9500, 13000, 0.0, 0.07],
-        ["RNA4908", null, 62, 22, 26.5, 27.5, 7500, 10000, 0.0, 0.16],
-        ["RNA4910", null, 72, 22, 28.6, 31.5, 6300, 8500, 0.0, 0.19],
-        ["RNA4912", null, 85, 25, 38.5, 44.5, 5300, 7000, 0.0, 0.295],
-        ["RNA4916", null, 110, 30, 57.2, 72.5, 4000, 5300, 0.0, 0.535],
-        ["RNA4920", null, 140, 40, 97.5, 137, 3000, 4000, 0.0, 1.26],
+        ["RNA4904", null, 37, 17, 23.6, 25.5, 11000, 16000, 0.0, 0.052],
+        ["RNA4906", null, 47, 17, 28.3, 35.5, 7500, 11000, 0.0, 0.069],
+        ["RNA4908", null, 62, 22, 48.5, 66.5, 5500, 8500, 0.0, 0.14],
+        ["RNA4910", null, 72, 22, 53.5, 80, 4700, 7000, 0.0, 0.163],
+        ["RNA4912", null, 85, 25, 68, 108, 4000, 6000, 0.0, 0.275],
+        ["RNA4916", null, 110, 30, 100, 174, 2900, 4400, 0.0, 0.516],
+        ["RNA4920", null, 140, 40, 140, 260, 2300, 3500, 0.0, 1.15],
       ];
       // 最小荷重 Fmin を NTN の目安（玉軸受 0.01·Cr、ころ軸受 0.02·Cr）で再計算 2026-09（旧値は根拠不明）
       BEARING_DB.forEach((b) => {
@@ -368,6 +392,11 @@
         // はめあいタブへ d/D をセット
         if (b[1] != null) $("bfit-d").value = b[1];
         $("bfit-D").value = b[2];
+        if ($("bfit-Cr")) $("bfit-Cr").value = b[4];
+        if ($("bfit-type")) {
+          const nm = String(b[0]);
+          $("bfit-type").value = /^(N|NU|NJ|NUP|NF|3\d{4})/.test(nm) ? "cyl" : /^2[1-4]\d{3}/.test(nm) ? "sph" : "ball";
+        }
         calcBearingLife();
         calcBearingFit();
         // フラッシュ通知
@@ -611,216 +640,140 @@
         $("bl-detail-tbody").innerHTML = "";
       }
 
-      // ── はめあい推奨（テーブルは calcBearingFit 内で定義）──
-
-      const FIT_DESC = {
-        js5: "中間ばめ（わずかすきま〜わずか締まり）",
-        k5: "締まりばめ（軽圧入）",
-        m5: "締まりばめ（標準圧入）",
-        n5: "締まりばめ（重圧入）",
-        p5: "強圧入",
-        r5: "強圧入（重荷重）",
-        h5: "すきまばめ（精密・P6級静止輪用）",
-        h6: "すきまばめ（軸基準・静止輪用）",
-        H5: "すきまばめ（P6級精密穴）",
-        H6: "すきまばめ（精級穴）",
-        H7: "すきまばめ（一般穴）",
-        g6: "すきまばめ",
-        f6: "すきまばめ（大すきま）",
-        e6: "すきまばめ（極大すきま）",
-        d6: "すきまばめ",
-        K5: "中間ばめ（P6級・外輪回転・軽荷重）",
-        K6: "中間ばめ（外輪回転・軽〜普通荷重）",
-        M5: "中間〜締まりばめ（P6級・外輪回転・重荷重）",
-        M6: "中間〜締まりばめ（外輪回転・重荷重）",
-        M7: "中間〜締まりばめ",
-        N6: "締まりばめ（P6級）",
-        N7: "締まりばめ",
-        P6: "締まりばめ（P6級・重）",
-        P7: "締まりばめ（重）",
-        R6: "強圧入（P6級・外輪回転・重荷重）",
-        R7: "強圧入（外輪回転・重荷重）",
+      // ── はめあい推奨（2026-09 作り直し）──
+      //  推奨記号：NTN 転がり軸受総合カタログ CAT.No.2203 表7.2（ラジアル軸受 0級・6X級・6級、鋼製中実軸・鋼/鋳鉄ハウジング）
+      //  締め代：軸・穴の公差は はめあいタブ（16-fit.js）の JIS B 0401 エンジン、軸受側は JIS B 1514 の平均内径/外径の寸法差
+      //  荷重区分（NTN 注1）：軽 P≦0.05Cr／普通 0.05Cr＜P≦0.10Cr／重 P＞0.10Cr
+      const BFIT_SHAFT = {
+        // [を超え, 以下, 記号]
+        light: {
+          ball: [[0,18,"h5"],[18,100,"js6"],[100,200,"k6"]],
+          cyl:  [[0,40,"js6"],[40,140,"k6"],[140,200,"m6"]],
+          sph:  null,
+        },
+        normal: {
+          ball: [[0,18,"js5"],[18,100,"k5"],[100,140,"m5"],[140,200,"m6"],[200,280,"n6"]],
+          cyl:  [[0,40,"k5"],[40,100,"m5"],[100,140,"m6"],[140,200,"n6"],[200,400,"p6"]],
+          sph:  [[0,40,"k5"],[40,65,"m5"],[65,100,"m6"],[100,140,"n6"],[140,280,"p6"],[280,500,"r6"]],
+        },
+        heavy: {
+          ball: null,
+          cyl:  [[50,140,"n6"],[140,200,"p6"],[200,500,"r6"]],
+          sph:  [[50,100,"n6"],[100,140,"p6"],[140,200,"r6"]],
+        },
       };
-      const FIT_TYPE = {
-        js5: "中間",
-        k5: "締まり",
-        m5: "締まり",
-        n5: "締まり",
-        p5: "締まり",
-        r5: "締まり",
-        h5: "すきま",
-        h6: "すきま",
-        H5: "すきま",
-        H6: "すきま",
-        H7: "すきま",
-        g6: "すきま",
-        f6: "すきま",
-        e6: "すきま",
-        d6: "すきま",
-        K5: "中間",
-        K6: "中間",
-        M5: "中間",
-        M6: "中間",
-        M7: "中間",
-        N6: "締まり",
-        N7: "締まり",
-        P6: "締まり",
-        P7: "締まり",
-        R6: "締まり",
-        R7: "締まり",
-      };
-      const FIT_ALLOWANCE = {
-        js5: "±(2〜4)μm",
-        k5: "+5〜+18μm",
-        m5: "+9〜+25μm",
-        n5: "+14〜+33μm",
-        p5: "+17〜+42μm",
-        r5: "+25〜+55μm",
-        h5: "0〜−11μm",
-        h6: "0〜−19μm",
-        H5: "0〜+9μm",
-        H6: "0〜+13μm",
-        H7: "0〜+25μm",
-        g6: "−6〜−23μm",
-        f6: "−13〜−41μm",
-        e6: "−20〜−60μm",
-        d6: "−30〜−85μm",
-        K5: "−4〜+5μm",
-        K6: "−4〜+9μm",
-        M5: "−8〜+1μm",
-        M6: "−9〜+4μm",
-        M7: "−8〜+15μm",
-        N6: "−13〜−2μm",
-        N7: "−16〜+7μm",
-        P6: "−17〜−6μm",
-        P7: "−26〜−5μm",
-        R6: "−28〜−17μm",
-        R7: "−41〜−20μm",
-      };
+      // JIS B 1514-1 平面内平均内径/外径の寸法差の下の値（上は0）[以下, 0級, 6級] μm
+      //  0級は NTN 表7.5 の値。6級は JIS B 1514-1 の値（18〜30は NTN 精度表で確認）
+      const BRG_DMP = [[6,8,7],[10,8,7],[18,8,7],[30,10,8],[50,12,10],[80,15,12],[120,20,15],[180,25,18],[250,30,22],[315,35,25],[400,40,30],[500,45,35]];
+      const BRG_DMP_OD = [[18,8,7],[30,9,8],[50,11,9],[80,13,11],[120,15,13],[150,18,15],[180,25,18],[250,30,20],[315,35,25],[400,40,28],[500,45,33]];
+      function brgTol(tbl, x, cls) {
+        const r = tbl.find(t => x <= t[0]);
+        return r ? -(cls === "p6" ? r[2] : r[1]) : null;
+      }
+      // 軸・穴の許容差（μm）。js/JS は ±IT/2（NTN 表と同じ扱い）、穴 G を追加
+      function bfitLimits(sym, x, isHole) {
+        const p = parseSymbol(sym); if (!p) return null;
+        const it = getIT(x, p.grade);
+        if (p.symbol === "js" || p.symbol === "JS") return { up: it / 2, lo: -it / 2 };
+        if (p.symbol === "G") { const g = SHAFT_DEV.g[fitIdx(x)]; return { up: g + it, lo: g }; }
+        const L = isHole ? getHoleLimits(x, p.symbol, p.grade) : getShaftLimits(x, p.symbol, p.grade);
+        return L ? { up: Math.round(L.upper * 1000 * 10) / 10, lo: Math.round(L.lower * 1000 * 10) / 10 } : null;
+      }
+      // しめしろ（+）/すきま（−）の範囲 → 表示
+      const fmtTL = v => v > 0 ? `${+v.toFixed(1)}T` : v < 0 ? `${+(-v).toFixed(1)}L` : "0";
+      function fitKind(max, min) { return min >= 0 ? "しまりばめ" : max <= 0 ? "すきまばめ" : "中間ばめ"; }
 
       function calcBearingFit() {
         const d = +$("bfit-d").value;
         const D = +$("bfit-D").value;
         const rot = $("bfit-rot").value;
-        const load = $("bfit-load").value;
-        const cls = $("bfit-class").value; // 'normal' | 'p6'
+        const type = $("bfit-type") ? $("bfit-type").value : "ball";
+        const cls = $("bfit-class").value; // 'normal'(0級) | 'p6'(6級)
+        const P = parseFloat($("bfit-P")?.value), Cr = parseFloat($("bfit-Cr")?.value);
+        let load = $("bfit-load").value;
+        let ratioTxt = "";
+        if (P > 0 && Cr > 0) {
+          const r = P / Cr;
+          load = r <= 0.05 ? "light" : r <= 0.10 ? "normal" : "heavy";
+          $("bfit-load").value = load;
+          ratioTxt = `P/Cr = ${r.toFixed(3)} → 自動判定`;
+        }
+        if ($("bfit-ratio")) $("bfit-ratio").textContent = ratioTxt;
         if (!d || !D) return;
 
-        // ── 普通級テーブル（内輪回転）──
-        // [d_min, d_max, shaft_norm, hole_norm, shaft_heavy, hole_heavy]
-        const BFIT_NORMAL = [
-          [0, 18, "js5", "H6", "k5", "H6"],
-          [18, 100, "k5", "H7", "m5", "H7"],
-          [100, 140, "m5", "H7", "n5", "H7"],
-          [140, 200, "n5", "H7", "p5", "H7"],
-          [200, 999, "p5", "H7", "r5", "H7"],
-        ];
-        // ── P6級テーブル（内輪回転・精密）──
-        // 軸：一段精密（js5→h5、k5→js5、m5→k5 等）、穴：H7→H6
-        const BFIT_P6 = [
-          [0, 18, "h5", "H5", "js5", "H5"],
-          [18, 100, "js5", "H6", "k5", "H6"],
-          [100, 140, "k5", "H6", "m5", "H6"],
-          [140, 200, "m5", "H6", "n5", "H6"],
-          [200, 999, "n5", "H6", "p5", "H6"],
-        ];
-        // ── 外輪回転テーブル（普通級）──
-        // [D_min, D_max, hole_norm, hole_heavy]
-        const BFIT_OUTER_NORMAL = [
-          [0, 80, "K6", "M6"],
-          [80, 140, "M7", "N7"],
-          [140, 200, "N7", "P7"],
-          [200, 999, "P7", "R7"],
-        ];
-        // ── 外輪回転テーブル（P6級）──
-        const BFIT_OUTER_P6 = [
-          [0, 80, "K5", "M5"],
-          [80, 140, "M6", "N6"],
-          [140, 200, "N6", "P6"],
-          [200, 999, "P6", "R6"],
-        ];
-
+        const notes = [];
         let shaftSym, holeSym;
+        const typeName = { ball: "玉軸受", cyl: "円筒ころ・円すいころ", sph: "自動調心ころ" }[type];
         if (rot === "inner") {
-          const tbl = cls === "p6" ? BFIT_P6 : BFIT_NORMAL;
-          const row =
-            tbl.find((r) => d >= r[0] && d < r[1]) ||
-            tbl[tbl.length - 1];
-          shaftSym = load === "heavy" ? row[4] : row[2];
-          holeSym = load === "heavy" ? row[5] : row[3];
+          let tbl = BFIT_SHAFT[load][type];
+          let row = tbl && tbl.find(r => d > r[0] && d <= r[1]);
+          if (!row) {
+            const nrow = BFIT_SHAFT.normal[type].find(r => d > r[0] && d <= r[1]);
+            if (nrow) { row = nrow; notes.push(`この荷重・軸径は表7.2に該当欄なし → 普通荷重の値を表示`); }
+          }
+          shaftSym = row ? row[2] : null;
+          if (!row) notes.push(`軸径 ${d}mm は NTN 表の範囲外（NTN に照会）`);
+          if (load === "light" && row && ["js6","k6","m6"].includes(shaftSym)) notes.push("精密を要する場合は js5・k5・m5 を用いる");
+          if (load === "heavy") notes.push("重荷重・衝撃荷重は CN より大きい内部すきま（C3 等）の軸受を用いる");
+          if (type === "cyl" && load === "normal" && ["k5","m5"].includes(shaftSym)) notes.push("単列アンギュラ玉・円すいころは k6・m6 でも可");
+          holeSym = "H7";
+          notes.push("ハウジング（外輪静止）：一般 H7。軽・普通荷重の二つ割りは H8、軸側が高温になる場合は G7、精密回転は玉 JS6／ころ K6、静粛運転は H6");
         } else {
-          const tbl =
-            cls === "p6"
-              ? BFIT_OUTER_P6
-              : BFIT_OUTER_NORMAL;
-          const row =
-            tbl.find((r) => D >= r[0] && D < r[1]) ||
-            tbl[tbl.length - 1];
-          shaftSym = cls === "p6" ? "h5" : "h6"; // P6級は軸もh5に
-          holeSym = load === "heavy" ? row[3] : row[2];
+          shaftSym = "h6";
+          notes.push("軸（内輪静止）：内輪が軸上を動く必要がある自由側は g6（精密は g5）、動く必要がなければ h6（精密は h5）");
+          holeSym = load === "light" ? "M7" : "N7";
+          notes.push(load === "light" ? "外輪回転・軽荷重または変動荷重：M7" : "外輪回転・普通／重荷重：N7（主に玉軸受）。薄肉ハウジングで重荷重・大きな衝撃は P7（主にころ軸受）");
         }
 
-        $("bfit-shaft-symbol").textContent = shaftSym;
+        // しめしろ計算
+        const dLow = brgTol(BRG_DMP, d, cls), DLow = brgTol(BRG_DMP_OD, D, cls);
+        const sL = shaftSym ? bfitLimits(shaftSym, d, false) : null;
+        const hL = bfitLimits(holeSym, D, true);
+        let sMax = null, sMin = null, hMax = null, hMin = null;
+        if (sL && dLow != null) { sMax = sL.up - dLow; sMin = sL.lo - 0; }
+        if (hL && DLow != null) { hMax = 0 - hL.lo; hMin = DLow - hL.up; }
+        // 最大しめしろを「d の 1/○○○」で表す（NTN 7.3.3：上限は軸径の1/1000以下が目安）
+        const ratioOf = v => v > 0 ? Math.round(d * 1000 / v) : null;   // d[mm]→μm で割る
+        const sRatio = sMax != null ? ratioOf(sMax) : null;
+        const ratioTag = sRatio ? `（d の 1/${sRatio.toLocaleString()}）` : "";
+        if (sRatio && sRatio < 1000) {
+          // 50mm未満は公差幅の最小値が効いて推奨どおりでも超えやすい（例 d20 k5＝1/952）→ 注意に留める
+          if (d < 50)
+            notes.push(`<span style="color:var(--warn)">最大しめしろ ${+sMax.toFixed(1)}μm＝d の 1/${sRatio}。50mm未満は公差幅の最小値が効いて、推奨どおりでも 1/1000 を少し超えることがある。NTN は小径・薄肉軸受ではしめしろを小さめにと推奨（7.3.4）→ 一段ゆるい記号（js5→h5、k5→js5 等）も検討</span>`);
+          else
+            notes.push(`<span style="color:var(--bad)">最大しめしろ ${+sMax.toFixed(1)}μm＝d の 1/${sRatio} で、上限目安 1/1000（${d}μm）を超える → 内輪の割れ・寿命低下の恐れ</span>`);
+        }
+        notes.push(`最大しめしろの上限目安は軸径の 1/1000（d${d} なら ${d}μm）。軌道輪にかかる応力で割れ・寿命低下を起こさないための線で、狙う値ではない（NTN 7.3.3、はめあい応力は 127MPa 程度まで）`);
+
+        $("bfit-shaft-symbol").textContent = shaftSym || "—";
         $("bfit-housing-symbol").textContent = holeSym;
+        const clsLabel = cls === "p6" ? "6級" : "0級";
+        const loadLabel = { light: "軽荷重", normal: "普通荷重", heavy: "重荷重・衝撃" }[load];
+        const rotLabel = rot === "inner" ? "内輪回転" : "外輪回転";
 
-        const clsLabel =
-          cls === "p6" ? "【P6級】" : "【普通級】";
-        const rotLabel =
-          rot === "inner" ? "内輪回転" : "外輪回転";
-        const loadLabel =
-          load === "heavy" ? "重荷重" : "普通荷重";
-
-        const makeRows = (sym, label) => {
-          const desc = FIT_DESC[sym] || "—";
-          const type = FIT_TYPE[sym] || "—";
-          const all = FIT_ALLOWANCE[sym] || "—";
-          return `<div class="fit-dim-row"><span class="fit-dim-label">${label}</span><span class="fit-dim-val" style="color:var(--accent)">${sym}</span></div>
-      <div class="fit-dim-row"><span class="fit-dim-label">はめあい種類</span><span class="fit-dim-val" style="font-size:12px">${type}</span></div>
-      <div class="fit-dim-row"><span class="fit-dim-label">概算締め代/すきま</span><span class="fit-dim-val" style="font-size:12px">${all}</span></div>
-      <div class="fit-dim-row"><span class="fit-dim-label">説明</span><span class="fit-dim-val" style="font-size:11px;color:var(--muted)">${desc}</span></div>`;
-        };
-        $("bfit-shaft-rows").innerHTML = makeRows(
-          shaftSym,
-          "軸公差記号",
-        );
-        $("bfit-housing-rows").innerHTML = makeRows(
-          holeSym,
-          "穴公差記号",
-        );
+        const rowsHtml = (sym, L, brgTxt, mx, mn, label, tag = "") => sym == null
+          ? `<div class="fit-dim-row"><span class="fit-dim-label">${label}</span><span class="fit-dim-val">—</span></div>`
+          : `<div class="fit-dim-row"><span class="fit-dim-label">${label}</span><span class="fit-dim-val" style="color:var(--accent)">${sym}</span></div>
+      <div class="fit-dim-row"><span class="fit-dim-label">公差</span><span class="fit-dim-val" style="font-size:12px">${L ? `${L.up >= 0 ? "+" : ""}${L.up} / ${L.lo >= 0 ? "+" : ""}${L.lo} μm` : "—"}</span></div>
+      <div class="fit-dim-row"><span class="fit-dim-label">軸受側（${clsLabel}）</span><span class="fit-dim-val" style="font-size:12px">${brgTxt}</span></div>
+      <div class="fit-dim-row"><span class="fit-dim-label">しめしろ／すきま</span><span class="fit-dim-val" style="font-size:12px">${mx != null ? `${fmtTL(mx)} 〜 ${fmtTL(mn)}（${fitKind(mx, mn)}）` : "—"}</span></div>${tag ? `
+      <div class="fit-dim-row"><span class="fit-dim-label">最大しめしろ</span><span class="fit-dim-val" style="font-size:12px">${tag.slice(1, -1)}　上限目安 1/1000</span></div>` : ""}`;
+        $("bfit-shaft-rows").innerHTML = rowsHtml(shaftSym, sL, dLow != null ? `内径 0 / ${dLow} μm` : "—", sMax, sMin, "軸公差記号", ratioTag);
+        $("bfit-housing-rows").innerHTML = rowsHtml(holeSym, hL, DLow != null ? `外径 0 / ${DLow} μm` : "—", hMax, hMin, "穴公差記号");
 
         const vc = $("bfit-verdict");
         vc.innerHTML = `<div class="verdict-icon">📋</div><div>
-    <div class="verdict-main">${clsLabel} ${rotLabel} / ${loadLabel} — 推奨はめあい</div>
-    <div class="verdict-sub">内径 d=${d}mm / 外径 D=${D}mm　軸：<b>${shaftSym}</b>　穴：<b>${holeSym}</b></div>
+    <div class="verdict-main">${typeName}・${rotLabel}・${loadLabel}（${clsLabel}）— 推奨 軸 <b>${shaftSym || "—"}</b>／穴 <b>${holeSym}</b></div>
+    <div class="verdict-sub">内径 d=${d}mm / 外径 D=${D}mm。T＝しめしろ、L＝すきま。出典：NTN CAT.No.2203 表7.2</div>
   </div>`;
-        vc.style.borderColor =
-          cls === "p6" ? "var(--warn)" : "var(--accent)";
-        vc.style.background =
-          cls === "p6"
-            ? "var(--warn-dim)"
-            : "var(--accent-dim)";
+        vc.style.borderColor = "var(--accent)";
+        vc.style.background = "var(--accent-dim)";
 
         $("bfit-tbody").innerHTML = [
-          [
-            "内輪側（軸）",
-            shaftSym,
-            FIT_TYPE[shaftSym] || "—",
-            FIT_ALLOWANCE[shaftSym] || "—",
-            FIT_DESC[shaftSym] || "—",
-          ],
-          [
-            "外輪側（穴）",
-            holeSym,
-            FIT_TYPE[holeSym] || "—",
-            FIT_ALLOWANCE[holeSym] || "—",
-            FIT_DESC[holeSym] || "—",
-          ],
-        ]
-          .map(
-            (r) =>
-              `<tr><td>${r[0]}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700">${r[1]}</td><td>${r[2]}</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${r[3]}</td><td style="color:var(--muted);font-size:11px">${r[4]}</td></tr>`,
-          )
-          .join("");
+          ["内輪側（軸）", shaftSym || "—", sMax != null ? fitKind(sMax, sMin) : "—", sMax != null ? `${fmtTL(sMax)} 〜 ${fmtTL(sMin)}${ratioTag}` : "—", ""],
+          ["外輪側（穴）", holeSym, hMax != null ? fitKind(hMax, hMin) : "—", hMax != null ? `${fmtTL(hMax)} 〜 ${fmtTL(hMin)}` : "—", ""],
+        ].map(r => `<tr><td>${r[0]}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700">${r[1]}</td><td>${r[2]}</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${r[3]}</td><td></td></tr>`).join("")
+          + `<tr><td colspan="5" style="font-size:11px;color:var(--muted);text-align:left;line-height:1.7">${notes.map(n => "・" + n).join("<br>")}<br>・必要しめしろの下限は、荷重による減少 0.08√(d·Fr/B)μm・温度差 0.0015·d·ΔT μm・面粗さ（研削1〜2.5／旋削5〜7μm）を見込む（NTN 7.3.3）</td></tr>`;
       }
 
       // ── スラスト軸受DB ──

@@ -52,9 +52,7 @@
       if (!st) {
         ['anc-r-tension','anc-r-shear'].forEach(id => document.getElementById(id).textContent = '—');
         document.getElementById('anc-r-combo').innerHTML =
-          `<span style="color:var(--muted);">${(type === 'wedge' || type === 'female')
-            ? 'この種別は出典未確認のため許容荷重を出していません。使用品のカタログで確認してください。'
-            : 'この種別・サイズの組み合わせはカタログにありません'}</span>`;
+          `<span style="color:var(--muted);">この種別・サイズの組み合わせはカタログにありません</span>`;
         ['anc-r-n-tension','anc-r-n-shear','anc-r-n-combo'].forEach(id =>
           document.getElementById(id).textContent = '—');
         dimEl.innerHTML = '';
@@ -63,21 +61,40 @@
 
       // 長期許容で判定（設備据付の常時荷重）。短期は参考表示
       const Na_kN = +(st.Nl * fcF).toFixed(2);
-      const Qa_kN = st.Ql != null ? +(st.Ql * fcF).toFixed(2) : null;
+      // せん断：算定式（鋼材・支圧・へりあき）と、金属系はカタログ最大せん断÷3 の小さい方
+      const edgeRaw = document.getElementById('calc-edge')?.value;
+      const edge = edgeRaw === '' || edgeRaw == null ? null : parseFloat(edgeRaw);
+      const sh = ancShearCalc(size, fc, edge);
+      const pickMin = (o) => {
+        const c = [['鋼材', o.q1], ['支圧', o.q2]];
+        if (o.q3 != null) c.push(['へりあき', o.q3]);
+        return c.reduce((m, x) => x[1] < m[1] ? x : m);
+      };
+      let Qa_kN = null, QaS_kN = null, qMode = '', qDetail = '';
+      if (sh) {
+        let [mL, vL] = pickMin(sh.L), [mS, vS] = pickMin(sh.S);
+        if (st.Ql != null && st.Ql * fcF < vL) { vL = st.Ql * fcF; mL = 'カタログ最大÷3'; }
+        if (st.Qs != null && st.Qs * fcF < vS) { vS = st.Qs * fcF; mS = 'カタログ最大÷3'; }
+        Qa_kN = +vL.toFixed(2); QaS_kN = +vS.toFixed(2); qMode = mL;
+        qDetail = `鋼材 ${sh.L.q1.toFixed(1)}／支圧 ${sh.L.q2.toFixed(1)}／へりあき ${sh.L.q3 != null ? sh.L.q3.toFixed(1) : '（縁なし）'}` +
+                  (st.Ql != null ? `／カタログ ${(st.Ql * fcF).toFixed(1)}` : '') + ' kN';
+      }
       const sub = (s) => `<br><span style="font-size:10px;color:var(--muted);">${s}</span>`;
 
       document.getElementById('anc-r-tension').innerHTML =
         `<span style="font-size:22px;">${toKgf(Na_kN).toLocaleString()}</span>
          <span style="font-size:11px;color:var(--muted);"> kgf</span>` +
         sub(`長期 ${Na_kN} kN／短期 ${(st.Ns * fcF).toFixed(1)} kN`) +
-        (st.Nmax ? sub(`最大荷重 ${st.Nmax} kN ÷ ${ANC_MAX_SF}（ツール仮定）`) : sub('メーカー算定値（Mねじ SS400）'));
+        (st.Nmax ? sub(`最大荷重 ${st.Nmax} kN ÷ ${ANC_MAX_SF}（ツール仮定）`)
+          : type === 'mu' ? sub('カタログ許容値と Mねじ SS400 算定値の小さい方') : sub('メーカー算定値（Mねじ SS400）'));
       document.getElementById('anc-r-shear').innerHTML = Qa_kN != null
         ? `<span style="font-size:22px;">${toKgf(Qa_kN).toLocaleString()}</span>
            <span style="font-size:11px;color:var(--muted);"> kgf</span>` +
-          sub(`長期 ${Qa_kN} kN／短期 ${(st.Qs * fcF).toFixed(1)} kN`) +
-          sub(`最大荷重 ${st.Qmax} kN ÷ ${ANC_MAX_SF}（ツール仮定）`)
-        : `<span style="font-size:13px;color:var(--warn);">カタログ記載なし</span>` +
-          sub('ボルトのせん断・へりあきで別途検討');
+          sub(`長期 ${Qa_kN} kN／短期 ${QaS_kN} kN（${qMode}で決定）`) +
+          sub(`長期内訳：${qDetail}`) +
+          (edge == null ? sub('<span style="color:var(--warn);">へりあき未入力＝縁から十分離れている前提</span>') : '')
+        : `<span style="font-size:13px;color:var(--warn);">算定できません</span>` +
+          sub('このねじ径のボルト断面データなし');
 
       // 組み合わせ検定（線形和：安全側）
       const rN = N_kN > 0 ? N_kN / Na_kN : 0;
@@ -96,7 +113,7 @@
           = ${rN.toFixed(3)}${Qa_kN != null ? ' + ' + rQ.toFixed(3) : ''}
           = <b style="color:${ratioColor};">${ratio.toFixed(3)}</b> ≤ 1.0 ${ratioJudge}
         </div>
-        <div style="font-size:10px;color:var(--muted);margin-top:4px;">Fc${fc}${fc < 21 ? `：√(${fc}/21)=${fcF.toFixed(3)} で低減` : '：カタログFc21値のまま（割増しなし）'}</div>`;
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">Fc${fc}${fc < 21 ? `：引張は √(${fc}/21)=${fcF.toFixed(3)} で低減` : '：引張はカタログFc21値のまま（割増しなし）'}。せん断は算定式に Fc${fc} を直接使用（Ec=${sh ? Math.round(sh.Ec).toLocaleString() : '—'} N/mm²）</div>`;
 
       // 必要本数
       const nTension = N_kN > 0 ? Math.ceil(rN) : 0;
@@ -109,7 +126,7 @@
       // 施工寸法参照
       const dimRow = ANC_DATA.find(r => r[0] === type && r[1] === size);
       if (dimRow) {
-        const [,, dHole, dDepth, embed, , , torque, note] = dimRow;
+        const [,, dHole, dDepth, embed, edgeRec, pitchRec, torque, note] = dimRow;
         const b = (v, c) => `<b style="font-family:'JetBrains Mono',monospace;${c ? 'color:' + c + ';' : ''}">${v}</b>`;
         dimEl.innerHTML = `
           <div style="color:var(--muted);font-size:10px;margin-bottom:6px;">施工寸法参照（${ANC_TYPE_LABEL[type]} ${size}・${note}）</div>
@@ -119,7 +136,9 @@
             <div><span style="color:var(--muted);">埋込長</span><br>${b(embed + ' mm', 'var(--good)')}</div>
             <div><span style="color:var(--muted);">締付トルク</span><br>${b(torque ? torque + ' N·m' : '—')}</div>
           </div>
-          <div style="font-size:10px;color:var(--muted);margin-top:6px;">端あき・間隔はメーカー設計資料で確認</div>`;
+          <div style="font-size:11px;margin-top:6px;">推奨 へりあき ${b(edgeRec + ' mm以上')}　間隔 ${b(pitchRec + ' mm以上')}` +
+          (edge != null && edgeRec && edge < edgeRec ? `　<span style="color:var(--warn);">⚠ 入力のへりあき ${edge}mm は推奨未満（せん断はへりあき計算に反映済み。引張の低減は未考慮）</span>` : '') +
+          `</div>`;
       } else dimEl.innerHTML = '';
     }
 
