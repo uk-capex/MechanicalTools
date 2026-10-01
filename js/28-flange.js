@@ -1,3 +1,23 @@
+    // ── 互換（相フランジとして穴が合うか）をデータから判定 2026-10 ──
+    //  JISフランジ（A）同士：PCD・本数・ボルト径が同じ＝穴位置同一（ボルトが通る）
+    //  PCD同じで本数/径違い＝一部のみ（間に合わせなら本数を減らす等の検討要）
+    //  真空・ねじ込み・衛生（B/C/D）は規格をまたいだ互換なし
+    function flMates(r) {
+      r = r._base || r;
+      if (r.cat !== 'A' || !r.pcd) return { full: [], part: [] };
+      const same = FL_DATA.filter(x => x !== r && x.cat === 'A' && x.nom === r.nom && x.pcd === r.pcd);
+      return {
+        full: same.filter(x => x.boltN === r.boltN && x.boltSize === r.boltSize),
+        part: same.filter(x => !(x.boltN === r.boltN && x.boltSize === r.boltSize)),
+      };
+    }
+    function flCompatFlag(r) {
+      r = r._base || r;
+      if (r.cat !== 'A') return 'na';
+      const m = flMates(r);
+      return m.full.length ? 'ok' : m.part.length ? 'warn' : 'ng';
+    }
+
     function flFilter() {
       const cat     = document.getElementById('fl-cat').value;
       const pclass  = document.getElementById('fl-pclass').value;
@@ -8,9 +28,21 @@
       let rows = FL_DATA;
       if (cat    !== 'all') rows = rows.filter(r => r.cat === cat);
       if (pclass !== 'all') rows = rows.filter(r => r.pclass === pclass);
-      if (query)            rows = rows.filter(r => r.nom.toUpperCase().includes(query) || r.pclass.includes(query));
-      if (compat === 'warn') rows = rows.filter(r => r.compatFlag !== 'ok');
-      if (compat === 'ok')   rows = rows.filter(r => r.compatFlag === 'ok');
+      // 「25A」のような呼び径は完全一致（125A・250A を拾わない）
+      if (query) rows = /^\d+A$/.test(query)
+        ? rows.filter(r => r.nom.toUpperCase() === query || r.nom.toUpperCase().startsWith(query + '（'))
+        : rows.filter(r => r.nom.toUpperCase().includes(query) || r.pclass.includes(query));
+      if (compat === 'warn') rows = rows.filter(r => ['warn', 'ng'].includes(flCompatFlag(r)));
+      // 互換品も並べる：絞り込んだ各行の直後に、他クラスで穴が合うもの（一部のみ含む）を差し込む
+      if (compat === 'mate' && pclass !== 'all') {
+        const out = [];
+        rows.forEach(r => {
+          out.push(r);
+          const m = flMates(r);
+          [...m.full, ...m.part].forEach(x => out.push(Object.assign(Object.create(x), { _base: x, _mateOf: r.pclass, _mateKind: m.full.includes(x) ? 'full' : 'part' })));
+        });
+        rows = out;
+      }
 
       document.getElementById('fl-count').textContent = `${rows.length} 件`;
 
@@ -79,13 +111,17 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
 
       tbody.innerHTML = rows.map(r => {
         // 行の背景色（互換性フラグ）
-        const rowBg =
-          r.compatFlag === 'ng'   ? 'background:var(--bad-dim);'  :
-          r.compatFlag === 'warn' ? 'background:var(--warn-dim);' : '';
+        const flag = flCompatFlag(r);
+        const mates = flMates(r);
+        const cls = list => list.map(x => x.pclass).join('・');
+        const rowBg = r._mateOf
+          ? 'background:var(--accent-dim);'
+          : flag === 'ng' ? 'background:var(--bad-dim);' : flag === 'warn' ? 'background:var(--warn-dim);' : '';
         const compatIcon =
-          r.compatFlag === 'ng'   ? '<span style="color:var(--bad);">✕ 他クラスと互換なし</span>'  :
-          r.compatFlag === 'warn' ? '<span style="color:var(--warn);">⚠ 一部のみ共通</span>'   :
-                                    '<span style="color:var(--good);">✓ 他クラスと共通</span>';
+          flag === 'na'   ? '<span style="color:var(--muted);">同規格内のみ</span>' :
+          flag === 'ng'   ? '<span style="color:var(--bad);">✕ 穴位置が合うクラスなし</span>' :
+          `<span style="color:var(--good);">${mates.full.length ? '✓ ' + cls(mates.full) + ' と穴位置同一' : ''}</span>` +
+          (mates.part.length ? `${mates.full.length ? '<br>' : ''}<span style="color:var(--warn);" title="JIS の穴は中心線をまたいで振り分けるため、4穴と8穴は同じPCDでも穴位置が合わない">⚠ ${cls(mates.part)}：PCD同じ・本数/径違い（穴は合わない→追加工で対応）</span>` : '');
         const torqueTxt = !r.torque ? '—'
           : (typeof r.torque === 'object')
             ? `${r.torque.w}${r.torque.g != null ? ' / ' + r.torque.g : ''}<br><span style="font-size:9px;color:var(--muted);">${r.torque.src}</span>`
@@ -95,7 +131,7 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
         const boltLTxt  = r.boltL  ? `${r.boltL}` : '—';
         return `<tr style="${rowBg}">
           <td style="color:${FL_CAT_COLOR[r.cat]};font-weight:700;white-space:nowrap;">${FL_CAT_LABEL[r.cat]}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;">${r.pclass}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;">${r._mateOf ? `<span style="color:${r._mateKind === 'full' ? 'var(--good)' : 'var(--warn)'};">↔</span> ` : ''}${r.pclass}</td>
           <td style="font-weight:700;color:var(--ink);white-space:nowrap;">${r.nom}</td>
           <td>${odTxt}</td>
           <td style="font-family:'JetBrains Mono',monospace;font-weight:${r.pcd?'700':'400'};color:${r.pcd?'var(--ink)':'var(--muted)'};">${pcdTxt}</td>
