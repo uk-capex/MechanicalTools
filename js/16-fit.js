@@ -129,7 +129,11 @@
       }
 
       function calcFit() {
-        const d = +$("fit-size").value;
+        const d = parseFloat($("fit-size").value);
+        if (!(d > 0) || d > 500) {
+          $("fit-right").innerHTML = `<div class="memo">呼び寸法は 0 を超え 500 mm 以下で入れてください（JIS B 0401 の表の範囲）。</div>`;
+          return;
+        }
         const hStr = $("fit-hole").value;
         const sStr = $("fit-shaft").value;
         const h = parseSymbol(hStr);
@@ -189,11 +193,11 @@
         <div class="fit-sum-val ${minClear >= 0 ? "good-text" : "bad-text"}">${minClear >= 0 ? "+" : ""}${(minClear * 1000).toFixed(1)} μm</div>
       </div>
       <div class="fit-sum-item">
-        <div class="fit-sum-label">穴 IT公差</div>
+        <div class="fit-sum-label">穴の公差幅（IT${h.grade}）</div>
         <div class="fit-sum-val" style="color:var(--accent)">${((hole.upper - hole.lower) * 1000).toFixed(0)} μm</div>
       </div>
       <div class="fit-sum-item">
-        <div class="fit-sum-label">軸 IT公差</div>
+        <div class="fit-sum-label">軸の公差幅（IT${s.grade}）</div>
         <div class="fit-sum-val" style="color:var(--accent)">${((shaft.upper - shaft.lower) * 1000).toFixed(0)} μm</div>
       </div>
     </div>

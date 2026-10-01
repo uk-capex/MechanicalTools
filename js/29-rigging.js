@@ -162,7 +162,7 @@
     }
 
     function rigAngleChanged() {
-      const θ = parseFloat(document.getElementById('rc-angle').value);
+      const θ = parseFloat(document.getElementById('rc-angle').value) || 0;
       if (θ === 0) {
         document.getElementById('rc-points').value = '1';
         document.getElementById('rc-angle').disabled = true;
@@ -173,7 +173,15 @@
 
     /* ── 総合選定計算 ── */
     // 張力係数 = 1/cos(開き角/2)
-    const RIG_ANGLE_FACTOR = {0:1.00, 30:1.04, 60:1.16, 90:1.41, 120:2.00};
+    //  2026-10 開き角を手入力に。係数は 1/cos(θ/2) を小数2桁で切上げ（30°1.04・60°1.16・90°1.42 ※表の1.41は四捨五入）
+    const rigAngleFactor = θ => θ > 0 ? Math.ceil(1 / Math.cos(θ / 2 * Math.PI / 180) * 100) / 100 : 1.0;
+    // 開き角の判定：厚労省「玉掛け作業の安全に係るガイドライン」（つり角度は原則90°以内。吊り方により60°以内）
+    function rigAngleNote(θ) {
+      if (θ > 120) return `<span style="color:var(--bad);">✕ 開き角120°超（張力2倍超）は計算対象外。天秤（スプレッダ）で角度を小さくする</span><br>`;
+      if (θ > 90)  return `<span style="color:var(--bad);">✕ ガイドラインの原則「つり角度90°以内」を超える。天秤の使用・吊り点の見直しを</span><br>`;
+      if (θ > 60)  return `<span style="color:var(--warn);">⚠ 推奨の60°を超える（ガイドライン原則90°以内）。2本4点半掛け・あだ巻き等の吊り方は60°以内</span><br>`;
+      return '';
+    }
 
     function rigRow(label, value, color) {
       return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -185,19 +193,20 @@
     function rigCalc() {
       const W_kgf  = parseFloat(document.getElementById('rc-load').value)   || 0;
       const n      = parseFloat(document.getElementById('rc-points').value)  || 1;
-      const θ      = parseFloat(document.getElementById('rc-angle').value);
-      const factor = RIG_ANGLE_FACTOR[θ] || 1.0;
+      const θ      = Math.max(0, parseFloat(document.getElementById('rc-angle').value) || 0);
+      const factor = rigAngleFactor(θ);
       const nEff   = rigEffLegs(n);
 
       const T_kgf = W_kgf / nEff * factor;   // 1本あたり張力
       const T_kN  = kgf2kN(T_kgf);
       const W_kN  = kgf2kN(W_kgf);
 
-      const angleWarn = θ >= 120
-        ? `<span style="color:var(--bad);">⚠ 開き角120°は上限。超えると使用禁止。</span><br>`
-        : θ >= 90
-        ? `<span style="color:var(--warn);">⚠ 開き角90°以上は張力が大きい。注意。</span><br>`
-        : '';
+      const angleWarn = rigAngleNote(θ);
+      if (θ > 120) {
+        document.getElementById('rc-tension-box').innerHTML = angleWarn;
+        ['rc-wire-result','rc-eyebolt-result','rc-shackle-result'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '—'; });
+        return;
+      }
       const legNote = n >= 4 ? `<div style="color:var(--muted);font-size:10px;margin-top:6px;">※4点吊りは3本で負担として計算（均等には掛からない前提）</div>` : '';
 
       document.getElementById('rc-tension-box').innerHTML = `
@@ -270,7 +279,7 @@
       wireAngleEl.value = String(Math.max(...opts));
       wireAngleCalc();
       // 1本あたり張力
-      const T_kgf = Math.ceil(W_kgf / rigEffLegs(n) * (RIG_ANGLE_FACTOR[θ] || 1));
+      const T_kgf = Math.ceil(W_kgf / rigEffLegs(n) * rigAngleFactor(θ));
       document.getElementById('eb-req').value = T_kgf;
       eyeboltReverse();
       document.getElementById('sh-search-wll').value = T_kgf;
