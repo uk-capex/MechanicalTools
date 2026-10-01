@@ -3901,39 +3901,13 @@
           <div>
             <div class="section-title">はめあい条件</div>
             <div class="field">
-              <label>呼び径（mm）</label>
-              <select id="fit-size">
-                <option value="3">3</option>
-                <option value="6">6</option>
-                <option value="10">10</option>
-                <option value="14">14</option>
-                <option value="18">18</option>
-                <option value="24">24</option>
-                <option value="30">30</option>
-                <option value="40">40</option>
-                <option value="50" selected>50</option>
-                <option value="65">65</option>
-                <option value="80">80</option>
-                <option value="100">100</option>
-                <option value="120">120</option>
-                <option value="140">140</option>
-                <option value="160">160</option>
-                <option value="180">180</option>
-                <option value="200">200</option>
-                <option value="225">225</option>
-                <option value="250">250</option>
-                <option value="280">280</option>
-                <option value="315">315</option>
-                <option value="355">355</option>
-                <option value="400">400</option>
-                <option value="450">450</option>
-                <option value="500">500</option>
-              </select>
+              <label>呼び寸法（mm）　0超〜500以下</label>
+              <input type="number" id="fit-size" value="50" step="0.1" min="0.1" max="500" oninput="calcFit()">
             </div>
             <div class="two-col">
               <div class="field">
                 <label>穴公差域（例: H7）</label>
-                <select id="fit-hole">
+                <select id="fit-hole" onchange="calcFit()">
                   <option value="H5">H5</option>
                   <option value="H6">H6</option>
                   <option value="H7" selected>H7</option>
@@ -3950,7 +3924,7 @@
               </div>
               <div class="field">
                 <label>軸公差域（例: p6）</label>
-                <select id="fit-shaft">
+                <select id="fit-shaft" onchange="calcFit()">
                   <option value="d9">d9</option>
                   <option value="e7">e7</option>
                   <option value="f6">f6</option>
@@ -8867,9 +8841,9 @@
         <div class="field">
           <label>互換性フィルター</label>
           <select id="fl-compat" onchange="flFilter()">
-            <option value="all">すべて表示</option>
-            <option value="warn">⚠ 要注意のみ</option>
-            <option value="ok">✓ 互換あり含む</option>
+            <option value="mate" selected>互換品も並べる（↔ 印）</option>
+            <option value="all">選んだクラスのみ</option>
+            <option value="warn">⚠ 穴が合わない・一部のみ</option>
           </select>
         </div>
 
@@ -8989,18 +8963,12 @@
                 </select>
               </div>
               <div class="field">
-                <label>開き角 θ（2本の間の角度）</label>
-                <select id="rc-angle" onchange="rigAngleChanged()" disabled style="opacity:0.5;">
-                  <option value="0" selected>0°（垂直）× 1.00</option>
-                  <option value="30">30° × 1.04</option>
-                  <option value="60">60° × 1.16</option>
-                  <option value="90">90° × 1.41</option>
-                  <option value="120">120° × 2.00 ⚠上限</option>
-                </select>
+                <label>開き角 θ（2本の間の角度・°）</label>
+                <input type="number" id="rc-angle" value="0" min="0" max="120" step="5" oninput="rigAngleChanged()" disabled style="opacity:0.5;">
               </div>
               <hr class="divider">
               <div class="memo" style="font-size:11px;">
-                <b>⚠ 開き角120°超は使用禁止</b><br>（クレーン等安全衛生規則）<br>4点吊りは3本で負担として計算。<br><br>
+                <b>開き角（つり角度）の目安</b><br>60°以内が推奨、原則90°以内（厚労省「玉掛け作業の安全に係るガイドライン」。2本4点半掛け等は60°以内）。法令（クレーン則）に角度の規定はない。<br>張力係数＝1/cos(θ/2)：60°で1.16倍、90°で1.42倍、120°で2倍。<br>4点吊りは3本で負担として計算。<br><br>
                 各サブタブへ反映ボタンを押すと<br>
                 荷重・角度が各タブに自動セットされます。
               </div>
