@@ -1793,9 +1793,9 @@
                 <option value="sus">
                   SUS（JIS G 3459 Sch10S）
                 </option>
-                <option value="copper">
-                  銅管（K・L・M タイプ）
-                </option>
+                <option value="cu-K">銅管 Kタイプ（JIS H 3300・厚肉）</option>
+                <option value="cu-L">銅管 Lタイプ（JIS H 3300・給湯標準）</option>
+                <option value="cu-M">銅管 Mタイプ（JIS H 3300・薄肉）</option>
               </select>
             </div>
             <div class="field">
@@ -2795,45 +2795,44 @@
               <hr class="divider" />
               <div class="section-title">使用条件</div>
               <div class="field">
+                <label>軸受形式</label>
+                <select id="bfit-type" onchange="calcBearingFit()">
+                  <option value="ball">玉軸受（深溝・アンギュラ等）</option>
+                  <option value="cyl">円筒ころ・円すいころ</option>
+                  <option value="sph">自動調心ころ</option>
+                </select>
+              </div>
+              <div class="field">
                 <label>回転輪</label>
-                <select
-                  id="bfit-rot"
-                  onchange="calcBearingFit()"
-                >
-                  <option value="inner">
-                    内輪回転（一般的：軸が回る）
-                  </option>
-                  <option value="outer">
-                    外輪回転（ホイール軸受等）
-                  </option>
+                <select id="bfit-rot" onchange="calcBearingFit()">
+                  <option value="inner">内輪回転（一般的：軸が回る）</option>
+                  <option value="outer">外輪回転（ホイール・プーリ等）</option>
                 </select>
               </div>
               <div class="field">
-                <label>荷重条件</label>
-                <select
-                  id="bfit-load"
-                  onchange="calcBearingFit()"
-                >
-                  <option value="normal">
-                    普通荷重（C/P ≥ 8）
-                  </option>
-                  <option value="heavy">
-                    重荷重 / 衝撃荷重（C/P &lt; 8）
-                  </option>
+                <label>荷重条件（NTN の区分）</label>
+                <select id="bfit-load" onchange="document.getElementById('bfit-P').value='';calcBearingFit()">
+                  <option value="light">軽荷重（P ≦ 0.05Cr）</option>
+                  <option value="normal" selected>普通荷重（0.05Cr ＜ P ≦ 0.10Cr）</option>
+                  <option value="heavy">重荷重・衝撃荷重（P ＞ 0.10Cr）</option>
                 </select>
               </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="field">
+                  <label>動等価荷重 P (kN)　任意</label>
+                  <input type="number" id="bfit-P" step="0.1" placeholder="入れると自動判定" oninput="calcBearingFit()" />
+                </div>
+                <div class="field">
+                  <label>基本動定格荷重 Cr (kN)</label>
+                  <input type="number" id="bfit-Cr" step="0.1" oninput="calcBearingFit()" />
+                </div>
+              </div>
+              <div id="bfit-ratio" style="font-size:11px;color:var(--accent);margin:-4px 0 6px;"></div>
               <div class="field">
-                <label>軸受クラス</label>
-                <select
-                  id="bfit-class"
-                  onchange="calcBearingFit()"
-                >
-                  <option value="normal">
-                    普通級（一般機械）
-                  </option>
-                  <option value="p6">
-                    P6級（工作機械・精密機器）
-                  </option>
+                <label>軸受の精度等級</label>
+                <select id="bfit-class" onchange="calcBearingFit()">
+                  <option value="normal">0級（一般機械）</option>
+                  <option value="p6">6級（精密）</option>
                 </select>
               </div>
             </div>
@@ -2846,7 +2845,9 @@
               >はすきまばめ〜中間（穴：H7/J7等）→
               取り外し可能に<br /><br />
               内輪回転の場合：内輪=回転輪（締まり）、外輪=静止輪（すきま〜中間）<br />
-              外輪回転の場合：外輪=回転輪（締まり）、内輪=静止輪（すきま〜中間）
+              外輪回転の場合：外輪=回転輪（締まり）、内輪=静止輪（すきま〜中間）<br /><br />
+              <b>出典</b>：推奨記号＝NTN CAT.No.2203 表7.2（鋼製中実軸・鋼/鋳鉄ハウジング）。しめしろは JIS B 0401 の軸・穴公差と JIS B 1514 の軸受内外径の寸法差から計算（NTN 表7.5 と同じ考え方）。<br />
+              精度等級は軸受側の公差にだけ効く（推奨記号は同じ）。中空軸・軽合金ハウジング・特殊条件は NTN に照会。
             </div>
           </div>
           <div class="panel-right">
@@ -3729,7 +3730,7 @@
             </div>
             <div class="two-col">
               <div class="field">
-                <label>内径 d (mm)</label>
+                <label>内径 d ／ 内輪なしは Fw (mm)</label>
                 <input type="number" id="ndl-bore" placeholder="例: 40" oninput="filterNeedle()">
               </div>
               <div class="field">
@@ -3741,29 +3742,28 @@
               <label>系列</label>
               <select id="ndl-series" onchange="filterNeedle()">
                 <option value="all">すべて</option>
-                <option value="NA">NA系（フランジ付・内輪あり）</option>
-                <option value="RNA">RNA系（フランジ付・内輪なし）</option>
-                <option value="HK">HK系（シェル型・底なし）</option>
-                <option value="BK">BK系（シェル型・底付き）</option>
-                <option value="SL">SL系（複列・内輪あり）</option>
-                <option value="NKI">NKI系（内輪付・止め輪溝なし）</option>
+                <option value="NA">NA49系（内輪付き）</option>
+                <option value="RNA">RNA49系（内輪なし）</option>
+                <option value="HK">HK形（シェル形・オープンエンド）</option>
+                <option value="BK">BK形（シェル形・クローズエンド）</option>
+                <option value="SL">シーブ用 複列総ころ（NTN SL04／NSK RS／INA SL04）</option>
               </select>
             </div>
             <hr class="divider">
             <div class="memo" style="font-size:11px;">
               <b>型式の読み方</b><br>
-              <b style="color:var(--accent);">NA4908</b>　→　NA49 + 08(内径40mm)<br>
-              <b style="color:var(--accent);">RNA4908</b>　→　内輪なし版<br>
-              <b style="color:var(--accent);">HK2016</b>　→　内径20mm・幅16mm<br>
-              <b style="color:var(--accent);">SL4-5008NR</b>　→　複列・5008・止め輪溝付<br><br>
-              <b>サフィックス</b><br>
-              <b>NR</b>：止め輪溝付き<br>
-              <b>ZW</b>：複列<br>
-              <b>RS</b>：接触シール<br>
-              <b>ZZ</b>：シールド<br><br>
+              <b style="color:var(--accent);">NA4908R</b>　→　NA49 + 08(内径40mm)・R=外輪両つば<br>
+              <b style="color:var(--accent);">RNA4908R</b>　→　内輪なし版（軸径＝Fw 48mm）<br>
+              <b style="color:var(--accent);">HK2016F</b>　→　Fw 20mm・幅16mm<br>
+              <b style="color:var(--accent);">SL04-5008NR</b>　→　シーブ用・内径40・NR=外輪止め輪付き<br><br>
+              <b>接尾記号（NTN）</b><br>
+              <b>R</b>：外輪両つば　<b>ZW</b>：保持器複列<br>
+              <b>LL</b>：両側シール　<b>T2</b>：樹脂保持器（120℃以下）<br>
+              <b>F</b>：プレミアムシェル　<b>D</b>：外輪油穴<br><br>
               <b style="color:var(--warn);">内輪なし（RNA/HK/BK）</b>は<br>
               軸面をそのまま軌道面として使用。<br>
-              軸硬さ HRC58以上・Ra0.2以下推奨。<br><br>
+              軸の硬さ・粗さは NTN カタログの軌道面の項を確認。<br><br>
+              出典：NTN CAT.No.2300/J、SL04形は CAT.No.2203、RS-50..NR は NSK オンラインカタログ。<br>同じ内径・外径で検索するとメーカー違いの代替候補が並ぶ（止め輪溝・油穴位置は図面で要確認）。限界回転はグリース潤滑値<br><br>
               クリックで寿命計算タブに初期値をセット
             </div>
           </div>
@@ -3774,7 +3774,7 @@
                   <tr>
                     <th>型式</th>
                     <th>系列</th>
-                    <th>d<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
+                    <th>d/Fw<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
                     <th>D<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
                     <th>B<br><span style="font-weight:400;font-size:10px;">(mm)</span></th>
                     <th>Cr<br><span style="font-weight:400;font-size:10px;">(kN)</span></th>
@@ -3795,8 +3795,7 @@
               <b>ニードルベアリングの特徴</b><br>
               <b>高ラジアル剛性</b>：ころが長く断面が薄いため、同じ外径で高い負荷容量<br>
               <b>アキシャル荷重不可</b>：ラジアル専用。アキシャルは別途スラスト軸受で受ける<br>
-              <b>内輪なし型（RNA/HK/BK）</b>：軸を直接軌道として使用。軸硬度・粗さが性能に直結<br>
-              <b>複列型（SL）</b>：モーメント荷重に強い。コンロッド・クランク等に多用
+              <b>内輪なし型（RNA/HK/BK）</b>：軸を直接軌道として使用。軸硬度・粗さが性能に直結
             </div>
           </div>
         </div>
@@ -3813,17 +3812,20 @@
             </div>
             <div class="field">
               <label>種別</label>
-              <select id="snap-type" onchange="calcSnap()">
+              <select id="snap-type" onchange="buildSnapSelect()">
                 <option value="shaft">
                   軸用スナップリング（C形・外溝）
                 </option>
                 <option value="bore">
                   穴用スナップリング（C形・内溝）
                 </option>
+                <option value="e">
+                  E形止め輪（小径軸・横から差し込み）
+                </option>
               </select>
             </div>
             <div class="field">
-              <label>軸径 / 穴径（mm）</label>
+              <label>軸径 / 穴径（mm）・E形は呼び</label>
               <select
                 id="snap-size"
                 onchange="calcSnap()"
@@ -3839,9 +3841,10 @@
             <b>溝径</b>：リングが収まる溝の底径<br />
             <b>溝幅</b>：リングの板厚に対応した溝の幅<br />
             <b>溝深さ</b>：軸または穴面からの溝の深さ<br />
-            C形止め輪 JIS B 2804（呼び10〜80）。<br>
-            出典：ミスミ技術データ（JIS B 2804 抜粋）。<br>
-            呼び8以下はE形止め輪を検討。85以上は未収録。
+            C形止め輪 JIS B 2804:2010（軸用 呼び10〜120・穴用 10〜125）。<br>
+            厚さは2010版の基準寸法（1.5／1.75）。協定で1.6／1.8も可で、その場合は溝幅が広くなる（m 1.75／1.95）。手持ちの止め輪の厚さを確認して溝幅を決める。<br>
+            <b>E形</b>：呼び＝止め輪の内径で、軸径ではない。適用軸径の範囲から選ぶ（0.8〜24）。<br>
+            出典：ミスミ技術データ・三木プーリ（JIS B 2804:2010 抜粋）。
           </div>
         </div>
         <div class="panel-right">
@@ -7968,9 +7971,9 @@
                 <option value="sus">
                   SUS（JIS G 3459 Sch10S）
                 </option>
-                <option value="cu">
-                  銅管（JIS H 3300 K）
-                </option>
+                <option value="cu-K">銅管 Kタイプ（JIS H 3300・厚肉）</option>
+                <option value="cu-L">銅管 Lタイプ（JIS H 3300・給湯標準）</option>
+                <option value="cu-M">銅管 Mタイプ（JIS H 3300・薄肉）</option>
               </select>
             </div>
 
@@ -8742,17 +8745,20 @@
             </div>
             <hr class="divider">
             <div class="memo">
-              <b>型式記号（NOK等）</b><br>
-              <b>TC：</b>ばね付 内向リップ 金属ケース<br>
-              <b>TB：</b>ばね付 内向リップ ゴムO.D.<br>
-              <b>SC：</b>ばね付 外向リップ 金属ケース<br>
-              <b>VC：</b>ばね無し 内向リップ<br>
-              <b>WA：</b>防塵リップ付 ダブル<br><br>
-              <b>ハウジング内径公差：</b>H8<br>
-              <b>軸公差：</b>h8<br>
-              軸面粗さ：Ra0.2〜0.8 推奨<br>
-              軸硬さ：HRC30以上推奨<br>
-              面取り：15〜30° C1〜C3
+              <b>型式記号（NOK ＝ JIS タイプ）</b><br>
+              <b>SC：</b>外周ゴム・ばね付・シングルリップ（タイプ1）<br>
+              <b>SB：</b>外周金属・ばね付・シングルリップ（タイプ2）<br>
+              <b>TC：</b>外周ゴム・ばね付・保護リップ付（タイプ4）<br>
+              <b>TB：</b>外周金属・ばね付・保護リップ付（タイプ5）<br>
+              <b>VC：</b>ばねなし（グリース・ダスト用、圧力不可）<br>
+              外周金属（SB/TB）はアルミ・樹脂ハウジングに不向き→外周ゴムを使う<br><br>
+              <b>JIS B 2402-1 の条件</b><br>
+              圧力：0〜30kPa（耐圧形は別型式）<br>
+              ハウジング穴：H8、Ra1.6〜3.2（外周金属は Ra0.4 程度が望ましい）<br>
+              軸：h11 以内（メーカーは h8 推奨が多い）<br>
+              軸面粗さ：Ra0.1〜0.32（送りなしプランジ研削が望ましい、リード目不可）<br>
+              軸硬さ：30HRC以上（きずが付きやすい所は45HRC程度）<br>
+              ハウジング穴深さ：b≦10 は b+1.2、b＞10 は b+1.5 以上
             </div>
           </div>
           <div class="panel-right">
@@ -8764,17 +8770,15 @@
                     <th>軸径 d<br>(mm)</th>
                     <th>外径 D<br>(mm)</th>
                     <th>幅 B<br>(mm)</th>
-                    <th>通称<br>(TC呼び)</th>
-                    <th>JIS呼び記号<br>(JIS D形式)</th>
-                    <th>ISO呼び記号<br>(TYPE 4形式)</th>
-                    <th>NOK品番<br>(参考)</th>
-                    <th>武蔵オイルシール<br>(参考)</th>
+                    <th>型式例<br>(NOK TC)</th>
+                    <th>JIS寸法<br>表示コード</th>
+                    <th>JIS表1</th>
                   </tr>
                 </thead>
                 <tbody id="os-tbody"></tbody>
               </table>
             </div>
-            <div class="memo" style="margin-top:8px;">※ 寸法はJIS B 2402-1 / NOK標準サイズ参考値。実際の選定はメーカカタログで確認してください。</div>
+            <div class="memo" style="margin-top:8px;">※ 寸法は JIS B 2402-1:2013 表1（ISO 6194-1）で照合。「市販サイズ」は表で確認できなかった寸法。メーカー品番は寸法から決まらないため、カタログ・通販で寸法検索して確認。</div>
           </div>
         </div>
       </div>
@@ -8848,7 +8852,7 @@
             <option value="NW">NW/KF（真空）</option>
             <option value="ISO-F">ISO-F（真空）</option>
             <option value="ICF">ICF（真空）</option>
-            <option value="JIS-F">JIS丸フランジ（真空）</option>
+            <option value="JIS-F">JIS真空フランジ VG/VF（真空）</option>
             <option value="R">Rねじ・Rcねじ</option>
             <option value="SWG">Swagelok/VCR</option>
             <option value="SAN">サニタリー(ISO 2852)</option>
@@ -8933,8 +8937,22 @@
         <div class="memo" style="font-size:11px;">
           ※ JISフランジ（A）の外径・PCD・ボルト本数・径は JIS B 2220 の値（ステンレス製管フランジ寸法表・ニチアス資料で照合）。<br>
           ※ JISフランジの最小締付トルク・ガスケット寸法はニチアス資料の値（10K/20K：ジョイントシート表、5K/16K：TOMBO No.1133表。いずれも m=2.75・y=25.5、トルク係数0.2）。<b>実際の締付は最小値の1.2〜1.5倍</b>（ニチアス推奨）。他社ガスケットは各社値で確認。5Kはゴム系ガスケット推奨でガス系の値なし。<br>
-          ※ ボルト長さは根拠不明のため空欄。<br>
-          ※ 真空・ねじ込み・衛生（B/C/D）は未照合。
+          ※ JISフランジ（A）のボルト長さはフランジ厚さが種類（SOP/SOH/WN/バルブ等）で違うため表では空欄。下の計算で出す。<br>
+          ※ 真空（B）：JIS真空フランジ VG/VF は JIS B 2290 附属書（旧JIS）の値（バルカー寸法編）、ISO-F は ISO 1609 の値、ICF はミスミ規格表。締付トルクはガスケット・Oリングメーカー指示で。<br>
+          ※ ねじ込み・衛生（C/D）は未照合。
+        </div>
+        <div class="memo" style="font-size:12px;margin-top:10px;">
+          <b>🔩 ボルト首下長さの計算（フランジ2枚締め）</b><br>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:6px;">
+            <label style="font-size:11px;">ボルト<br><select id="fl-bl-size" onchange="flBoltLen()">
+              <option>M10</option><option>M12</option><option selected>M16</option><option>M20</option><option>M22</option><option>M24</option></select></label>
+            <label style="font-size:11px;">フランジ厚1 (mm)<br><input type="number" id="fl-bl-t1" value="16" style="width:70px" oninput="flBoltLen()"></label>
+            <label style="font-size:11px;">フランジ厚2 (mm)<br><input type="number" id="fl-bl-t2" value="16" style="width:70px" oninput="flBoltLen()"></label>
+            <label style="font-size:11px;">ガスケット厚 (mm)<br><input type="number" id="fl-bl-g" value="3" step="0.5" style="width:70px" oninput="flBoltLen()"></label>
+            <label style="font-size:11px;">座金<br><select id="fl-bl-w" onchange="flBoltLen()"><option value="2" selected>両側</option><option value="1">ナット側のみ</option><option value="0">なし</option></select></label>
+          </div>
+          <div id="fl-bl-result" style="margin-top:6px;"></div>
+          <span style="font-size:10px;color:var(--muted);">L＝厚1＋厚2＋ガスケット＋座金＋ナット高さ（JIS 1種）＋ねじ3山、5mm単位で切上げ。フランジ厚は現物・図面の値で。</span>
         </div>
       </div><!-- /panel-right -->
       </div><!-- /two-panel -->
@@ -9226,8 +9244,8 @@
                   <option value="ap">旭化成 ARケミカルセッター AP（回転・打撃型）</option>
                   <option value="mu">旭化成 ARケミカルセッター MU（打込み型）</option>
                   <option value="all-anc">サンコーテクノ オールアンカー Cタイプ</option>
-                  <option value="wedge">ウェッジアンカー ⚠未照合</option>
-                  <option value="female">メスネジアンカー ⚠未照合</option>
+                  <option value="wedge">サンコーテクノ トルコンアンカー TCW（ウェッジ式）</option>
+                  <option value="female">サンコーテクノ グリップアンカー GA（メスネジ）</option>
                 </select>
               </div>
               <div class="field">
@@ -9239,8 +9257,7 @@
               <hr class="divider">
               <div class="memo">
                 <b>📐 施工寸法の注意</b><br>
-                ※ 旭化成AP/MU・サンコーCはメーカー値。<br>
-                <b style="color:var(--warn);">ウェッジ・メスネジは未照合。</b><br>
+                ※ 旭化成AP/MU・サンコー（オールアンカーC・トルコンTCW・グリップGA）はメーカー値。<br>
                 下穴径はメーカー・品番で異なります。<br><br>
                 <b>🧹 穿孔後の清掃（重要）</b><br>
                 ① 圧縮空気で2〜3回ブロー<br>
@@ -9251,16 +9268,18 @@
                 <b>🌡️ AP硬化時間（気中・メーカー値）</b><br>
                 -10℃:180分　0℃:60分　10℃:25分<br>
                 20℃:15分　30℃:10分<br>
-                <b>🌡️ MU硬化時間目安 ⚠未照合</b><br>
+                <b>🌡️ MU硬化時間（最大強度の約80%・メーカー値）</b><br>
                 -5℃:360分　0℃:180分　5℃:120分<br>
                 10℃:70分　15℃:45分　20℃:30分<br>
                 25℃:25分　30℃:20分<br>
                 ※外気・躯体・カプセルの最低温を基準に。<br>
                 5℃以下：打込み後5回転以上回すこと。<br>
-                -5℃以下：使用禁止。硬化前に荷重厳禁。<br><br>
+                −5℃未満：使用不可。硬化前にボルトを動かさない。<br><br>
                 <b>📏 コンクリート強度：</b>Fc21以上推奨<br>
-                <b>端距離・へりあき：</b>埋込長の2倍以上<br>
-                <b>アンカー間隔：</b>埋込長の3倍以上
+                <b>へりあき・間隔（推奨・表に自動表示）</b><br>
+                接着系（AP/MU）：へりあき 埋込長×1以上（最低50mm）、間隔 埋込長×2以上<br>
+                金属系（C/TCW/GA）：へりあき 埋込長×2以上、間隔 埋込長×3.5以上<br>
+                ※サンコーテクノ・旭化成資料の目安。これ未満は強度低下・ひび割れの恐れ→計算タブのへりあき入力で確認
               </div>
             </div>
             <div class="panel-right">
@@ -9276,8 +9295,8 @@
                     <th>下穴径<br>(mm)</th>
                     <th>下穴深さ<br>(mm)</th>
                     <th>埋込長<br>(mm)</th>
-                    <th>端距離<br>最小(mm)</th>
-                    <th>間隔<br>最小(mm)</th>
+                    <th>へりあき<br>推奨(mm)</th>
+                    <th>間隔<br>推奨(mm)</th>
                     <th>締付<br>トルク(N·m)</th>
                     <th>備考</th>
                   </tr></thead>
@@ -9302,8 +9321,8 @@
                   <option value="ap">旭化成 AP（回転・打撃型）</option>
                   <option value="mu">旭化成 MU（打込み型）</option>
                   <option value="all-anc">サンコー オールアンカー C</option>
-                  <option value="wedge">ウェッジ ⚠未照合</option>
-                  <option value="female">メスネジ ⚠未照合</option>
+                  <option value="wedge">サンコー トルコン TCW</option>
+                  <option value="female">サンコー グリップ GA</option>
                 </select>
               </div>
               <div class="field">
@@ -9341,11 +9360,20 @@
                 <label>せん断荷重 Q (kgf)</label>
                 <input type="number" id="calc-shear" value="300" step="50" min="0" oninput="ancCalc()">
               </div>
+              <div class="field">
+                <label>へりあき c (mm)　せん断方向の縁までの距離</label>
+                <input type="number" id="calc-edge" value="150" step="10" min="0" oninput="ancCalc()" placeholder="空欄＝縁なし（十分遠い）">
+              </div>
               <hr class="divider">
               <div class="memo" style="font-size:11px;">
-                <b>安全率：</b>引張 SF=4、せん断 SF=4<br>
-                <b>組み合わせ：</b>N/Na + Q/Qa ≤ 1.0<br>
-                <b>参考規格：</b>JCAA・建築技術指針
+                <b>引張：</b>ケミカル＝メーカー許容値、金属系＝最大荷重÷3（ツール仮定）<br>
+                <b>せん断：</b>あと施工アンカーの許容せん断力式で算定<br>
+                　① 鋼材 qa1＝φ1·0.7σy·sca（ボルト SS400、σy235、ねじ部有効断面積）<br>
+                　② 支圧 qa2＝φ2·0.75·0.5√(Fc·Ec)·sca<br>
+                　③ へりあきのコーン破壊 qa3＝φ2·0.75·0.31√Fc·0.5πc²<br>
+                　φ1＝2/3・φ2＝1/3（長期）。金属系はカタログ最大せん断÷3とも比べて小さい方<br>
+                <b>組み合わせ：</b>N/Na + Q/Qa ≤ 1.0（線形和・安全側）<br>
+                <b>出典：</b>国交省あと施工アンカー設計指針の強度式（サンコーテクノ技術資料の整理による）
               </div>
             </div>
             <div class="panel-right" style="display:flex;flex-direction:column;gap:12px;">
