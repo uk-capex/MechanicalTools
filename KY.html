@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>非定常作業KY（試作）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF0EE; --card:#FFFFFF; --ink:#1C2124; --sub:#5B6469; --line:#C7CCCE;
+  --unseen:#E0A800; --unseen-bg:#FFF6D6; --nonec:#4F7DB3; --none-bg:#E5EDF7; --hit:#D22A1F; --hit-bg:#FBE4E2; --done:#1B8A4C; --done-bg:#E1F2E8;
+  --caution:#F0B400; --caution-bg:#FFF4CC; --act:#1D5FA8; --act-ink:#FFFFFF; --none:#FFFFFF;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#151A1C; --card:#20272A; --ink:#E6EBED; --sub:#9AA5AA; --line:#3A4448;
+  --unseen:#D9A925; --unseen-bg:#3A3215; --nonec:#7FA7D6; --none-bg:#1C2A3A; --hit:#F0574C; --hit-bg:#3D1F1C; --done:#3DBE74; --done-bg:#16301F;
+  --caution:#F5C431; --caution-bg:#3A3215; --act:#4A8EDB; --act-ink:#0E1517; --none:#20272A;}}
+:root[data-theme="dark"]{
+  --paper:#151A1C; --card:#20272A; --ink:#E6EBED; --sub:#9AA5AA; --line:#3A4448;
+  --unseen:#D9A925; --unseen-bg:#3A3215; --nonec:#7FA7D6; --none-bg:#1C2A3A; --hit:#F0574C; --hit-bg:#3D1F1C; --done:#3DBE74; --done-bg:#16301F;
+  --caution:#F5C431; --caution-bg:#3A3215; --act:#4A8EDB; --act-ink:#0E1517; --none:#20272A;}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"BIZ UDPGothic","Meiryo UI","Hiragino Sans","Yu Gothic",sans-serif;font-size:16px;line-height:1.55;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px 120px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:10px 0 8px;border-bottom:1px solid var(--line)}
+.toprow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ttl{font-weight:700;font-size:17px}
+.clock{font-variant-numeric:tabular-nums;color:var(--sub);font-size:14px}
+.steps{display:flex;gap:4px;margin-top:8px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.steps i.on{background:var(--ink)}
+h2{font-size:20px;margin:22px 0 4px}
+.lead{color:var(--sub);font-size:14px;margin:0 0 14px}
+label.f{display:block;font-size:14px;font-weight:700;margin:14px 0 6px}
+input[type=text],textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid var(--act);outline-offset:1px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{font:inherit;font-size:15px;padding:9px 13px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:42px}
+.opt.sel{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.grp{margin-top:18px}
+.grp>.gl{font-size:13px;color:var(--sub);margin-bottom:6px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));z-index:6}
+.bar .in{max-width:560px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.btn{font:inherit;font-weight:700;font-size:16px;border:0;border-radius:10px;padding:13px 16px;min-height:50px;cursor:pointer}
+.btn.main{flex:1;background:var(--act);color:var(--act-ink)}
+.btn.main:disabled{background:var(--line);color:var(--sub);cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.hint{font-size:13px;color:var(--sub)}
+.warn{font-size:14px;color:var(--hit);font-weight:700}
+/* 関所 */
+.gate{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.gate.no{border-color:var(--caution);background:var(--caution-bg)}
+.gate.stop{border-color:var(--hit);background:var(--hit-bg)}
+.gq{font-weight:700;margin-bottom:8px}
+.yn{display:flex;gap:8px}
+.yn button{flex:1;font:inherit;font-weight:700;padding:10px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);min-height:46px;cursor:pointer}
+.yn button.y.sel{background:var(--done);border-color:var(--done);color:#fff}
+.yn button.n.sel{background:var(--caution);border-color:var(--caution);color:#1C2124}
+.gsub{margin-top:10px}
+.gsub .gl{font-size:13px;color:var(--sub);margin:8px 0 6px}
+/* ハブ */
+.tape{display:flex;gap:2px;height:14px;margin:12px 0 4px;border-radius:3px;overflow:hidden}
+.tape b{flex:1;background:var(--unseen);transition:background .25s}
+.tape b.hit{background:var(--hit)} .tape b.done{background:var(--done)} .tape b.none{background:var(--nonec)}
+.tally{display:flex;gap:14px;font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
+.tally span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+.band{margin-top:16px}
+.band .gl{font-size:13px;color:var(--sub);margin-bottom:6px}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.chip{position:relative;font:inherit;text-align:left;padding:11px 12px;border-radius:10px;border:2px solid var(--unseen);background:var(--card);color:var(--ink);min-height:64px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.chip .nm{font-weight:700;font-size:15px;line-height:1.3;display:block}
+.chip .st{font-size:12px;color:var(--sub);display:block;margin-top:3px}
+.chip.unseen{border-style:dashed;background:var(--unseen-bg)}
+.chip.unseen .st{color:#8A6A00;font-weight:700}
+.chip.hit{border-color:var(--hit);background:var(--hit-bg)}
+.chip.hit .st{color:var(--hit);font-weight:700}
+.chip.done{border-color:var(--done);background:var(--done-bg)}
+.chip.done .st{color:var(--done);font-weight:700}
+.chip.none{border-color:var(--nonec);background:var(--none-bg)}
+.chip.none .st{color:var(--nonec);font-weight:700}
+.chip.add{border-style:dashed;border-color:var(--act);color:var(--act);display:flex;align-items:center;justify-content:center;font-weight:700}
+.chip.pressing{transform:scale(.97)}
+/* シート */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--paper);border-radius:16px 16px 0 0;max-height:88%;overflow-y:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s ease}
+.sheet.open{transform:none}
+.sheet .in{max-width:560px;margin:0 auto}
+.sheet h3{margin:0 0 4px;font-size:19px}
+.fear{background:var(--hit-bg);border-left:4px solid var(--hit);padding:10px 12px;border-radius:6px;margin:10px 0 4px;font-weight:700}
+.memo{font-size:12px;color:var(--hit);margin-top:4px}
+.mgrp{margin-top:14px}
+.mgrp .gl{font-size:13px;color:var(--sub);margin-bottom:6px}
+.opt.m.sel{background:var(--done);border-color:var(--done);color:#fff}
+.nudge{margin-top:12px;background:var(--caution-bg);border:1.5px solid var(--caution);border-radius:8px;padding:9px 11px;font-size:14px}
+.row2{display:flex;gap:8px;margin-top:16px}
+.row2 .btn{flex:1}
+.btn.none{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.btn.ok{background:var(--done);color:#fff}
+.btn.ok:disabled{background:var(--line);color:var(--sub)}
+/* 締め・記録 */
+.pick{display:block;width:100%;text-align:left;font:inherit;padding:11px 12px;margin-bottom:8px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.pick.sel{border-color:var(--hit);background:var(--hit-bg)}
+.pick small{display:block;color:var(--sub);font-size:12px}
+.big-q{font-size:26px;font-weight:700;text-align:center;margin:30px 0 18px}
+.judge .opt{flex:1 1 45%;justify-content:center;text-align:center;border-radius:10px}
+.judge .opt.sel.r0{background:var(--done);border-color:var(--done);color:#fff}
+.judge .opt.sel.r1{background:var(--caution);border-color:var(--caution);color:#1C2124}
+.judge .opt.sel.r2,.judge .opt.sel.r3{background:var(--hit);border-color:var(--hit);color:#fff}
+.must{background:var(--caution-bg);border:1.5px solid var(--caution);border-radius:8px;padding:9px 11px;font-size:14px;margin:8px 0}
+.rec{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:14px;font-size:14px}
+.rec dt{color:var(--sub);font-size:12px;margin-top:10px}
+.rec dt:first-child{margin-top:0}
+.rec dd{margin:2px 0 0}
+.past{background:var(--caution-bg);border:1.5px solid var(--caution);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:14px}
+.past b{display:block;margin-bottom:4px}
+.hist{margin-top:28px}
+.hitem{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+.hitem .meta{color:var(--sub);font-size:12px}
+.linkbtn{font:inherit;font-size:13px;background:none;border:0;color:var(--act);padding:4px 0;cursor:pointer;text-decoration:underline}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:8px;font-size:14px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.unseen .st{color:var(--unseen)}}
+:root[data-theme="dark"] .chip.unseen .st{color:var(--unseen)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="toprow"><span class="ttl" id="ttl">非定常作業KY</span><span class="clock" id="clock"></span></div>
+    <div class="steps" id="steps"></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="bar"><div class="in" id="bar"></div></div>
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const D={"W": ["点検・保全", "故障復旧", "段取り替え", "改造・工事", "試運転・調整", "清掃", "火気作業（溶接・切断・研削）", "運搬・搬入出"], "T": ["自動機・コンベア", "ロボット", "溶解炉", "熱処理炉", "工作機械・研削盤", "プレス・成形機", "油圧・空圧ユニット", "電気盤・高圧受電", "クレーン・ホイスト", "集じん機", "ピット・槽・タンク"], "K": ["重量物", "高所（2m以上）", "不安定足場", "狭所・閉所", "センサー連動で動く", "外注・応援と一緒", "夜間・休日・少人数"], "chips": [{"id": "E01", "cat": "エネルギー", "name": "感電（低圧）", "fear": "充電部に触れて感電", "c": [["止める・抜く", ["主幹ブレーカ遮断", "施錠"]], ["離す・囲う", ["隣の充電部を絶縁シートで養生"]], ["確認する", ["検電器で無電圧を確認（検電器自体の動作も）"]], ["守る", ["絶縁手袋"]]], "ky": "5", "memo": "低圧電気取扱は特別教育の対象（要確認）"}, {"id": "E02", "cat": "エネルギー", "name": "高圧・アーク", "fear": "アークフラッシュで重度の火傷・感電", "c": [["止める・抜く", ["遮断", "検電", "短絡接地"]], ["離す・囲う", ["有資格者以外を近づけない", "離隔距離"]], ["確認する", ["停電範囲を単線図で確認"]], ["守る", ["高圧用絶縁保護具", "耐アーク服"]]], "ky": "5", "memo": "高圧の区分、電気主任技術者との調整（要確認）"}, {"id": "E03", "cat": "エネルギー", "name": "残留電荷", "fear": "電源を切ってもインバータ・コンデンサの電荷で感電", "c": [["止める・抜く", ["表示の放電時間を待つ"]], ["離す・囲う", []], ["確認する", ["テスターで直流電圧が下がったか確認"]], ["守る", ["絶縁手袋"]]], "ky": "", "memo": "CHARGEランプ消灯だけで判断しない"}, {"id": "E04", "cat": "エネルギー", "name": "油圧の残圧・噴出", "fear": "ホース・継手を外した瞬間に油が噴き出す、アクチュエータが動く", "c": [["止める・抜く", ["ポンプ停止", "残圧抜き", "アキュムレータ放圧"]], ["離す・囲う", ["噴出方向に顔・体を置かない"]], ["確認する", ["圧力計がゼロか確認"]], ["守る", ["保護メガネ", "フェイスシールド"]]], "ky": "4", "memo": ""}, {"id": "E05", "cat": "エネルギー", "name": "空圧の残圧・不意動作", "fear": "エアを抜いた／入れた瞬間にシリンダが動く", "c": [["止める・抜く", ["元弁を閉める", "残圧を排気"]], ["離す・囲う", ["動作範囲から出る"]], ["確認する", ["残圧計で確認", "エア再投入時は声掛け"]], ["守る", ["保護メガネ"]]], "ky": "4", "memo": ""}, {"id": "E06", "cat": "エネルギー", "name": "自重落下", "fear": "油圧・エアを抜いたら昇降部が落ちて挟まれ", "c": [["止める・抜く", ["安全ブロック・支柱で機械的に支える"]], ["離す・囲う", ["落下範囲の下に体を入れない"]], ["確認する", ["支えが重さに耐えるか確認"]], ["守る", ["ヘルメット"]]], "ky": "7", "memo": ""}, {"id": "E07", "cat": "エネルギー", "name": "ばね・張力", "fear": "ばね・ベルト・チェーンが外れた瞬間に跳ねる", "c": [["止める・抜く", ["先に張力を抜く", "専用治具で押さえる"]], ["離す・囲う", ["跳ねる方向に立たない"]], ["確認する", ["張力が残っていないか確認"]], ["守る", ["保護メガネ", "手袋"]]], "ky": "", "memo": ""}, {"id": "E08", "cat": "エネルギー", "name": "回転体・惰性", "fear": "電源を切っても惰性で回っていて巻き込まれ", "c": [["止める・抜く", ["完全停止まで待つ", "回転止め"]], ["離す・囲う", ["手を出す前に一呼吸"]], ["確認する", ["目視で停止確認（音が止んでも回っていることがある）"]], ["守る", ["巻き込まれやすい手袋・袖を避ける"]]], "ky": "11", "memo": "回転体近くでの手袋の扱いは社内ルール確認"}, {"id": "E09", "cat": "エネルギー", "name": "挟まれ・巻き込まれ", "fear": "可動部に手や体が入った状態で動いて挟まれ", "c": [["止める・抜く", ["動力遮断", "可動部の固定"]], ["離す・囲う", ["動作範囲を表示・養生"]], ["確認する", ["動作範囲を事前に確認"]], ["守る", []]], "ky": "7, 11", "memo": ""}, {"id": "E10", "cat": "エネルギー", "name": "高温物・火傷", "fear": "炉・ワーク・油・配管に触れて火傷", "c": [["止める・抜く", ["冷えるまで待つ"]], ["離す・囲う", ["高温部を表示・養生"]], ["確認する", ["放射温度計で温度確認"]], ["守る", ["耐熱手袋", "耐熱服"]]], "ky": "", "memo": ""}, {"id": "E11", "cat": "エネルギー", "name": "溶湯・水蒸気爆発", "fear": "水分や湿った物が溶湯に触れて水蒸気爆発", "c": [["止める・抜く", ["装入物・工具の乾燥と予熱・水気を除く"]], ["離す・囲う", ["退避ルートを確保", "関係者以外を離す"]], ["確認する", ["冷却水漏れ・炉体の濡れ・密閉容器の混入を確認"]], ["守る", ["耐熱服", "面体"]]], "ky": "", "memo": ""}, {"id": "E12", "cat": "エネルギー", "name": "火気・火花・火災", "fear": "火花・スパッタで火災、残り火で後から発火", "c": [["止める・抜く", ["可燃物を除去"]], ["離す・囲う", ["スパッタシートで養生", "見張り"]], ["確認する", ["作業後の残火確認（時間を置いて再確認）"]], ["守る", ["消火器", "難燃性の作業着"]]], "ky": "17, 22", "memo": ""}, {"id": "E13", "cat": "エネルギー", "name": "炉内ガス・CO", "fear": "雰囲気ガス・COで中毒、可燃性ガスで爆発", "c": [["止める・抜く", ["ガス供給停止", "パージ"]], ["離す・囲う", ["換気", "風上で作業"]], ["確認する", ["ガス検知器で濃度確認"]], ["守る", ["呼吸用保護具（必要時）"]]], "ky": "", "memo": "熱処理の変成ガス等の扱い（要確認）"}, {"id": "E14", "cat": "エネルギー", "name": "酸欠・硫化水素", "fear": "ピット・タンク・炉内で酸欠、硫化水素中毒", "c": [["止める・抜く", ["換気"]], ["離す・囲う", ["外に監視人を置く"]], ["確認する", ["酸素18%以上", "硫化水素濃度を測定"]], ["守る", ["空気呼吸器等（必要時）"]]], "ky": "13", "memo": "酸素18%は酸欠則の基準。作業主任者の要否（要確認）"}, {"id": "E15", "cat": "エネルギー", "name": "化学物質・油の飛散", "fear": "焼入れ油・切削油・酸などが目や皮膚に付く", "c": [["止める・抜く", ["容器・配管の中身を抜く"]], ["離す・囲う", ["飛散方向を養生"]], ["確認する", ["SDSを確認"]], ["守る", ["保護メガネ", "耐油/耐薬品手袋"]]], "ky": "", "memo": ""}, {"id": "E16", "cat": "エネルギー", "name": "粉じん・粉じん爆発", "fear": "集じん機内の金属粉が発火・粉じん爆発", "c": [["止める・抜く", ["運転停止", "粉を除去"]], ["離す・囲う", ["火気を近づけない"]], ["確認する", ["堆積状況を確認"]], ["守る", ["防じんマスク"]]], "ky": "", "memo": ""}, {"id": "E17", "cat": "エネルギー", "name": "飛来・破片", "fear": "砥石の破損・加工物・切粉が飛ぶ", "c": [["止める・抜く", ["条件・回転数を確認してから運転"]], ["離す・囲う", ["飛散方向に立たない", "カバー"]], ["確認する", ["砥石・刃物の状態確認"]], ["守る", ["保護メガネ", "フェイスシールド"]]], "ky": "3", "memo": "研削砥石の取替・試運転は特別教育の対象（要確認）"}, {"id": "E18", "cat": "エネルギー", "name": "ロボットの不意動作", "fear": "教示中やリセット時にロボットが動いて衝突・挟まれ", "c": [["止める・抜く", ["自動運転解除", "ペンダントは自分が持つ"]], ["離す・囲う", ["柵内は最小人数", "外部からの操作禁止"]], ["確認する", ["イネーブルスイッチ・低速の動作を確認"]], ["守る", ["ヘルメット"]]], "ky": "", "memo": "ロボット教示等は特別教育の対象（要確認）"}, {"id": "E19", "cat": "エネルギー", "name": "センサー連動の不意起動", "fear": "センサーを手や体で遮った瞬間に自動で動き出す", "c": [["止める・抜く", ["自動→手動に切替、または動力遮断"]], ["離す・囲う", []], ["確認する", ["どのセンサーで何が動くかを確認"]], ["守る", []]], "ky": "", "memo": "止まって見える＝待機中の可能性"}, {"id": "P01", "cat": "重量・高さ", "name": "重量物の手運搬", "fear": "重量物を持って腰を痛める・落として足を挟む", "c": [["止める・抜く", ["台車・リフタを使う"]], ["離す・囲う", []], ["確認する", ["重さを事前に確認"]], ["守る", ["安全靴"]]], "ky": "10", "memo": "25kgは社内ルール。腰痛予防指針との関係（要確認）"}, {"id": "P02", "cat": "重量・高さ", "name": "吊り荷の落下・振れ", "fear": "玉掛け不良で吊り荷が落ちる・振れて挟まれ", "c": [["止める・抜く", ["吊り具の選定", "重心の確認"]], ["離す・囲う", ["吊り荷の下に入らない", "介錯ロープ"]], ["確認する", ["玉掛け用具の点検", "地切りで一旦止めて確認"]], ["守る", ["ヘルメット", "安全靴"]]], "ky": "6", "memo": "玉掛けの資格区分（要確認）"}, {"id": "P03", "cat": "重量・高さ", "name": "クレーン合図ミス", "fear": "合図の行き違いで巻上げ・走行して挟まれ", "c": [["止める・抜く", ["合図者を1人に決める"]], ["離す・囲う", []], ["確認する", ["合図方法を事前に統一"]], ["守る", []]], "ky": "6", "memo": "クレーン運転の資格区分（要確認）"}, {"id": "P04", "cat": "重量・高さ", "name": "墜落（2m以上）", "fear": "2m以上から墜落", "c": [["止める・抜く", ["作業床を設ける"]], ["離す・囲う", ["手すり・開口部の養生"]], ["確認する", ["親綱・フック掛け先を確認"]], ["守る", ["墜落制止用器具（フルハーネス等）"]]], "ky": "12", "memo": "器具の種類の使い分け（要確認）"}, {"id": "P05", "cat": "重量・高さ", "name": "転倒・踏み外し", "fear": "足場の踏み外し、油や段差で転倒", "c": [["止める・抜く", ["足場板を設置"]], ["離す・囲う", ["通路の物を片付ける"]], ["確認する", ["床の油・段差・足場の固定を確認"]], ["守る", ["安全靴"]]], "ky": "9", "memo": ""}, {"id": "P06", "cat": "重量・高さ", "name": "工具・打撲・切創", "fear": "ハンマー・工具で打撲、刃物で切創", "c": [["止める・抜く", ["合った工具を選ぶ"]], ["離す・囲う", []], ["確認する", ["工具の状態を確認"]], ["守る", ["保護グローブ"]]], "ky": "16", "memo": ""}, {"id": "P07", "cat": "重量・高さ", "name": "車両・フォーク接触", "fear": "フォークリフト・車両と接触、荷の落下", "c": [["止める・抜く", []], ["離す・囲う", ["作業エリアを区切る", "誘導者"]], ["確認する", ["周囲と荷姿を確認"]], ["守る", []]], "ky": "18", "memo": ""}, {"id": "P08", "cat": "重量・高さ", "name": "高所作業車", "fear": "バケットと天井・構造物に挟まれる、転倒", "c": [["止める・抜く", ["アウトリガーを設置"]], ["離す・囲う", ["監視員を配置"]], ["確認する", ["死角・上の障害物・地盤を確認"]], ["守る", ["墜落制止用器具"]]], "ky": "20, 21", "memo": ""}, {"id": "H01", "cat": "人", "name": "他人の誤操作", "fear": "他の人が知らずに操作・電源投入する", "c": [["止める・抜く", ["操作禁止札", "施錠"]], ["離す・囲う", []], ["確認する", ["作業後に札と鍵の外し忘れを確認"]], ["守る", []]], "ky": "2, 15", "memo": ""}, {"id": "H02", "cat": "人", "name": "第三者の立入", "fear": "作業中に周りの人が入ってくる", "c": [["止める・抜く", []], ["離す・囲う", ["立入禁止表示", "バリケード"]], ["確認する", ["周囲に声掛け"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "H03", "cat": "人", "name": "外注・応援との連携", "fear": "段取りが噛み合わず、相手の動作で事故", "c": [["止める・抜く", []], ["離す・囲う", ["作業範囲を分ける"]], ["確認する", ["手順・合図・停止の主導権を事前に共有"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "H04", "cat": "人", "name": "経験不足者がいる", "fear": "危険を知らずに手を出す", "c": [["止める・抜く", []], ["離す・囲う", ["危ない作業は担当させない"]], ["確認する", ["作業前に危険ポイントを一言で伝える"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "H05", "cat": "人", "name": "少人数・単独", "fear": "事故が起きても誰も気づかない", "c": [["止める・抜く", []], ["離す・囲う", []], ["確認する", ["連絡手段と連絡時間を決める"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "C01", "cat": "変化", "name": "原因不明のまま触る", "fear": "故障原因が分からないまま触って想定外の動き", "c": [["止める・抜く", ["原因が分かるまで動力を入れない"]], ["離す・囲う", []], ["確認する", ["止まる前の状態・アラームを確認"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "C02", "cat": "変化", "name": "いつもと違う手順", "fear": "慣れた動作が裏目に出る", "c": [["止める・抜く", []], ["離す・囲う", []], ["確認する", ["手順を声に出して確認"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "C03", "cat": "変化", "name": "安全装置を外す", "fear": "安全装置・インターロックを外したまま運転する", "c": [["止める・抜く", ["外す範囲を最小にする"]], ["離す・囲う", []], ["確認する", ["外した物を記録", "作業後に復旧確認"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "C04", "cat": "変化", "name": "仮復旧で再開", "fear": "仮復旧のまま運転再開して再故障・事故", "c": [["止める・抜く", ["仮復旧箇所を明示"]], ["離す・囲う", []], ["確認する", ["本復旧の予定と引継ぎ"]], ["守る", []]], "ky": "", "memo": ""}, {"id": "C05", "cat": "変化", "name": "中断・再開・引継ぎ", "fear": "中断・再開・引継ぎ時の伝達漏れ", "c": [["止める・抜く", ["中断時は仮養生"]], ["離す・囲う", []], ["確認する", ["引継ぎで状態を伝える"]], ["守る", []]], "ky": "19", "memo": ""}, {"id": "C06", "cat": "変化", "name": "時間に追われている", "fear": "急いでいて確認を飛ばす", "c": [["止める・抜く", []], ["離す・囲う", []], ["確認する", ["一呼吸おいて関所を見直す"]], ["守る", []]], "ky": "", "memo": ""}], "M": {"点検・保全": {"red": ["E01", "E09", "H01"], "show": ["E04", "E05", "E06", "E08", "E10", "P05", "P06", "H02", "C05"]}, "故障復旧": {"red": ["E01", "E06", "E09", "H01", "C01", "C04", "C06"], "show": ["E03", "E04", "E05", "E07", "E08", "H02", "C02", "C03", "C05"]}, "段取り替え": {"red": ["E09", "P06"], "show": ["E05", "E06", "P01", "H01", "C02"]}, "改造・工事": {"red": ["E01", "H01", "H02", "H03", "C02"], "show": ["E12", "P01", "P02", "P04", "P05", "C03", "C05"]}, "試運転・調整": {"red": ["E09", "H02", "C03"], "show": ["E17", "E19", "H01", "C02", "C04"]}, "清掃": {"red": ["E09", "H01"], "show": ["E08", "E15", "E16", "E19", "P05"]}, "火気作業（溶接・切断・研削）": {"red": ["E12"], "show": ["E10", "E13", "E17", "H02"]}, "運搬・搬入出": {"red": ["P07"], "show": ["P01", "P02", "P03", "H02"]}, "自動機・コンベア": {"red": ["E09", "E19"], "show": ["E05", "E06", "E08"]}, "ロボット": {"red": ["E09", "E18"], "show": ["E19", "C03"]}, "溶解炉": {"red": ["E10", "E11"], "show": ["E02", "E13", "E15", "P02", "P03"]}, "熱処理炉": {"red": ["E10", "E13"], "show": ["E12", "E14", "E15"]}, "工作機械・研削盤": {"red": ["E08", "E17"], "show": ["E09", "E15"]}, "プレス・成形機": {"red": ["E06", "E09"], "show": ["E04", "C03"]}, "油圧・空圧ユニット": {"red": ["E04", "E05"], "show": ["E06", "E15"]}, "電気盤・高圧受電": {"red": ["E01", "E02"], "show": ["E03"]}, "クレーン・ホイスト": {"red": ["P02", "P03"], "show": ["P04"]}, "集じん機": {"red": ["E16"], "show": ["E08", "E14"]}, "ピット・槽・タンク": {"red": ["E14"], "show": ["E15", "P04", "P05"]}, "重量物": {"red": ["P01"], "show": ["P02", "P06"]}, "高所（2m以上）": {"red": ["P04"], "show": ["P05", "P08"]}, "不安定足場": {"red": ["P05"], "show": ["P04"]}, "狭所・閉所": {"red": ["E14"], "show": ["E10", "H05"]}, "センサー連動で動く": {"red": ["E19"], "show": ["E09"]}, "外注・応援と一緒": {"red": ["H03"], "show": ["H02", "H04"]}, "夜間・休日・少人数": {"red": ["H05"], "show": ["C06", "H04"]}}, "G": [{"id": "G01", "q": "主電源を遮断・施錠した", "reasons": ["通電が必要（調査・試運転）", "遮断できる位置にない"], "alts": ["非常停止に手が届く位置で作業", "監視者を置く", "インチング/低速で動かす"], "scope": "運搬以外全部"}, {"id": "G02", "q": "油圧・空圧の動力源を止めた", "reasons": ["動かしながら調整が必要"], "alts": ["動作範囲に体を入れない", "監視者を置く", "低圧/低速で"], "scope": "運搬・火気以外"}, {"id": "G03", "q": "残圧を抜いた", "reasons": ["抜けない構造", "抜くと落下する"], "alts": ["機械的に支える", "噴出方向に立たない"], "scope": "運搬・火気以外"}, {"id": "G04", "q": "可動部が停止・固定されている", "reasons": ["停止を確認できる位置にない"], "alts": ["別の人に停止を確認してもらう", "回転止めを付ける"], "scope": "運搬・火気以外"}, {"id": "G05", "q": "操作盤に操作禁止札を付けた", "reasons": ["札を付ける場所がない（遠隔操作など）"], "alts": ["操作する人に直接伝える", "鍵を自分が持つ"], "scope": "運搬以外全部"}, {"id": "G06", "q": "立入禁止の措置をした", "reasons": ["通路で区切れない"], "alts": ["見張りを置く", "周囲に声掛け"], "scope": "全部"}, {"id": "G07", "q": "必要な保護具が揃い、傷んでいない", "reasons": ["手元にない・傷んでいる"], "alts": ["代替措置なし → 揃えるまで作業しない"], "scope": "全部"}, {"id": "G08", "q": "一人作業ではない", "reasons": ["応援を呼べない"], "alts": ["連絡手段と連絡時間を決める"], "scope": "全部"}]};
+const CH={};D.chips.forEach(c=>CH[c.id]=c);
+const CATS=["エネルギー","重量・高さ","人","変化"];
+const STEPS=["start","select","gate","hub","close","enough","judge","record"];
+const HKEY="ky_hist_v1";
+let S,timer=null;
+function fresh(){return{step:"start",t0:null,t1:null,worker:"",equip:"",task:"",W:null,T:new Set,K:new Set,gate:{},chips:{},custom:[],worst:null,worstText:"",enough:null,comment:"",judge:{name:"",result:null,reason:""}}}
+S=fresh();
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function loadH(){try{return JSON.parse(localStorage.getItem(HKEY)||"[]")}catch(e){return[]}}
+function saveH(h){try{localStorage.setItem(HKEY,JSON.stringify(h))}catch(e){}}
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("on"),1600)}
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function tick(){if(S.t0){$("#clock").textContent="経過 "+fmt((S.t1||Date.now())-S.t0)}else $("#clock").textContent=""}
+setInterval(tick,1000);
+
+/* ---------- 選択からチップを組み立て ---------- */
+function selected(){const a=[];if(S.W)a.push(S.W);S.T.forEach(x=>a.push(x));S.K.forEach(x=>a.push(x));return a}
+function buildChips(){
+  const red=new Set,show=new Set;
+  selected().forEach(s=>{const m=D.M[s];if(!m)return;m.red.forEach(i=>red.add(i));m.show.forEach(i=>show.add(i))});
+  const next={};
+  D.chips.forEach(c=>{
+    if(!red.has(c.id)&&!show.has(c.id))return;
+    const old=S.chips[c.id];
+    next[c.id]=old?Object.assign(old,{dflt:red.has(c.id)}):{state:red.has(c.id)?"hit":"unseen",dflt:red.has(c.id),sel:[],note:""};
+  });
+  S.chips=next;
+}
+function gateItems(){
+  const w=S.W||"";
+  return D.G.filter(g=>{
+    if(g.scope==="全部")return true;
+    if(g.scope==="運搬以外全部")return w!=="運搬・搬入出";
+    if(g.scope==="運搬・火気以外")return w!=="運搬・搬入出"&&!w.startsWith("火気");
+    return true});
+}
+function chipList(){return Object.keys(S.chips).map(id=>Object.assign({id},CH[id],S.chips[id]))}
+function counts(){const c={unseen:0,hit:0,done:0,none:0};chipList().forEach(x=>c[x.state]++);S.custom.forEach(()=>c.done++);return c}
+
+/* ---------- 画面 ---------- */
+function go(step){S.step=step;render();window.scrollTo(0,0)}
+function render(){
+  const i=STEPS.indexOf(S.step);
+  $("#steps").innerHTML=STEPS.map((_,k)=>`<i class="${k<=i?"on":""}"></i>`).join("");
+  ({start:vStart,select:vSelect,gate:vGate,hub:vHub,close:vClose,enough:vEnough,judge:vJudge,record:vRecord})[S.step]();
+  tick();
+}
+function bar(html){$("#bar").innerHTML=html}
+
+function pastFor(equip){
+  if(!equip.trim())return[];
+  return loadH().filter(r=>r.equip===equip.trim()&&r.after&&r.after.had).slice(-3).reverse();
+}
+function vStart(){
+  const h=loadH();
+  $("#main").innerHTML=`
+  <h2>作業を始める前に</h2>
+  <p class="lead">非定常作業の前に、危ないところを一通り見回るためのツールです。</p>
+  <label class="f" for="w">作業者</label><input type="text" id="w" value="${esc(S.worker)}" placeholder="名前">
+  <label class="f" for="e">設備</label><input type="text" id="e" value="${esc(S.equip)}" placeholder="設備名・設備番号" list="eqlist">
+  <datalist id="eqlist">${[...new Set(h.map(r=>r.equip))].map(x=>`<option value="${esc(x)}">`).join("")}</datalist>
+  <div id="past"></div>
+  <label class="f" for="t">作業内容（一言）</label><input type="text" id="t" value="${esc(S.task)}" placeholder="例：No.3シリンダのパッキン交換">
+  ${h.length?`<div class="hist"><div class="hint" style="margin-bottom:8px">これまでの記録（この端末）</div>${h.slice().reverse().slice(0,8).map(r=>`
+    <div class="hitem"><div><b>${esc(r.equip)}</b>　${esc(r.task)}</div>
+    <div class="meta">${esc(r.date)}　${esc(r.worker)}　判断：${esc(r.judge.result||"-")}</div>
+    ${r.after?`<div class="meta">作業後：${r.after.had?"想定外あり — "+esc(r.after.text):"想定外なし"}</div>`:`<button class="linkbtn" data-after="${r.id}">作業後の振り返りを入れる</button>`}
+    </div>`).join("")}</div>`:""}`;
+  const upd=()=>{S.worker=$("#w").value;S.equip=$("#e").value;S.task=$("#t").value;
+    const p=pastFor(S.equip);
+    $("#past").innerHTML=p.length?`<div class="past"><b>前回この設備で想定外があったで</b>${p.map(r=>`・${esc(r.after.text)}（${esc(r.date)}）`).join("<br>")}</div>`:"";
+    $("#goSel").disabled=!(S.worker.trim()&&S.equip.trim()&&S.task.trim())};
+  ["#w","#e","#t"].forEach(s=>$(s).addEventListener("input",upd));
+  document.querySelectorAll("[data-after]").forEach(b=>b.onclick=()=>afterSheet(b.dataset.after));
+  bar(`<button class="btn main" id="goSel">始める</button>`);
+  $("#goSel").onclick=()=>{if(!S.t0)S.t0=Date.now();go("select")};
+  upd();
+}
+function optBtns(list,isSel,cls=""){return list.map(x=>`<button class="opt ${cls} ${isSel(x)?"sel":""}" data-v="${esc(x)}">${esc(x)}</button>`).join("")}
+function vSelect(){
+  $("#main").innerHTML=`
+  <h2>何をする？どこで？</h2>
+  <p class="lead">選んだ内容に合わせて、確認するチップが出てきます。</p>
+  <div class="grp"><div class="gl">作業（1つ）</div><div class="opts" id="oW">${optBtns(D.W,x=>S.W===x)}</div></div>
+  <div class="grp"><div class="gl">対象設備（いくつでも）</div><div class="opts" id="oT">${optBtns(D.T,x=>S.T.has(x))}</div></div>
+  <div class="grp"><div class="gl">条件（当てはまるものを全部）</div><div class="opts" id="oK">${optBtns(D.K,x=>S.K.has(x))}</div></div>`;
+  $("#oW").onclick=e=>{const b=e.target.closest(".opt");if(!b)return;S.W=b.dataset.v;vSelect()};
+  [["#oT",S.T],["#oK",S.K]].forEach(([id,set])=>$(id).onclick=e=>{const b=e.target.closest(".opt");if(!b)return;const v=b.dataset.v;set.has(v)?set.delete(v):set.add(v);b.classList.toggle("sel")});
+  bar(`<button class="btn ghost" id="bk">戻る</button><button class="btn main" id="nx" ${S.W?"":"disabled"}>確認へ</button>`);
+  $("#bk").onclick=()=>go("start");
+  $("#nx").onclick=()=>{buildChips();go("gate")};
+}
+function gateState(){
+  const items=gateItems();let ok=true,stop=false,anyNo=false;
+  items.forEach(g=>{const a=S.gate[g.id];
+    if(!a||!a.ans){ok=false;return}
+    if(a.ans==="no"){anyNo=true;if(g.id==="G07"){stop=true;ok=false;return}
+      if(!a.reason||!a.alts.length)ok=false}});
+  return{ok,stop,anyNo};
+}
+function vGate(){
+  const items=gateItems();
+  $("#main").innerHTML=`
+  <h2>まず、ここを確認</h2>
+  <p class="lead">できないものは「いいえ」で大丈夫。理由と代わりの措置を選んでください。いいえがあると職制判断が必要になります。</p>
+  ${items.map(g=>{const a=S.gate[g.id]||{};const no=a.ans==="no";const stop=no&&g.id==="G07";
+    return`<div class="gate ${stop?"stop":no?"no":""}" data-g="${g.id}">
+    <div class="gq">${esc(g.q)}</div>
+    <div class="yn"><button class="y ${a.ans==="yes"?"sel":""}" data-a="yes">はい</button><button class="n ${no?"sel":""}" data-a="no">いいえ</button></div>
+    ${stop?`<div class="gsub warn">保護具が揃うまで作業しない。揃えてから「はい」にしてください。</div>`:no?`<div class="gsub">
+      <div class="gl">できない理由</div><div class="opts" data-k="reason">${g.reasons.map(r=>`<button class="opt ${a.reason===r?"sel":""}" data-v="${esc(r)}">${esc(r)}</button>`).join("")}</div>
+      <div class="gl">代わりにやること（1つ以上）</div><div class="opts" data-k="alts">${g.alts.map(r=>`<button class="opt m ${a.alts.includes(r)?"sel":""}" data-v="${esc(r)}">${esc(r)}</button>`).join("")}</div></div>`:""}
+    </div>`}).join("")}`;
+  $("#main").onclick=e=>{
+    const card=e.target.closest(".gate");if(!card)return;const id=card.dataset.g;
+    const a=S.gate[id]||(S.gate[id]={ans:null,reason:null,alts:[]});
+    const yn=e.target.closest(".yn button");
+    if(yn){a.ans=yn.dataset.a;vGate();return}
+    const o=e.target.closest(".opt");if(!o)return;const k=o.parentElement.dataset.k,v=o.dataset.v;
+    if(k==="reason")a.reason=(a.reason===v?null:v);else{a.alts.includes(v)?a.alts.splice(a.alts.indexOf(v),1):a.alts.push(v)}
+    vGate();
+  };
+  const st=gateState();
+  bar(`<button class="btn ghost" id="bk">戻る</button><button class="btn main" id="nx" ${st.ok?"":"disabled"}>見回りへ</button>`);
+  $("#bk").onclick=()=>{$("#main").onclick=null;go("select")};
+  $("#nx").onclick=()=>{$("#main").onclick=null;go("hub")};
+}
+
+/* ---------- ハブ ---------- */
+function vHub(){
+  const list=chipList();const c=counts();
+  const segs=list.map(x=>`<b class="${x.state==="unseen"?"":x.state}"></b>`).join("")+S.custom.map(()=>`<b class="done"></b>`).join("");
+  $("#main").innerHTML=`
+  <h2>危ないところを見回る</h2>
+  <p class="lead">赤は対策を選ぶと緑に。黄色はタップして確認、関係なければ長押しで「該当なし」（青）。赤が全部済んだら、残りの黄色はまとめて該当なしにもできます。</p>
+  <div class="tape" aria-hidden="true">${segs}</div>
+  <div class="tally"><span style="--c:var(--unseen)">未確認 ${c.unseen}</span><span style="--c:var(--hit)">対策待ち ${c.hit}</span><span style="--c:var(--done)">対策済 ${c.done}</span><span style="--c:var(--nonec)">該当なし ${c.none}</span></div>
+  ${CATS.map(cat=>{const xs=list.filter(x=>x.cat===cat);if(!xs.length)return"";
+    return`<div class="band"><div class="gl">${cat}</div><div class="chips">${xs.map(chipHtml).join("")}</div></div>`}).join("")}
+  <div class="band"><div class="gl">想定外</div><div class="chips">
+    ${S.custom.map((u,k)=>`<button class="chip done" data-cu="${k}"><span class="nm">${esc(u.name)}</span><span class="st">追加・対策済</span></button>`).join("")}
+    <button class="chip add" id="addC">＋ 想定外を追加</button></div></div>`;
+  document.querySelectorAll(".chip[data-id]").forEach(bindChip);
+  document.querySelectorAll(".chip[data-cu]").forEach(b=>b.onclick=()=>customSheet(+b.dataset.cu));
+  $("#addC").onclick=()=>customSheet(-1);
+  const ready=c.unseen===0&&c.hit===0&&(list.length+S.custom.length)>0;
+  const bulk=c.hit===0&&c.unseen>0;
+  bar(`<button class="btn ghost" id="bk">戻る</button>`+(bulk
+    ?`<button class="btn main" id="bulk">残り${c.unseen}個をまとめて該当なし</button>`
+    :`<button class="btn main" id="nx" ${ready?"":"disabled"}>${ready?"見回り完了":"赤があと "+c.hit}</button>`));
+  $("#bk").onclick=()=>go("gate");
+  if(bulk)$("#bulk").onclick=bulkSheet;else $("#nx").onclick=()=>go("close");
+}
+function chipHtml(x){
+  const st={unseen:"未確認",hit:"対策を選ぶ",done:"対策済 "+x.sel.length,none:"該当なし"}[x.state];
+  return`<button class="chip ${x.state}" data-id="${x.id}"><span class="nm">${esc(x.name)}</span><span class="st">${st}</span></button>`;
+}
+function bindChip(b){
+  const id=b.dataset.id;let t=null,long=false;
+  const start=()=>{long=false;b.classList.add("pressing");t=setTimeout(()=>{long=true;b.classList.remove("pressing");quickNone(id)},550)};
+  const end=()=>{clearTimeout(t);b.classList.remove("pressing")};
+  b.addEventListener("pointerdown",start);
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,end));
+  b.addEventListener("contextmenu",e=>e.preventDefault());
+  b.addEventListener("click",e=>{if(long){e.preventDefault();return}chipSheet(id)});
+}
+function bulkSheet(){
+  const rest=chipList().filter(x=>x.state==="unseen");
+  openSheet(`<h3>この${rest.length}個、本当に関係ない？</h3>
+  <p class="hint">気になるものがあれば、やめてタップで中を見てください。</p>
+  <div class="opts" style="margin-top:10px">${rest.map(x=>`<span class="opt" style="cursor:default">${esc(x.name)}</span>`).join("")}</div>
+  <div class="row2"><button class="btn none" id="bC">やめる</button><button class="btn ok" id="bOk">全部該当なし</button></div>`);
+  $("#bC").onclick=closeSheet;
+  $("#bOk").onclick=()=>{rest.forEach(x=>{const s=S.chips[x.id];s.state="none";s.bulk=true});closeSheet();vHub()};
+}
+function quickNone(id){
+  const s=S.chips[id];
+  if(s.dflt){toast("赤のチップは中を見てください");if(navigator.vibrate)navigator.vibrate(40);return}
+  if(s.state==="unseen"){s.state="none";s.bulk=false;toast("該当なしにしました")}
+  else if(s.state==="none"){s.state="unseen";toast("未確認に戻しました")}
+  else return;
+  if(navigator.vibrate)navigator.vibrate(20);
+  vHub();
+}
+function openSheet(html){$("#sheetIn").innerHTML=html;$("#sheetBg").style.display="block";requestAnimationFrame(()=>$("#sheet").classList.add("open"));$("#sheet").scrollTop=0}
+function closeSheet(){$("#sheet").classList.remove("open");$("#sheetBg").style.display="none"}
+$("#sheetBg").onclick=closeSheet;
+function chipSheet(id){
+  const c=CH[id],s=S.chips[id];let sel=[...s.sel],note=s.note,noneMode=false;
+  const draw=()=>{
+    const onlyProtect=sel.length>0&&sel.every(v=>c.c[3][1].includes(v));
+    openSheet(`
+    <h3>${esc(c.name)}</h3>
+    <div class="fear">${esc(c.fear)}</div>
+    ${c.memo?`<div class="memo">${esc(c.memo)}</div>`:""}
+    ${c.c.filter(g=>g[1].length).map(g=>`<div class="mgrp"><div class="gl">${g[0]}</div><div class="opts">${g[1].map(o=>`<button class="opt m ${sel.includes(o)?"sel":""}" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</div></div>`).join("")}
+    <label class="f" for="cn">ほかにやること（任意）</label><input type="text" id="cn" value="${esc(note)}" placeholder="自由に一言">
+    ${onlyProtect?`<div class="nudge">保護具だけで大丈夫？　止める・離す対策が取れないか一度考えてみてください。</div>`:""}
+    ${noneMode?`<div class="must">最初から赤のチップです。該当しない理由を一言書いてください。</div><input type="text" id="nr" placeholder="例：この作業では電気に触れない">`:""}
+    ${s.state==="done"||s.state==="none"?`<button class="linkbtn" id="sReset" style="margin-top:12px">${s.dflt?"赤":"未確認"}に戻す</button>`:""}
+    <div class="row2">
+      <button class="btn none" id="sNone">${noneMode?"理由を書いて該当なし":"該当なし"}</button>
+      <button class="btn ok" id="sOk" ${sel.length||note.trim()?"":"disabled"}>対策OK</button>
+    </div>`);
+    $("#sheetIn").querySelectorAll(".opt.m").forEach(o=>o.onclick=()=>{const v=o.dataset.v;sel.includes(v)?sel.splice(sel.indexOf(v),1):sel.push(v);note=$("#cn").value;draw()});
+    $("#cn").oninput=e=>{note=e.target.value;$("#sOk").disabled=!(sel.length||note.trim())};
+    $("#sNone").onclick=()=>{
+      if(s.dflt&&!noneMode){noneMode=true;note=$("#cn").value;draw();$("#nr").focus();return}
+      if(s.dflt){const r=$("#nr").value.trim();if(!r){toast("理由を書いてください");return}s.noneReason=r}
+      s.state="none";s.bulk=false;s.sel=[];s.note="";closeSheet();vHub()};
+    if($("#sReset"))$("#sReset").onclick=()=>{s.state=s.dflt?"hit":"unseen";s.bulk=false;s.sel=[];s.note="";delete s.noneReason;closeSheet();vHub()};
+    $("#sOk").onclick=()=>{s.bulk=false;s.sel=sel;s.note=note.trim();s.state="done";closeSheet();vHub()};
+  };
+  draw();
+}
+function customSheet(k){
+  const u=k>=0?S.custom[k]:{name:"",fear:"",measure:""};
+  openSheet(`<h3>想定外を追加</h3><p class="hint">リストにない危険を見つけたら書いてください。記録に残って、次の人の参考になります。</p>
+  <label class="f" for="un">何が危ない？</label><input type="text" id="un" value="${esc(u.name)}" placeholder="例：配管の裏に古い熱電対の線">
+  <label class="f" for="uf">どうなりそう？（任意）</label><input type="text" id="uf" value="${esc(u.fear)}">
+  <label class="f" for="um">対策</label><input type="text" id="um" value="${esc(u.measure)}">
+  <div class="row2">${k>=0?`<button class="btn none" id="uDel">削除</button>`:`<button class="btn none" id="uCan">やめる</button>`}<button class="btn ok" id="uOk">追加</button></div>`);
+  const ok=()=>$("#uOk").disabled=!($("#un").value.trim()&&$("#um").value.trim());
+  ["#un","#um"].forEach(s=>$(s).oninput=ok);ok();
+  if(k>=0)$("#uDel").onclick=()=>{S.custom.splice(k,1);closeSheet();vHub()};else $("#uCan").onclick=closeSheet;
+  $("#uOk").onclick=()=>{const v={name:$("#un").value.trim(),fear:$("#uf").value.trim(),measure:$("#um").value.trim()};if(k>=0)S.custom[k]=v;else S.custom.push(v);closeSheet();vHub()};
+}
+
+/* ---------- 締め ---------- */
+function vClose(){
+  const done=chipList().filter(x=>x.state==="done");
+  const cands=done.map(x=>({key:x.id,name:x.name,fear:x.fear,sub:x.sel.join("、")||x.note})).concat(S.custom.map((u,k)=>({key:"U"+k,name:u.name,fear:u.fear||u.name,sub:u.measure})));
+  $("#main").innerHTML=`
+  <h2>一番ヤバいのはどれ？</h2>
+  <p class="lead">対策したものの中から1つ選んで、最悪どうなるかを一言で。</p>
+  ${cands.map(x=>`<button class="pick ${S.worst===x.key?"sel":""}" data-k="${x.key}"><b>${esc(x.name)}</b><small>対策：${esc(x.sub)}</small></button>`).join("")||`<p class="hint">対策したチップがありません。</p>`}
+  <label class="f" for="wt">最悪ケース</label><textarea id="wt" placeholder="選ぶと候補が入ります。現場に合わせて書き直してください">${esc(S.worstText)}</textarea>`;
+  document.querySelectorAll(".pick").forEach(b=>b.onclick=()=>{const x=cands.find(c=>c.key===b.dataset.k);S.worstText=$("#wt").value;S.worst=x.key;if(!S.worstText.trim()||S.worstText===S.worstAuto){S.worstText=x.fear;S.worstAuto=x.fear}vClose()});
+  const upd=()=>{S.worstText=$("#wt").value;$("#nx").disabled=!(S.worst&&S.worstText.trim())};
+  bar(`<button class="btn ghost" id="bk">戻る</button><button class="btn main" id="nx">次へ</button>`);
+  $("#wt").oninput=upd;upd();
+  $("#bk").onclick=()=>go("hub");$("#nx").onclick=()=>go("enough");
+}
+function vEnough(){
+  $("#main").innerHTML=`
+  <div class="big-q">KYは、十分？？</div>
+  <div class="opts" style="justify-content:center">
+    <button class="opt ${S.enough==="yes"?"sel":""}" data-v="yes">十分</button>
+    <button class="opt ${S.enough==="no"?"sel":""}" data-v="no">まだ気になる</button></div>
+  <label class="f" for="cm">ひとことコメント（必須）</label>
+  <textarea id="cm" placeholder="気になっていること、念のためやること、なんでも1つ">${esc(S.comment)}</textarea>
+  ${S.enough==="no"?`<p class="hint">気になるところがあれば、見回りに戻って想定外を追加できます。</p><button class="btn ghost" id="toHub" style="width:100%">見回りに戻る</button>`:""}`;
+  document.querySelectorAll(".opts .opt").forEach(b=>b.onclick=()=>{S.comment=$("#cm").value;S.enough=b.dataset.v;vEnough()});
+  if($("#toHub"))$("#toHub").onclick=()=>{S.comment=$("#cm").value;go("hub")};
+  const upd=()=>{S.comment=$("#cm").value;$("#nx").disabled=!(S.enough&&S.comment.trim())};
+  bar(`<button class="btn ghost" id="bk">戻る</button><button class="btn main" id="nx">職制判断へ</button>`);
+  $("#cm").oninput=upd;upd();
+  $("#bk").onclick=()=>go("close");$("#nx").onclick=()=>go("judge");
+}
+const RES=["実施可","条件付き可","再検討","中止"];
+function vJudge(){
+  const st=gateState();const j=S.judge;const c=counts();
+  const noList=gateItems().filter(g=>S.gate[g.id]&&S.gate[g.id].ans==="no");
+  $("#main").innerHTML=`
+  <h2>職制判断</h2>
+  <p class="lead">作業者から内容を聞いて判断してください。</p>
+  ${st.anyNo?`<div class="must"><b>確認でできないものがあります</b><br>${noList.map(g=>`・${esc(g.q)} → ${esc(S.gate[g.id].alts.join("、"))}`).join("<br>")}</div>`:""}
+  ${S.enough==="no"?`<div class="must">作業者は「まだ気になる」と回答しています</div>`:""}
+  <div class="rec"><dl>
+    <dt>作業</dt><dd>${esc(S.W)}　${esc(S.task)}</dd>
+    <dt>一番ヤバいところ</dt><dd>${esc(S.worstText)}</dd>
+    <dt>作業者コメント</dt><dd>${esc(S.comment)}</dd>
+    <dt>見回り</dt><dd>対策済 ${c.done}／該当なし ${c.none}${(()=>{const b=chipList().filter(x=>x.state==="none"&&x.bulk);return b.length?`（うち まとめて該当なし ${b.length}：${b.map(x=>esc(x.name)).join("、")}）`:""})()}${S.custom.length?`（想定外の追加 ${S.custom.length}）`:""}</dd>
+  </dl></div>
+  <label class="f" for="jn">判断者</label><input type="text" id="jn" value="${esc(j.name)}" placeholder="名前（電話で承認した場合もここに）">
+  <div class="grp"><div class="gl">判断</div><div class="opts judge">${RES.map((r,k)=>`<button class="opt r${k} ${j.result===r?"sel":""}" data-v="${r}">${r}</button>`).join("")}</div></div>
+  <label class="f" for="jr">判断の理由（必須）</label><textarea id="jr" placeholder="なぜその判断にしたか">${esc(j.reason)}</textarea>`;
+  document.querySelectorAll(".judge .opt").forEach(b=>b.onclick=()=>{j.name=$("#jn").value;j.reason=$("#jr").value;j.result=b.dataset.v;vJudge()});
+  const upd=()=>{j.name=$("#jn").value;j.reason=$("#jr").value;$("#nx").disabled=!(j.name.trim()&&j.result&&j.reason.trim())};
+  bar(`<button class="btn ghost" id="bk">戻る</button><button class="btn main" id="nx">記録する</button>`);
+  ["#jn","#jr"].forEach(s=>$(s).oninput=upd);upd();
+  $("#bk").onclick=()=>go("enough");
+  $("#nx").onclick=()=>{S.t1=Date.now();saveRecord();go("record")};
+}
+function recordObj(){
+  const ch=chipList();
+  return{id:"r"+S.t0,date:new Date(S.t0).toLocaleString("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}),
+    secs:Math.round((S.t1-S.t0)/1000),worker:S.worker.trim(),equip:S.equip.trim(),task:S.task.trim(),
+    work:S.W,targets:[...S.T],conds:[...S.K],
+    gateNo:gateItems().filter(g=>S.gate[g.id]&&S.gate[g.id].ans==="no").map(g=>({q:g.q,reason:S.gate[g.id].reason,alts:S.gate[g.id].alts})),
+    done:ch.filter(x=>x.state==="done").map(x=>({id:x.id,name:x.name,measures:x.sel,note:x.note})),
+    none:ch.filter(x=>x.state==="none").map(x=>({id:x.id,name:x.name,reason:x.noneReason||"",bulk:!!x.bulk})),
+    custom:S.custom,worst:S.worstText,enough:S.enough,comment:S.comment,judge:Object.assign({},S.judge),after:null};
+}
+function saveRecord(){const h=loadH();const r=recordObj();h.push(r);saveH(h.slice(-200));S.recId=r.id}
+function vRecord(){
+  const r=loadH().find(x=>x.id===S.recId)||recordObj();
+  $("#main").innerHTML=`
+  <h2>記録しました</h2>
+  <p class="lead">所要時間 ${fmt(r.secs*1000)}</p>
+  <div class="rec"><dl>
+    <dt>誰が</dt><dd>${esc(r.worker)}</dd>
+    <dt>何の作業で</dt><dd>${esc(r.equip)}　${esc(r.work)}　${esc(r.task)}</dd>
+    <dt>何を危険と考え</dt><dd>${esc(r.worst)}</dd>
+    <dt>何を対策とし</dt><dd>${r.done.map(d=>`${esc(d.name)}：${esc([...d.measures,d.note].filter(Boolean).join("、"))}`).join("<br>")}${r.custom.map(u=>`<br>【想定外】${esc(u.name)}：${esc(u.measure)}`).join("")}</dd>
+    ${r.gateNo.length?`<dt>確認でできなかったこと</dt><dd>${r.gateNo.map(g=>`${esc(g.q)}（${esc(g.reason)}）→ ${esc(g.alts.join("、"))}`).join("<br>")}</dd>`:""}
+    <dt>作業者コメント</dt><dd>${esc(r.comment)}</dd>
+    <dt>誰が判断したか</dt><dd>${esc(r.judge.name)}：<b>${esc(r.judge.result)}</b>　${esc(r.judge.reason)}</dd>
+  </dl></div>
+  <p class="hint">作業が終わったら、トップの記録一覧から「作業後の振り返り」を入れてください。想定外は次にこの設備を選んだ人に表示されます。</p>`;
+  bar(`<button class="btn ghost" id="cp">テキストでコピー</button><button class="btn main" id="nw">トップへ</button>`);
+  $("#cp").onclick=()=>{const t=`【KY記録】${r.date}\n作業者：${r.worker}\n設備：${r.equip}\n作業：${r.work}／${r.task}\n最悪ケース：${r.worst}\n対策：\n${r.done.map(d=>"・"+d.name+"："+[...d.measures,d.note].filter(Boolean).join("、")).join("\n")}${r.custom.map(u=>"\n・【想定外】"+u.name+"："+u.measure).join("")}\nコメント：${r.comment}\n判断：${r.judge.name} ${r.judge.result}（${r.judge.reason}）\n所要：${fmt(r.secs*1000)}`;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("コピーしました")).catch(()=>toast("コピーできませんでした"))};
+  $("#nw").onclick=()=>{S=fresh();go("start")};
+}
+function afterSheet(id){
+  let had=null;
+  const draw=()=>{openSheet(`<h3>作業後の振り返り</h3><p class="hint">やってみて、想定してなかった危ないことはあった？</p>
+    <div class="opts" style="margin-top:10px"><button class="opt ${had===true?"sel":""}" data-v="1">あった</button><button class="opt ${had===false?"sel":""}" data-v="0">なかった</button></div>
+    ${had?`<label class="f" for="at">何があった？</label><textarea id="at" placeholder="次にこの設備を触る人に伝わるように"></textarea>`:""}
+    <div class="row2"><button class="btn none" id="aC">やめる</button><button class="btn ok" id="aOk" ${had===null?"disabled":""}>保存</button></div>`);
+    $("#sheetIn").querySelectorAll(".opts .opt").forEach(b=>b.onclick=()=>{had=b.dataset.v==="1";draw()});
+    $("#aC").onclick=closeSheet;
+    $("#aOk").onclick=()=>{const t=had?$("#at").value.trim():"";if(had&&!t){toast("内容を書いてください");return}
+      const h=loadH();const r=h.find(x=>x.id===id);if(r){r.after={had,text:t};saveH(h)}closeSheet();toast("保存しました");vStart()};
+  };draw();
+}
+render();
+</script>
+</body>
+</html>
