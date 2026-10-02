@@ -1450,12 +1450,12 @@
       }
       function label(x, y, text, color, center = false) {
         const anchor = center ? "middle" : "start";
-        return `<text x="${x}" y="${y}" fill="${color}" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="${anchor}">${text}</text>`;
+        return `<text x="${x}" y="${y}" fill="${color}" font-size="11" font-family="Inter,monospace" text-anchor="${anchor}">${text}</text>`;
       }
       function dimLine(x1, y, x2, y2, text, color) {
         const mx = (x1 + x2) / 2;
         return `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${color}" stroke-width="0.8" stroke-dasharray="3,2"/>
-          <text x="${mx}" y="${y - 4}" fill="${color}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">${text}</text>`;
+          <text x="${mx}" y="${y - 4}" fill="${color}" font-size="10" font-family="Inter,monospace" text-anchor="middle">${text}</text>`;
       }
 
       // ════════════════════════════════════════════════════

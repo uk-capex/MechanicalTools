@@ -131,14 +131,14 @@ JIS呼び径（A表記）が混在しているため確認が必要`,
         const boltLTxt  = r.boltL  ? `${r.boltL}` : '—';
         return `<tr style="${rowBg}">
           <td style="color:${FL_CAT_COLOR[r.cat]};font-weight:700;white-space:nowrap;">${FL_CAT_LABEL[r.cat]}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;">${r._mateOf ? `<span style="color:${r._mateKind === 'full' ? 'var(--good)' : 'var(--warn)'};">↔</span> ` : ''}${r.pclass}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;white-space:nowrap;">${r._mateOf ? `<span style="color:${r._mateKind === 'full' ? 'var(--good)' : 'var(--warn)'};">↔</span> ` : ''}${r.pclass}</td>
           <td style="font-weight:700;color:var(--ink);white-space:nowrap;">${r.nom}</td>
           <td>${odTxt}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-weight:${r.pcd?'700':'400'};color:${r.pcd?'var(--ink)':'var(--muted)'};">${pcdTxt}</td>
+          <td style="font-family:'Inter',monospace;font-weight:${r.pcd?'700':'400'};color:${r.pcd?'var(--ink)':'var(--muted)'};">${pcdTxt}</td>
           <td style="text-align:center;">${r.boltN > 0 ? r.boltN : '—'}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.boltSize}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;">${r.boltSize}</td>
           <td style="text-align:center;">${boltLTxt}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${r.torque?'var(--warn)':'var(--muted)'};">${torqueTxt}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;color:${r.torque?'var(--warn)':'var(--muted)'};">${torqueTxt}</td>
           <td style="font-size:11px;">${r.packOD || '—'}</td>
           <td style="font-size:11px;color:var(--muted);">${r.packMat}</td>
           <td style="font-size:11px;white-space:nowrap;">${compatIcon}</td>

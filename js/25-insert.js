@@ -74,10 +74,10 @@
           return `
   <tr id="${rowId}" style="border-bottom:1px solid var(--border);">
     <td style="padding:9px 10px;font-weight:700;color:var(--ink);font-size:14px;">${name}</td>
-    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-align:center;">${pitch}</td>
-    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--accent);text-align:center;font-size:15px;font-weight:700;">Φ ${insDrill.toFixed(1)}</td>
-    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-align:center;">${normDrill !== null ? "Φ " + normDrill.toFixed(1) : "—"}</td>
-    <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;color:var(--good);text-align:center;">${diff}</td>
+    <td style="padding:9px 10px;font-family:'Inter',monospace;color:var(--muted);text-align:center;">${pitch}</td>
+    <td style="padding:9px 10px;font-family:'Inter',monospace;color:var(--accent);text-align:center;font-size:15px;font-weight:700;">Φ ${insDrill.toFixed(1)}</td>
+    <td style="padding:9px 10px;font-family:'Inter',monospace;color:var(--muted);text-align:center;">${normDrill !== null ? "Φ " + normDrill.toFixed(1) : "—"}</td>
+    <td style="padding:9px 10px;font-family:'Inter',monospace;color:var(--good);text-align:center;">${diff}</td>
   </tr>`;
         }).join("");
 

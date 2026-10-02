@@ -210,7 +210,7 @@
         <div class="fit-dim-row"><span class="fit-dim-label">上偏差 ES</span><span class="fit-dim-val">${hole.upper >= 0 ? "+" : ""}${(hole.upper * 1000).toFixed(0)} μm</span></div>
         <div class="fit-dim-row"><span class="fit-dim-label">下偏差 EI</span><span class="fit-dim-val">${hole.lower >= 0 ? "+" : ""}${(hole.lower * 1000).toFixed(0)} μm</span></div>
         <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${((hole.upper - hole.lower) * 1000).toFixed(0)} μm</span></div>
-        <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace">
+        <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'Inter',monospace">
           Ø${d} <sup>+${(hole.upper * 1000).toFixed(0)}</sup><sub>${hole.lower >= 0 ? "+" : ""}${(hole.lower * 1000).toFixed(0)}</sub> μm
         </div>
       </div>
@@ -221,7 +221,7 @@
         <div class="fit-dim-row"><span class="fit-dim-label">上偏差 es</span><span class="fit-dim-val">${shaft.upper >= 0 ? "+" : ""}${(shaft.upper * 1000).toFixed(0)} μm</span></div>
         <div class="fit-dim-row"><span class="fit-dim-label">下偏差 ei</span><span class="fit-dim-val">${shaft.lower >= 0 ? "+" : ""}${(shaft.lower * 1000).toFixed(0)} μm</span></div>
         <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${((shaft.upper - shaft.lower) * 1000).toFixed(0)} μm</span></div>
-        <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace">
+        <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'Inter',monospace">
           Ø${d} <sup>${shaft.upper >= 0 ? "+" : ""}${(shaft.upper * 1000).toFixed(0)}</sup><sub>${shaft.lower >= 0 ? "+" : ""}${(shaft.lower * 1000).toFixed(0)}</sub> μm
         </div>
       </div>

@@ -345,9 +345,9 @@
                   : "";
               return `<tr ${hilight}>
         <td style="padding:4px 8px;color:var(--ink)">${ft.label}</td>
-        <td style="padding:4px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${ft.LeD}</td>
-        <td style="padding:4px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${Le.toFixed(2)}</td>
-        <td style="padding:4px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${dPf > r.dP * 0.3 ? "var(--warn)" : "var(--ink)"}">${dPf.toFixed(3)}</td>
+        <td style="padding:4px 8px;text-align:right;font-family:'Inter',monospace">${ft.LeD}</td>
+        <td style="padding:4px 8px;text-align:right;font-family:'Inter',monospace">${Le.toFixed(2)}</td>
+        <td style="padding:4px 8px;text-align:right;font-family:'Inter',monospace;color:${dPf > r.dP * 0.3 ? "var(--warn)" : "var(--ink)"}">${dPf.toFixed(3)}</td>
       </tr>`;
             },
           ).join("");
@@ -394,17 +394,17 @@
               : dpHi
                 ? `<span style="color:#f85149">❌ 10%超</span>`
                 : `<span style="color:var(--warn)">🔶 10%以内</span>`;
-            vEffCell = `<td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${(r.v / vRatio).toFixed(2)}</td>`;
+            vEffCell = `<td style="padding:5px 8px;text-align:right;font-family:'Inter',monospace;color:var(--muted)">${(r.v / vRatio).toFixed(2)}</td>`;
             vEffBadgeCell = `<td style="padding:5px 8px;text-align:center">${effBadge}</td>`;
           }
 
           return `<tr style="${rowBg}${isSelected ? "outline:1px solid var(--accent);" : ""}">
       <td style="padding:5px 8px;font-weight:${isSelected ? "700" : "400"};color:${isSelected ? "var(--accent)" : "var(--ink)"}">${sz}A</td>
-      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${id_mm.toFixed(1)}</td>
-      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${vColor};font-weight:${ok ? "700" : "400"}">${r.v.toFixed(2)}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'Inter',monospace">${id_mm.toFixed(1)}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'Inter',monospace;color:${vColor};font-weight:${ok ? "700" : "400"}">${r.v.toFixed(2)}</td>
       ${vEffCell}
-      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${r.Re.toLocaleString("ja", { maximumFractionDigits: 0 })}</td>
-      <td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace">${r.dP.toFixed(2)}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'Inter',monospace">${r.Re.toLocaleString("ja", { maximumFractionDigits: 0 })}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'Inter',monospace">${r.dP.toFixed(2)}</td>
       <td style="padding:5px 8px;text-align:center">${badge}</td>
       ${vEffBadgeCell}
     </tr>`;
@@ -832,7 +832,7 @@
                 : `${fmt(hr_or_dPr, 4)} m`;
               segRows.push(`<tr style="background:var(--surface)">
           <td style="padding:3px 6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)" colspan="3">↕ ${reducerNote}</td>
-          <td style="text-align:right;padding:3px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--warn)">${rLoss}</td>
+          <td style="text-align:right;padding:3px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;font-size:11px;color:var(--warn)">${rLoss}</td>
           <td style="padding:3px 6px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted)">自動算出</td>
         </tr>`);
             }
@@ -855,9 +855,9 @@
             const dPtotal = dPf + dPm;
             segRows.push(`<tr>
         <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><b>${seg.label}</b><br><span style="font-size:10px;color:var(--muted)">${d_mm}mm / ${L_m}m</span></td>
-        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${d_mm}mm</td>
-        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${fmt(v, 2)} m/s</td>
-        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${fmt(dPtotal / 1000, 2)} kPa</td>
+        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${d_mm}mm</td>
+        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${fmt(v, 2)} m/s</td>
+        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;color:var(--accent)">${fmt(dPtotal / 1000, 2)} kPa</td>
         <td style="padding:4px 6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">${flowType}</td>
       </tr>`);
           } else {
@@ -868,9 +868,9 @@
             totalHm += hm;
             segRows.push(`<tr>
         <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><b>${seg.label}</b><br><span style="font-size:10px;color:var(--muted)">${d_mm}mm / ${L_m}m</span></td>
-        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${d_mm}mm</td>
-        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${fmt(v, 2)} m/s</td>
-        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${fmt(hf + hm, 3)} m</td>
+        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${d_mm}mm</td>
+        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${fmt(v, 2)} m/s</td>
+        <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;color:var(--accent)">${fmt(hf + hm, 3)} m</td>
         <td style="padding:4px 6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">${flowType}</td>
       </tr>`);
           }
@@ -965,7 +965,7 @@
               (
                 r,
               ) => `<tr><td style="padding:4px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
-      <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[1]}</td>
+      <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;color:var(--accent)">${r[1]}</td>
       <td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${r[2]}</td></tr>`,
             )
             .join("");
@@ -1040,7 +1040,7 @@
               (
                 r,
               ) => `<tr><td style="padding:4px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
-      <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[1]}</td>
+      <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;color:var(--accent)">${r[1]}</td>
       <td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">${r[2]}</td></tr>`,
             )
             .join("");
@@ -1441,9 +1441,9 @@
             .map(
               (r) => `<tr>
       <td style="padding:5px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
-      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[1]}</td>
-      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[2]}</td>
-      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace">${r[3]}</td>
+      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${r[1]}</td>
+      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${r[2]}</td>
+      <td style="text-align:center;padding:5px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace">${r[3]}</td>
     </tr>`,
             )
             .join("");

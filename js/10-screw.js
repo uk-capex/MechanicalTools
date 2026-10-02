@@ -569,7 +569,7 @@
               ? `<td style="color:var(--muted)">${coarse.toFixed(2)} mm</td>`
               : `<td style="color:var(--border)">—</td>`;
             return `<tr>
-      <td style="font-family:'JetBrains Mono',monospace;color:var(--ink);font-weight:700">M${d}</td>
+      <td style="font-family:'Inter',monospace;color:var(--ink);font-weight:700">M${d}</td>
       ${coarseDisp}
       ${cell(f1,false)}${cell(f2,false)}${cell(f3,false)}${cell(f4,true)}
     </tr>`;

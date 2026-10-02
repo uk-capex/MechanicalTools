@@ -223,12 +223,12 @@
         const my=(y1+y2)/2;
         return `<line x1="${x1}" y1="${my}" x2="${x2}" y2="${my}" stroke="${m}" stroke-width="1" stroke-dasharray="3,2"/>
                 <text x="${(x1+x2)/2}" y="${my-3}" fill="${m}" font-size="${fs}" text-anchor="middle"
-                  font-family="JetBrains Mono,monospace">${label}</text>`;
+                  font-family="Inter,monospace">${label}</text>`;
       } else {
         const mx=(x1+x2)/2;
         return `<line x1="${mx}" y1="${y1}" x2="${mx}" y2="${y2}" stroke="${m}" stroke-width="1" stroke-dasharray="3,2"/>
                 <text x="${mx+3}" y="${(y1+y2)/2+4}" fill="${m}" font-size="${fs}" text-anchor="start"
-                  font-family="JetBrains Mono,monospace">${label}</text>`;
+                  font-family="Inter,monospace">${label}</text>`;
       }
     }
 
@@ -242,7 +242,7 @@
         return `<div style="margin-bottom:8px;">
           <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;">
             <span style="color:${isActive?'var(--ink)':'var(--muted)'};font-weight:${isActive?700:400}">${m.label}</span>
-            <span style="font-family:'JetBrains Mono',monospace;color:${isActive?'var(--accent)':'var(--muted)'}">
+            <span style="font-family:'Inter',monospace;color:${isActive?'var(--accent)':'var(--muted)'}">
               ${kg>=100?kg.toFixed(1):kg.toFixed(3)} kg</span>
           </div>
           <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;">

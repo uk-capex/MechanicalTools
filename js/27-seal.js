@@ -12,7 +12,7 @@
         const bTxt = `${nv(r.bDyn)} / ${nv(r.bSta)}`;
         const tTxt = `${nv(r.tDyn)} / ${nv(r.tSta)}`;
         return `<tr onclick="orSelect(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="cursor:pointer;">
-          <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${r.id}</td>
+          <td style="color:var(--accent);font-family:'Inter',monospace;">${r.id}</td>
           <td>${r.d1}</td><td>${r.d2}</td>
           <td>${bTxt}</td><td>${tTxt}</td><td>${r.C ?? '—'}</td>
           <td style="font-size:11px;color:var(--muted);">${r.use==='dynamic'?'運動用':'固定用'}</td>
@@ -240,10 +240,10 @@
         const d = r[0], D = r[1], B = r[2], iso = r[3];
         const code = `${String(d).padStart(3,'0')}${String(D).padStart(3,'0')}`;  // JIS 表7 寸法表示コード
         return `<tr>
-          <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;">${d}</td>
+          <td style="color:var(--accent);font-family:'Inter',monospace;font-weight:700;">${d}</td>
           <td>${D}</td><td>${B}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);">TC ${d}×${D}×${B}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">${code}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;color:var(--ink);">TC ${d}×${D}×${B}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;color:var(--muted);">${code}</td>
           <td style="font-size:11px;color:${iso ? 'var(--good)' : 'var(--muted)'};">${iso ? '✓ JIS表1' : '市販サイズ'}</td>
         </tr>`;
       }).join('');

@@ -274,7 +274,7 @@
         $('ndl-tbody').innerHTML = filteredNeedles.length
           ? filteredNeedles.map((b, idx) => `
             <tr onclick="needleRowClick(${idx})" style="cursor:pointer;">
-              <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);">${b[0]}</td>
+              <td style="font-family:'Inter',monospace;font-weight:700;color:var(--ink);">${b[0]}</td>
               <td style="color:${SERIES_COLOR[b[1]]||'var(--muted)'};font-size:11px;font-weight:700;">${b[1]}</td>
               <td>${b[2]}</td>
               <td>${b[3]}</td>
@@ -339,7 +339,7 @@
                 (
                   b,
                 ) => `<tr style="cursor:pointer" onclick="taperRowClick(${TAPER_DB.indexOf(b)})">
-        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
+        <td style="font-family:'Inter',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
         <td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td>
         <td style="color:var(--accent);font-weight:600">${b[4]}</td>
         <td>${b[5]}</td><td>${b[6]}</td><td>${b[7]}</td>
@@ -564,8 +564,8 @@
           .map(
             (r) => `<tr>
     <td style="padding:4px 6px;border-bottom:1px solid var(--border)">${r[0]}</td>
-    <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[1]}</td>
-    <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;color:var(--accent)">${r[2]}</td>
+    <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;color:var(--accent)">${r[1]}</td>
+    <td style="text-align:right;padding:4px 6px;border-bottom:1px solid var(--border);font-family:'Inter',monospace;color:var(--accent)">${r[2]}</td>
   </tr>`,
           )
           .join("");

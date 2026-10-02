@@ -16,7 +16,7 @@
         infoEl.innerHTML = `<span style="color:var(--muted);">種別を選択すると説明が表示されます</span>`;
       }
 
-      const mono = "font-family:'JetBrains Mono',monospace;";
+      const mono = "font-family:'Inter',monospace;";
       const nv = v => (v === null || v === undefined) ? '<span style="color:var(--muted);">要確認</span>' : v;
       document.getElementById('anc-tbody').innerHTML = rows.map(r => {
         const [t, size, dHole, dDepth, embed, edge, pitch, torque, note] = r;
@@ -108,7 +108,7 @@
         : ok ? `<span style="color:var(--good);">✓ OK</span>`
              : `<span style="color:var(--bad);">✕ NG（本数を増やしてください）</span>`;
       document.getElementById('anc-r-combo').innerHTML = `
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;">
+        <div style="font-family:'Inter',monospace;font-size:12px;">
           N/Na${Qa_kN != null ? ' + Q/Qa' : ''}<br>
           = ${rN.toFixed(3)}${Qa_kN != null ? ' + ' + rQ.toFixed(3) : ''}
           = <b style="color:${ratioColor};">${ratio.toFixed(3)}</b> ≤ 1.0 ${ratioJudge}
@@ -127,7 +127,7 @@
       const dimRow = ANC_DATA.find(r => r[0] === type && r[1] === size);
       if (dimRow) {
         const [,, dHole, dDepth, embed, edgeRec, pitchRec, torque, note] = dimRow;
-        const b = (v, c) => `<b style="font-family:'JetBrains Mono',monospace;${c ? 'color:' + c + ';' : ''}">${v}</b>`;
+        const b = (v, c) => `<b style="font-family:'Inter',monospace;${c ? 'color:' + c + ';' : ''}">${v}</b>`;
         dimEl.innerHTML = `
           <div style="color:var(--muted);font-size:10px;margin-bottom:6px;">施工寸法参照（${ANC_TYPE_LABEL[type]} ${size}・${note}）</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;">

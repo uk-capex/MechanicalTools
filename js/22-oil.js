@@ -454,7 +454,7 @@
         tbody.innerHTML = data
           .map(
             (r) =>
-              '<tr><td style="font-family:JetBrains Mono,monospace;color:var(--accent);font-weight:600">' +
+              '<tr><td style="font-family:Inter,monospace;color:var(--accent);font-weight:600">' +
               r[0] +
               "</td><td>" +
               r[1] +
@@ -476,7 +476,7 @@
         if (!tbody) return;
         tbody.innerHTML = OIL_GREASE.map(
           (r) =>
-            '<tr><td style="font-family:JetBrains Mono,monospace;color:var(--warn);font-weight:600">' +
+            '<tr><td style="font-family:Inter,monospace;color:var(--warn);font-weight:600">' +
             r[0] +
             "</td><td>" +
             r[1] +
@@ -509,7 +509,7 @@
           return (
             '<tr><td style="font-weight:600;color:var(--ink)">' +
             r[0] +
-            '</td><td style="font-family:JetBrains Mono,monospace;color:var(--warn)">' +
+            '</td><td style="font-family:Inter,monospace;color:var(--warn)">' +
             r[1] +
             '</td><td style="color:' +
             c1 +
@@ -545,7 +545,7 @@
               )
               .join("");
             return (
-              '<tr><td style="font-family:JetBrains Mono,monospace;font-weight:700;color:' +
+              '<tr><td style="font-family:Inter,monospace;font-weight:700;color:' +
               (isGrease ? "var(--warn)" : "var(--accent)") +
               ';white-space:nowrap">' +
               r[0] +

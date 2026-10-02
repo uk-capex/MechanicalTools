@@ -337,7 +337,7 @@
                   const mass =
                     b[9] != null ? b[9].toFixed(3) : "—";
                   return `<tr style="cursor:pointer;" onclick="bearingRowClick(${BEARING_DB.indexOf(b)})">
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
+          <td style="font-family:'Inter',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
           <td>${b[1] != null ? b[1] : "—"}</td><td>${b[2]}</td><td>${b[3]}</td>
           <td style="color:var(--accent);font-weight:600">${b[4]}</td>
           <td>${b[5]}</td>
@@ -602,7 +602,7 @@
         ]
           .map(
             (r) =>
-              `<tr><td>${r[0]}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${r[1]}</td><td style="color:var(--muted);font-size:11px">${r[2]}</td></tr>`,
+              `<tr><td>${r[0]}</td><td style="font-family:'Inter',monospace;color:var(--accent);font-weight:600">${r[1]}</td><td style="color:var(--muted);font-size:11px">${r[2]}</td></tr>`,
           )
           .join("");
       }
@@ -772,7 +772,7 @@
         $("bfit-tbody").innerHTML = [
           ["内輪側（軸）", shaftSym || "—", sMax != null ? fitKind(sMax, sMin) : "—", sMax != null ? `${fmtTL(sMax)} 〜 ${fmtTL(sMin)}${ratioTag}` : "—", ""],
           ["外輪側（穴）", holeSym, hMax != null ? fitKind(hMax, hMin) : "—", hMax != null ? `${fmtTL(hMax)} 〜 ${fmtTL(hMin)}` : "—", ""],
-        ].map(r => `<tr><td>${r[0]}</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700">${r[1]}</td><td>${r[2]}</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${r[3]}</td><td></td></tr>`).join("")
+        ].map(r => `<tr><td>${r[0]}</td><td style="font-family:'Inter',monospace;color:var(--accent);font-weight:700">${r[1]}</td><td>${r[2]}</td><td style="font-family:'Inter',monospace;font-size:12px">${r[3]}</td><td></td></tr>`).join("")
           + `<tr><td colspan="5" style="font-size:11px;color:var(--muted);text-align:left;line-height:1.7">${notes.map(n => "・" + n).join("<br>")}<br>・必要しめしろの下限は、荷重による減少 0.08√(d·Fr/B)μm・温度差 0.0015·d·ΔT μm・面粗さ（研削1〜2.5／旋削5〜7μm）を見込む（NTN 7.3.3）</td></tr>`;
       }
 
@@ -869,7 +869,7 @@
           ? filteredThrust
               .map(
                 (b) => `<tr>
-        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
+        <td style="font-family:'Inter',monospace;color:var(--accent);font-weight:600">${b[0]}</td>
         <td>${b[1]}</td><td>${b[2]}</td><td>${b[3]}</td>
         <td style="color:var(--accent);font-weight:600">${b[4]}</td>
         <td>${b[5]}</td>

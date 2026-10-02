@@ -24,14 +24,14 @@
         const wll_kgf = Math.round(kN2kgf(wll_kN));
         const fb_tf   = r.Fb / G_ACC;
         return `<tr>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.構成}</td>
-          <td style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;">φ${r.d}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;">${r.構成}</td>
+          <td style="color:var(--accent);font-weight:700;font-family:'Inter',monospace;">φ${r.d}</td>
           <td>${r.A}</td>
-          <td style="font-family:'JetBrains Mono',monospace;">${r.Fb.toFixed(1)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--muted);">${fb_tf.toFixed(2)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--good);">${wll_kN.toFixed(2)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--good);">${wll_tf.toFixed(3)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">${wll_kgf.toLocaleString()}</td>
+          <td style="font-family:'Inter',monospace;">${r.Fb.toFixed(1)}</td>
+          <td style="font-family:'Inter',monospace;color:var(--muted);">${fb_tf.toFixed(2)}</td>
+          <td style="font-family:'Inter',monospace;color:var(--good);">${wll_kN.toFixed(2)}</td>
+          <td style="font-family:'Inter',monospace;color:var(--good);">${wll_tf.toFixed(3)}</td>
+          <td style="font-family:'Inter',monospace;color:var(--accent);font-weight:700;">${wll_kgf.toLocaleString()}</td>
           <td>${r.kg}</td>
           <td style="font-size:11px;color:var(--muted);">${r.note}</td>
         </tr>`;
@@ -55,7 +55,7 @@
         const wll = Math.round(kN2kgf(fb / RIG_SF_WIRE));
         html += `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
           <span style="color:var(--muted);font-size:10px;">${k}　${hit ? 'JIS表値' : '概算 ' + WIRE_K[k] + '×d²'}</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">${wll.toLocaleString()}kgf</span>
+          <span style="font-family:'Inter',monospace;font-weight:700;color:var(--good);">${wll.toLocaleString()}kgf</span>
         </div>`;
       });
       const quick_kgf = Math.round(d2 / 120 * 1000);
@@ -63,7 +63,7 @@
         <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">── 現場概算（構成不明時）──</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <span style="font-size:10px;color:var(--muted);">d²÷120（t）</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn);">${quick_kgf.toLocaleString()}kgf</span>
+          <span style="font-family:'Inter',monospace;font-weight:700;color:var(--warn);">${quick_kgf.toLocaleString()}kgf</span>
         </div>
         <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5;">6×24 A種（一番弱い構成）をSF6で見た値。<br>※旧版の d²÷100 は約2割甘かったため変更。</div>`;
       box.innerHTML = html;
@@ -107,12 +107,12 @@
           : `2個45°で合計 ${v_kgf.toLocaleString()}`;
         return `<tr>
           <td style="font-size:11px;color:${nc};">${label}</td>
-          <td style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;">${r.size}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.v.toFixed(2)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--good);">${v_kgf.toLocaleString()}</td>
+          <td style="color:var(--accent);font-weight:700;font-family:'Inter',monospace;">${r.size}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;">${r.v.toFixed(2)}</td>
+          <td style="font-family:'Inter',monospace;font-weight:700;color:var(--good);">${v_kgf.toLocaleString()}</td>
           <td style="font-size:11px;">${slant}</td>
           <td>${r.kg}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${isRUD ? r.torque : '—'}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;">${isRUD ? r.torque : '—'}</td>
           <td style="font-size:11px;color:var(--muted);">${r.note}</td>
         </tr>`;
       }).join('');
@@ -136,11 +136,11 @@
       if (minKgf > 0) rows = rows.filter(r => r.wll >= minWLL);
       document.getElementById('sh-count').textContent = rows.length + ' 件';
       document.getElementById('shackle-tbody').innerHTML = rows.map(r => `<tr>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;">${r.nom}</td>
+          <td style="font-family:'Inter',monospace;color:var(--accent);font-weight:700;">${r.nom}</td>
           <td style="font-size:11px;">${r.form}</td>
-          <td style="font-family:'JetBrains Mono',monospace;">${r.t}</td>
-          <td style="font-family:'JetBrains Mono',monospace;">${r.wll.toFixed(1)}</td>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--good);font-weight:700;">${Math.round(r.t * 1000).toLocaleString()}</td>
+          <td style="font-family:'Inter',monospace;">${r.t}</td>
+          <td style="font-family:'Inter',monospace;">${r.wll.toFixed(1)}</td>
+          <td style="font-family:'Inter',monospace;color:var(--good);font-weight:700;">${Math.round(r.t * 1000).toLocaleString()}</td>
           <td style="font-size:11px;color:var(--muted);">等級M</td>
         </tr>`).join('');
     }
@@ -186,7 +186,7 @@
     function rigRow(label, value, color) {
       return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span style="color:var(--muted);font-size:11px;">${label}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${color};">${value}</span>
+        <span style="font-family:'Inter',monospace;font-weight:700;color:${color};">${value}</span>
       </div>`;
     }
 
@@ -213,11 +213,11 @@
         ${angleWarn}
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
           <div><div style="color:var(--muted);font-size:10px;">荷重</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);">${W_kgf.toLocaleString()}<span style="font-size:10px;"> kgf</span></div></div>
+            <div style="font-family:'Inter',monospace;font-weight:700;font-size:15px;color:var(--ink);">${W_kgf.toLocaleString()}<span style="font-size:10px;"> kgf</span></div></div>
           <div><div style="color:var(--muted);font-size:10px;">${n}点吊り・開き角${θ}°（×${factor}）</div>
             <div style="color:var(--muted);font-size:11px;">1本あたり張力</div></div>
           <div><div style="color:var(--muted);font-size:10px;">1本あたり</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--accent);">${Math.ceil(T_kgf).toLocaleString()}<span style="font-size:10px;"> kgf</span></div></div>
+            <div style="font-family:'Inter',monospace;font-weight:700;font-size:15px;color:var(--accent);">${Math.ceil(T_kgf).toLocaleString()}<span style="font-size:10px;"> kgf</span></div></div>
         </div>${legNote}`;
 
       // ── ワイヤー（破断力 ≥ 張力×6） ──
