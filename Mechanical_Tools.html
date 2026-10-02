@@ -1384,6 +1384,37 @@
               </select>
             </div>
           </div>
+          <hr class="divider" />
+          <div>
+            <div class="section-title">ボス・はめあい条件（推奨締め代の計算用）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="field">
+                <label>ボス外径 Do (mm)</label>
+                <input type="number" id="sh-Do" step="1" placeholder="空欄＝穴径の2倍" oninput="calcShrink()">
+              </div>
+              <div class="field">
+                <label>軸の内径 di (mm)</label>
+                <input type="number" id="sh-di" value="0" step="1" min="0" oninput="calcShrink()">
+              </div>
+              <div class="field">
+                <label>はめあい長さ L (mm)</label>
+                <input type="number" id="sh-L" step="1" placeholder="空欄＝穴径と同じ" oninput="calcShrink()">
+              </div>
+              <div class="field">
+                <label>伝達トルク T (N·m)　任意</label>
+                <input type="number" id="sh-T" step="10" placeholder="入れると下限が出る" oninput="calcShrink()">
+              </div>
+              <div class="field">
+                <label>摩擦係数 μ</label>
+                <input type="number" id="sh-mu" value="0.15" step="0.01" min="0.05" oninput="calcShrink()">
+              </div>
+              <div class="field">
+                <label>すべり安全率</label>
+                <input type="number" id="sh-Sslip" value="2" step="0.5" min="1" oninput="calcShrink()">
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);line-height:1.6;">μ の目安：焼嵌め・冷やし嵌め（鋼同士・乾燥）0.15前後、油を塗った圧入 0.08程度。ポアソン比は全材料 0.3 で計算。</div>
+          </div>
         </div>
 
         <div class="panel-right">
@@ -1407,7 +1438,7 @@
                 margin-bottom: 10px;
               "
             >
-              材質・径から算出した推奨締めしろ範囲
+              厚肉円筒（ラメの式）で算出した推奨締めしろ範囲
             </div>
             <div
               style="
@@ -5013,15 +5044,25 @@
                 </div>
               </div>
               <div class="field">
-                <label>安全率 S.F.</label>
+                <label>追加の安全率（許容応力は既に長期＝F/1.5）</label>
                 <input
                   type="number"
                   id="sf-val"
-                  value="2"
-                  step="0.5"
+                  value="1"
+                  step="0.1"
                   min="1"
                   oninput="calcBeam()"
                 />
+                <div style="font-size:10px;color:var(--muted);">静荷重は 1.0。動荷重・衝撃があるなら衝撃係数ぶん（1.25〜2 程度）を入れる</div>
+              </div>
+              <div class="field">
+                <label>たわみの制限</label>
+                <select id="defl-limit" onchange="calcBeam()">
+                  <option value="250">L/250（建築の梁：平12建告1459号の下限）</option>
+                  <option value="300" selected>L/300（鉄骨梁の一般的な目安）</option>
+                  <option value="800">L/800（天井クレーンガーダ：クレーン構造規格・JIS B 8801）</option>
+                  <option value="1000">L/1000（精密機器を載せる架台など・自主基準の例）</option>
+                </select>
               </div>
             </div>
           </div>
@@ -7872,6 +7913,15 @@
                 <option value="custom">カスタム</option>
               </select>
             </div>
+            <div class="field">
+              <label>配管の区分</label>
+              <select id="ps-line" onchange="calcPipeSiz()">
+                <option value="suction">吸込側（ポンプ入口まで）</option>
+                <option value="discharge" selected>吐出側・圧油ライン</option>
+                <option value="ret">戻り（返油）ライン</option>
+              </select>
+              <div id="ps-v-src" style="font-size:11px;color:var(--accent);margin-top:4px;"></div>
+            </div>
             <div id="ps-custom-wrap" style="display: none">
               <div class="field">
                 <label>密度 ρ（kg/m³）</label>
@@ -7982,10 +8032,11 @@
               <b>Darcy-Weisbach：</b>hf = f·(L/D)·v²/2g<br />
               <b>摩擦係数：</b>Colebrook-White
               式（反復計算）<br />
-              <b>推奨流速目安：</b><br />
-              　水：0.5〜3.0 m/s<br />
-              　油：0.5〜2.0 m/s（吸込側 0.5〜1.0）<br />
-              　エア：6〜15 m/s（主管）
+              <b>推奨流速の目安（出典）</b><br />
+              　水：吸込 0.5〜2.0／吐出 1.0〜3.0 m/s（オーバル 管内流速の標準値）<br />
+              　海水：1.2〜2.0 m/s（同上）　熱水：吐出 2.0 以下（給湯の目安）<br />
+              　油：吸込 0.8 以下／圧油 4 以下／戻り 3 以下（ダイキン 油圧配管）<br />
+              　エア：配管内の実流速 15 m/s 程度まで。決め手は圧力降下＝入口圧の10%以内（CAGI）
             </div>
           </div>
 
@@ -8034,7 +8085,7 @@
                   style="border-color: var(--accent)"
                 >
                   <div class="card-label">
-                    実効流速（配管内実体積）
+                    配管内の実流速
                   </div>
                   <div
                     class="card-value"
@@ -8235,7 +8286,7 @@
                           var(--border);
                       "
                     >
-                      実効流速<br /><span
+                      Nm³基準(参考)<br /><span
                         style="
                           font-weight: 400;
                           font-size: 10px;
@@ -8287,7 +8338,7 @@
                           var(--border);
                       "
                     >
-                      実効判定
+                      圧損判定
                     </th>
                   </tr>
                 </thead>
