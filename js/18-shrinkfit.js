@@ -185,47 +185,61 @@
         const needT_shaft = shTempForContraction(keyS, alphaS, reqClear / D);
         const needDT_shaft = needT_shaft === null ? Infinity : 20 - needT_shaft;
 
-        // ── 推奨締めしろ計算 ──
-        // 穴側：引張応力（外径∞近似で σ_hoop = E * δ/D）
-        // 軸側：圧縮応力（同様に σ = E * δ/D）
-        // 制約：両方の材料で σ ≤ σy / S
-        // δ_max = min( syH/EH , syS/ES ) * D / S
-        const eps_allowH = syH / EH / safety; // 穴側許容ひずみ
-        const eps_allowS = syS / ES / safety; // 軸側許容ひずみ
-        const eps_allow = Math.min(eps_allowH, eps_allowS); // 制約側
-        const limiting =
-          eps_allowH <= eps_allowS
-            ? "穴側が制約"
-            : "軸側が制約";
-
-        const delta_max = eps_allow * D; // 上限締めしろ
-        const delta_min = delta_max * 0.3; // 下限（上限の30%：最低限の保持力確保）
-        const delta_mid = (delta_min + delta_max) * 0.5;
+        // ── 推奨締めしろ計算（2026-10 厚肉円筒＝ラメの式に作り直し）──
+        //  旧：σ = E·δ/D の簡易式、下限は上限の30%（根拠なし）
+        //  面圧 p と直径締め代 δ の関係（平面応力、ν=0.3）：
+        //    δ = p·D·[ (KH + ν)/EH + (KS − ν)/ES ]、KH=(1+Q²)/(1−Q²)（Q=D/Do）、KS=(1+q²)/(1−q²)（q=di/D）
+        //  上限：ボス内面の相当応力（ミーゼス）σ = p·√(3+Q⁴)/(1−Q²)、中実軸 σ = p、中空軸の内面 σ = 2p/(1−q²) がそれぞれ σy/S 以下
+        //  下限：伝達トルク T = μ·p·π·D²·L/2 から、すべり安全率を掛けて必要な面圧 → 必要締め代
+        const nu = 0.3;
+        const DoIn = parseFloat($("sh-Do")?.value), diIn = parseFloat($("sh-di")?.value) || 0, LIn = parseFloat($("sh-L")?.value);
+        const Do = DoIn > D ? DoIn : 2 * D;
+        const di = diIn > 0 && diIn < D ? diIn : 0;
+        const Lf = LIn > 0 ? LIn : D;
+        const T_Nm = parseFloat($("sh-T")?.value);
+        const mu = parseFloat($("sh-mu")?.value) || 0.15;
+        const Sslip = parseFloat($("sh-Sslip")?.value) || 2;
+        const Q = D / Do, q = di / D;
+        const KH = (1 + Q * Q) / (1 - Q * Q), KS = (1 + q * q) / (1 - q * q);
+        const C = (KH + nu) / EH + (KS - nu) / ES;            // δ/(p·D)  [1/MPa]
+        const fH = Math.sqrt(3 + Q ** 4) / (1 - Q * Q);       // ボス内面 σeq / p
+        const fS = di > 0 ? 2 / (1 - q * q) : 1;              // 軸 σeq / p
+        const pH = syH / safety / fH, pS = syS / safety / fS; // 降伏で決まる許容面圧
+        const p_max = Math.min(pH, pS);
+        const limiting = pH <= pS ? "ボス側が制約" : "軸側が制約";
+        const delta_max = p_max * D * C;
+        const p_req = T_Nm > 0 ? (2 * Sslip * T_Nm * 1000) / (mu * Math.PI * D * D * Lf) : null;
+        const delta_min = p_req != null ? p_req * D * C : null;
+        const delta_mid = delta_min != null ? (delta_min + delta_max) / 2 : null;
+        const p_at = delta > 0 ? delta / (D * C) : 0;          // 狙い締め代での面圧
+        const T_at = (mu * p_at * Math.PI * D * D * Lf) / 2 / 1000; // そのときの伝達トルク N·m
+        const eps_allow = delta_max / D;
 
         // 現在の締めしろ判定
         let judgeHtml;
+        const tqTxt = `面圧 ${p_at.toFixed(0)} MPa・伝達トルク ${T_at.toFixed(0)} N·m（μ${mu}）`;
         if (delta <= 0) {
           judgeHtml = `<span style="color:var(--muted)">狙い締め代を入力してください</span>`;
         } else if (delta > delta_max) {
-          judgeHtml = `<span style="color:var(--bad)">⚠ 設定締め代 <b>${delta.toFixed(3)} mm</b> が上限 <b>${delta_max.toFixed(3)} mm</b> を超過 — 降伏リスクあり（${limiting}）</span>`;
-        } else if (delta < delta_min) {
-          judgeHtml = `<span style="color:var(--warn)">△ 設定締め代 <b>${delta.toFixed(3)} mm</b> が推奨下限 <b>${delta_min.toFixed(3)} mm</b> 未満 — 保持力不足のおそれ</span>`;
+          judgeHtml = `<span style="color:var(--bad)">⚠ 設定締め代 <b>${delta.toFixed(3)} mm</b> が上限 <b>${delta_max.toFixed(3)} mm</b> を超過 — 降伏のおそれ（${limiting}）。${tqTxt}</span>`;
+        } else if (delta_min != null && delta < delta_min) {
+          judgeHtml = `<span style="color:var(--warn)">△ 設定締め代 <b>${delta.toFixed(3)} mm</b> が必要下限 <b>${delta_min.toFixed(3)} mm</b> 未満 — トルク ${T_Nm} N·m に対してすべりのおそれ。${tqTxt}</span>`;
         } else {
-          judgeHtml = `<span style="color:var(--good)">✓ 設定締め代 <b>${delta.toFixed(3)} mm</b> は推奨範囲内です（${limiting}、ε = ${((delta / D) * 1000).toFixed(2)}×10⁻³）</span>`;
+          judgeHtml = `<span style="color:var(--good)">✓ 設定締め代 <b>${delta.toFixed(3)} mm</b> は${delta_min != null ? "推奨範囲内" : "上限以内"}（${limiting}）。${tqTxt}</span>`;
         }
 
-        $("sh-rec-min").innerHTML =
-          `${delta_min.toFixed(3)}<span class="card-unit"> mm</span>`;
-        $("sh-rec-min-sub").textContent =
-          `ε = ${(eps_allow * 0.3 * 1000).toFixed(2)}×10⁻³`;
-        $("sh-rec-mid").innerHTML =
-          `${delta_mid.toFixed(3)}<span class="card-unit"> mm</span>`;
-        $("sh-rec-mid-sub").textContent =
-          `ε = ${(eps_allow * 0.65 * 1000).toFixed(2)}×10⁻³`;
+        $("sh-rec-min").innerHTML = delta_min != null
+          ? `${delta_min.toFixed(3)}<span class="card-unit"> mm</span>` : `—<span class="card-unit"> mm</span>`;
+        $("sh-rec-min-sub").textContent = delta_min != null
+          ? `T${T_Nm}N·m×${Sslip} に必要な面圧 ${p_req.toFixed(0)} MPa` : "伝達トルクを入れると出る";
+        $("sh-rec-mid").innerHTML = delta_mid != null
+          ? `${delta_mid.toFixed(3)}<span class="card-unit"> mm</span>` : `—<span class="card-unit"> mm</span>`;
+        $("sh-rec-mid-sub").textContent = delta_min != null && delta_min > delta_max
+          ? "下限が上限を超える→長さ・外径・材質を見直し" : (delta_mid != null ? "下限と上限の中央" : "");
         $("sh-rec-max").innerHTML =
           `${delta_max.toFixed(3)}<span class="card-unit"> mm</span>`;
         $("sh-rec-max-sub").textContent =
-          `ε_allow = ${(eps_allow * 1000).toFixed(2)}×10⁻³ (${limiting})`;
+          `許容面圧 ${p_max.toFixed(0)} MPa（${limiting}・S${safety}）`;
         $("sh-delta-judge").innerHTML = judgeHtml;
 
         // ── 判定バー（既存） ──
@@ -277,14 +291,10 @@
             "軸側 E / σy",
             `${(ES / 1000).toFixed(0)} GPa / ${syS} MPa`,
           ],
-          [
-            "許容ひずみ ε_allow",
-            `${(eps_allow * 1000).toFixed(3)} ×10⁻³ (${limiting})`,
-          ],
-          [
-            "推奨締めしろ上限 δ_max",
-            `${delta_max.toFixed(3)} mm`,
-          ],
+          ["ボス外径 Do / 軸内径 di / 長さ L", `${Do} / ${di} / ${Lf} mm${DoIn > D ? "" : "（Do 未入力＝2D）"}`],
+          ["許容面圧（ボス側 / 軸側）", `${pH.toFixed(0)} / ${pS.toFixed(0)} MPa（${limiting}）`],
+          ["推奨締めしろ上限 δ_max", `${delta_max.toFixed(3)} mm（d の 1/${Math.round(D / delta_max)}）`],
+          ["狙い締め代での面圧・トルク", `${p_at.toFixed(0)} MPa ・ ${T_at.toFixed(0)} N·m`],
           ["穴拡大量 ΔD穴", `${dHole.toFixed(4)} mm`],
           ["軸縮小量 ΔD軸", `${dShaft.toFixed(4)} mm`],
           [
@@ -317,5 +327,5 @@
         const DRY = D * shContraction(keyS, alphaS, -78);
         const lowNote = LOWT_CONTR[keyS] ? "（低温で小さくなるαを考慮）" : "（任意材料のため常温α使用＝過大評価の可能性）";
         $("sh-memo").innerHTML =
-          `<b>実務メモ</b><br>材質から算出した推奨締め代：<b>${delta_min.toFixed(3)} 〜 ${delta_max.toFixed(3)} mm</b>（安全率 S = ${safety}）<br>軸の冷却収縮量${lowNote}：液体窒素（−196℃）<b>${LN2.toFixed(3)} mm</b>／ドライアイス（−78℃）<b>${DRY.toFixed(3)} mm</b><br>両側温調（穴加熱＋軸冷却）は必要温度差が小さく済み、歪み・焼戻しリスクを低減できる。<br><span style="color:var(--warn)">※推奨締め代はボス外径を考慮しない簡易式（σ≈E·δ/D）。ボス外径が穴径の2倍未満の薄肉では応力が大きくなるため厚肉円筒の式で要確認。下限（上限×30%）は伝達トルクから決めた値ではない目安。</span>`;
+          `<b>実務メモ</b><br>推奨締め代：${delta_min != null ? `<b>${delta_min.toFixed(3)} 〜 ${delta_max.toFixed(3)} mm</b>` : `上限 <b>${delta_max.toFixed(3)} mm</b>（下限は伝達トルクを入れると出る）`}（降伏 S = ${safety}、すべり S = ${Sslip}）<br>軸の冷却収縮量${lowNote}：液体窒素（−196℃）<b>${LN2.toFixed(3)} mm</b>／ドライアイス（−78℃）<b>${DRY.toFixed(3)} mm</b><br>両側温調（穴加熱＋軸冷却）は必要温度差が小さく済み、歪み・焼戻しリスクを低減できる。<br><span style="color:var(--muted)">※厚肉円筒（ラメの式）・平面応力・ν=0.3。表面のならし（Rz の和の約0.8倍だけ有効締め代が減る）、遠心力、運転温度での締め代変化は含まない。キー併用・段付きの場合は別途検討。</span>`;
       }

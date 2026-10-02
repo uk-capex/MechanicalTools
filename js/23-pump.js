@@ -3,6 +3,7 @@
       // ════════════════════════════════════════
       const PS_FLUID_DB = {
         water20: {
+          group: "water",
           rho: 1000,
           mu: 1.004e-3,
           label: "水（20°C）",
@@ -11,6 +12,7 @@
           vMax: 3.0,
         },
         water60: {
+          group: "water",
           rho: 983,
           mu: 0.467e-3,
           label: "水（60°C）",
@@ -19,6 +21,7 @@
           vMax: 3.0,
         },
         water100: {
+          group: "hot",
           rho: 958,
           mu: 0.282e-3,
           label: "熱水（100°C）",
@@ -27,6 +30,7 @@
           vMax: 3.0,
         },
         oil22: {
+          group: "oil",
           rho: 860,
           mu: 18.9e-3, // 22 mm²/s × 860 kg/m³（40℃）
           label: "鉱物油 VG22（40℃）",
@@ -35,6 +39,7 @@
           vMax: 2.0,
         },
         oil46: {
+          group: "oil",
           rho: 870,
           mu: 40.0e-3, // 46 mm²/s × 870 kg/m³（40℃）
           label: "鉱物油 VG46（40℃）",
@@ -43,6 +48,7 @@
           vMax: 2.0,
         },
         oil68: {
+          group: "oil",
           rho: 875,
           mu: 59.5e-3, // 68 mm²/s × 875 kg/m³（40℃）
           label: "鉱物油 VG68（40℃）",
@@ -51,6 +57,7 @@
           vMax: 2.0,
         },
         seawater: {
+          group: "sea",
           rho: 1025,
           mu: 1.08e-3,
           label: "海水（20°C）",
@@ -59,6 +66,7 @@
           vMax: 3.0,
         },
         air6: {
+          group: "air",
           rho: 8.2,
           mu: 1.81e-5,
           label: "エア（0.6MPa·g）",
@@ -67,6 +75,7 @@
           vMax: 15,
         },
         air7: {
+          group: "air",
           rho: 9.3,
           mu: 1.81e-5,
           label: "エア（0.7MPa·g）",
@@ -75,6 +84,7 @@
           vMax: 15,
         },
         custom: {
+          group: "water",
           rho: 1000,
           mu: 1.004e-3,
           label: "カスタム",
@@ -84,18 +94,22 @@
         },
       };
 
+      // 相当長さ L/D：Crane TP-410（1976年版以降）の値で照合 2026-10
+      //   ゲート弁 7→8、グローブ弁 350→340 に修正。バタフライ弁（2〜8″）を追加
+      //   ロングエルボ 20 は旧版の値（新版は曲げ半径 r/d=1.5 で約14〜16）。ストレーナ・急縮小は Crane の L/D 表になく参考値
       const PS_FITTINGS = [
         { label: "エルボ 90°（標準）", LeD: 30 },
         { label: "エルボ 90°（ロング）", LeD: 20 },
         { label: "エルボ 45°", LeD: 16 },
         { label: "チーズ（直流）", LeD: 20 },
         { label: "チーズ（分岐）", LeD: 60 },
-        { label: "ゲートバルブ（全開）", LeD: 7 },
-        { label: "ボールバルブ（全開）", LeD: 3 },
-        { label: "グローブバルブ（全開）", LeD: 350 },
-        { label: "チェックバルブ", LeD: 100 },
-        { label: "ストレーナ", LeD: 150 },
-        { label: "レデューサ（急縮小）", LeD: 20 },
+        { label: "ゲートバルブ（全開）", LeD: 8 },
+        { label: "ボールバルブ（全開・フルボア）", LeD: 3 },
+        { label: "バタフライバルブ（全開・2〜8″）", LeD: 45 },
+        { label: "グローブバルブ（全開）", LeD: 340 },
+        { label: "チェックバルブ（スイング）", LeD: 100 },
+        { label: "ストレーナ（参考・清浄時、メーカー値で確認）", LeD: 150 },
+        { label: "レデューサ（急縮小・参考）", LeD: 20 },
       ];
 
       function psColebrook(Re, epsRel) {
@@ -129,6 +143,23 @@
         return { v, Re, f, hf, dP };
       }
 
+      // ── 推奨流速（2026-10 出典付きに作り直し）──  [下限, 上限]、null は判定なし
+      //  水・海水：オーバル「管内流速の標準値」（吸込 0.5〜2.0／吐出 1.0〜3.0、海水 1.2〜2.0）
+      //  熱水：吐出の上限を給湯配管の目安 2.0 に（エロージョン対策）。吸込はNPSHを必ず確認
+      //  油：ダイキン油圧「管内流速の目安」（吸込 0.8以下／吐出・圧油 4以下／戻り 3以下）
+      //  エア：配管内の実流速で判定（最大 15 m/s 程度が設計例）。本来は圧力降下（入口圧の10%以内、CAGI）で決める
+      const PS_V_RANGE = {
+        water: { suction: [0.5, 2.0], discharge: [1.0, 3.0], ret: [1.0, 3.0] },
+        hot:   { suction: [0.5, 2.0], discharge: [1.0, 2.0], ret: [1.0, 2.0] },
+        sea:   { suction: [1.2, 2.0], discharge: [1.2, 2.0], ret: [1.2, 2.0] },
+        oil:   { suction: [null, 0.8], discharge: [null, 4.0], ret: [null, 3.0] },
+        air:   { suction: [null, 15], discharge: [null, 15], ret: [null, 15] },
+      };
+      const PS_V_SRC = {
+        water: "オーバル 管内流速の標準値", hot: "給湯配管の目安（上限2.0）", sea: "オーバル（海水 1.2〜2.0）",
+        oil: "ダイキン 油圧配管の目安", air: "設計例の最大 15 m/s・圧損は入口圧の10%以内（CAGI）",
+      };
+
       function calcPipeSiz() {
         const fluidKey = $("ps-fluid").value;
         const isCustom = fluidKey === "custom";
@@ -145,8 +176,13 @@
           ? parseFloat($("ps-mu").value) || 1e-3
           : fd.mu;
         const isAir = fd.isAir;
-        const vMin = fd.vMin,
-          vMax = fd.vMax;
+        const lineEl = $("ps-line");
+        const line = lineEl ? lineEl.value : "discharge";
+        const grp = fd.group || "water";
+        const [vMin, vMax] = (PS_V_RANGE[grp] || PS_V_RANGE.water)[line] || [null, 3.0];
+        const vRangeTxt = (vMin != null ? vMin + "〜" : "") + vMax + " m/s" + (vMin == null ? " 以下" : "");
+        if (lineEl) lineEl.disabled = grp === "air";   // エアは区分なし（実流速＋圧力降下で判定）
+        if ($("ps-v-src")) $("ps-v-src").textContent = `推奨 ${vRangeTxt}（${PS_V_SRC[grp]}）`;
 
         // エア時: 実効流速用の体積圧縮比（P_atm / P₁）
         // P_atm=0.1013 MPa, P₁はfluidKeyから推定
@@ -159,9 +195,6 @@
               : P_atm;
         const vRatio = isAir ? P_atm / P1_abs : 1.0; // 実体積 / Nm³体積
 
-        // 実効流速用の推奨範囲（エア: 液体換算で 1〜3 m/s 程度が妥協範囲）
-        const vEffMin = 1.0,
-          vEffMax = 5.0;
 
         // 流量 (m³/s)
         const Q_raw = parseFloat($("ps-Q").value) || 0;
@@ -202,7 +235,7 @@
         if (id_single && Q_m3s > 0) {
           const r = psCalcOne(
             id_single,
-            Q_m3s,
+            isAir ? Q_eff : Q_m3s,   // エアは配管内の実体積流量で（旧：Nm³流量で計算して圧損が数十倍に出ていた）
             rho,
             mu,
             L_m,
@@ -214,33 +247,29 @@
             $("ps-r-hf").textContent = r.dP.toFixed(2);
             $("ps-r-hf-u").textContent = "kPa";
 
-            // 実効流速
-            const A_m2 =
-              (Math.PI * (id_single / 1000) ** 2) / 4;
-            const vEff = Q_eff / A_m2;
-            $("ps-r-veff").textContent = vEff.toFixed(2);
+            // 実流速と Nm³ 基準（参考）
+            $("ps-r-veff").textContent = r.v.toFixed(2);
             $("ps-r-veff-sub").textContent =
-              `Nm³基準 ${r.v.toFixed(2)} m/s の ${vRatio.toFixed(3)} 倍`;
+              `Nm³基準（大気圧換算）では ${(r.v / vRatio).toFixed(2)} m/s`;
             $("ps-r-vratio").textContent =
               vRatio.toFixed(3);
 
-            // 実効流速判定バナー
+            // 圧力降下の判定（CAGI：入口圧の10%以内。この配管長さ分の値）
             const effAssess = $("ps-veff-assess");
+            const P1g_kPa = (P1_abs - P_atm) * 1000;
+            const lim = P1g_kPa * 0.1;
             let eText, eBg, eBc;
-            if (vEff <= vEffMax) {
-              eText = `✅ 実効流速 ${vEff.toFixed(2)} m/s — 配管設計上は適正範囲内（〜${vEffMax} m/s）`;
-              eBg = "var(--good-dim)";
-              eBc = "var(--good)";
-            } else if (vEff <= vEffMax * 1.5) {
-              eText = `🔶 実効流速 ${vEff.toFixed(2)} m/s — やや高め。工事費との妥協点として許容範囲内の場合も。`;
-              eBg = "var(--warn-dim)";
-              eBc = "var(--warn)";
+            if (r.dP <= lim * 0.5) {
+              eText = `✅ 圧力降下 ${r.dP.toFixed(1)} kPa — 入口圧の10%（${lim.toFixed(0)} kPa）に対して余裕あり`;
+              eBg = "var(--good-dim)"; eBc = "var(--good)";
+            } else if (r.dP <= lim) {
+              eText = `🔶 圧力降下 ${r.dP.toFixed(1)} kPa — 入口圧の10%（${lim.toFixed(0)} kPa）以内。継手・枝管分を足すと超える恐れ`;
+              eBg = "var(--warn-dim)"; eBc = "var(--warn)";
             } else {
-              eText = `❌ 実効流速 ${vEff.toFixed(2)} m/s — 高すぎ。エロージョン・騒音リスクあり。`;
-              eBg = "rgba(248,81,73,0.1)";
-              eBc = "#f85149";
+              eText = `❌ 圧力降下 ${r.dP.toFixed(1)} kPa — 入口圧の10%（${lim.toFixed(0)} kPa）を超える。管径を上げる`;
+              eBg = "rgba(248,81,73,0.1)"; eBc = "#f85149";
             }
-            effAssess.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:3px">💡 実効流速（配管内実体積換算）</div>${eText}`;
+            effAssess.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:3px">💡 圧力降下（CAGI の目安：入口圧の10%以内。継手・枝管も含めた合計で判断）</div>${eText}`;
             effAssess.style.background = eBg;
             effAssess.style.borderColor = eBc;
             effAssess.style.color = "var(--ink)";
@@ -273,20 +302,20 @@
           // Nm³基準 流速評価
           const assess = $("ps-v-assess");
           let aText, bg, bc;
-          if (r.v < vMin * 0.5) {
+          if (vMin != null && r.v < vMin * 0.5) {
             aText = `⚠ ${r.v.toFixed(2)} m/s — 低すぎ。スラッジ堆積・腐食のリスク。`;
             bg = "var(--warn-dim)";
             bc = "var(--warn)";
-          } else if (r.v < vMin) {
-            aText = `⚡ ${r.v.toFixed(2)} m/s — やや低め（推奨: ${vMin}〜${vMax} m/s）`;
+          } else if (vMin != null && r.v < vMin) {
+            aText = `⚡ ${r.v.toFixed(2)} m/s — やや低め（推奨: ${vRangeTxt}）`;
             bg = "var(--warn-dim)";
             bc = "var(--warn)";
           } else if (r.v <= vMax) {
-            aText = `✅ ${r.v.toFixed(2)} m/s — 適正範囲（${vMin}〜${vMax} m/s）`;
+            aText = `✅ ${r.v.toFixed(2)} m/s — 推奨範囲内（${vRangeTxt}）`;
             bg = "var(--good-dim)";
             bc = "var(--good)";
           } else if (r.v <= vMax * 1.5) {
-            aText = `⚡ ${r.v.toFixed(2)} m/s — やや高め。エロージョン・騒音に注意。`;
+            aText = `⚡ ${r.v.toFixed(2)} m/s — 推奨上限（${vMax} m/s）超え。${line === "suction" && !isAir ? "吸込側はキャビテーションに注意（NPSH確認）" : "エロージョン・騒音・水撃に注意"}。※1.5倍までを注意とするのはツール仮定`;
             bg = "var(--warn-dim)";
             bc = "var(--warn)";
           } else {
@@ -295,7 +324,7 @@
             bc = "#f85149";
           }
           const prefix = isAir
-            ? '<span style="font-size:11px;color:var(--muted)">Nm³基準　</span>'
+            ? '<span style="font-size:11px;color:var(--muted)">配管内の実流速　</span>'
             : "";
           assess.innerHTML = prefix + aText;
           assess.style.background = bg;
@@ -332,9 +361,9 @@
         $("ps-size-tbody").innerHTML = SIZES.map((sz) => {
           const id_mm = psGetID(sz, ptype);
           if (!id_mm || Q_m3s <= 0) return "";
-          const r = psCalcOne(id_mm, Q_m3s, rho, mu, L_m);
-          const ok = r.v >= vMin && r.v <= vMax;
-          const low = r.v < vMin;
+          const r = psCalcOne(id_mm, isAir ? Q_eff : Q_m3s, rho, mu, L_m);
+          const ok = (vMin == null || r.v >= vMin) && r.v <= vMax;
+          const low = vMin != null && r.v < vMin;
           const hi = r.v > vMax;
           const isSelected = sz === singleA;
           const badge = ok
@@ -357,22 +386,15 @@
           let vEffCell = "",
             vEffBadgeCell = "";
           if (isAir) {
-            const A_m2 =
-              (Math.PI * (id_mm / 1000) ** 2) / 4;
-            const vEff = Q_eff / A_m2;
-            const effOk = vEff <= vEffMax;
-            const effHi = vEff > vEffMax * 1.5;
-            const effBadge = effOk
-              ? `<span style="color:var(--good)">✅ OK</span>`
-              : effHi
-                ? `<span style="color:#f85149">❌ 高すぎ</span>`
-                : `<span style="color:var(--warn)">🔶 やや高</span>`;
-            const effColor = effOk
-              ? "var(--accent)"
-              : effHi
-                ? "#f85149"
-                : "var(--warn)";
-            vEffCell = `<td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:${effColor}">${vEff.toFixed(2)}</td>`;
+            // Nm³基準の流速（参考）と、圧力降下の判定
+            const lim = (P1_abs - P_atm) * 1000 * 0.1;
+            const dpOk = r.dP <= lim * 0.5, dpHi = r.dP > lim;
+            const effBadge = dpOk
+              ? `<span style="color:var(--good)">✅ 余裕</span>`
+              : dpHi
+                ? `<span style="color:#f85149">❌ 10%超</span>`
+                : `<span style="color:var(--warn)">🔶 10%以内</span>`;
+            vEffCell = `<td style="padding:5px 8px;text-align:right;font-family:'JetBrains Mono',monospace;color:var(--muted)">${(r.v / vRatio).toFixed(2)}</td>`;
             vEffBadgeCell = `<td style="padding:5px 8px;text-align:center">${effBadge}</td>`;
           }
 
@@ -486,13 +508,13 @@
       }
 
       // ── 継手 相当長さ係数テーブル (Le/d) ──
-      // 代表値（スケジュール40相当）
+      // Crane TP-410 の値（管径探索タブの PS_FITTINGS と同じ）。ゲート弁 7→8 に修正 2026-10。ストレーナは参考値
       const FITTING_LED = {
         "ft-elbow90": 30,
         "ft-elbow45": 16,
         "ft-tee-s": 20,
         "ft-tee-b": 60,
-        "ft-gate": 7,
+        "ft-gate": 8,
         "ft-ball": 3,
         "ft-check": 100,
         "ft-strainer": 150,
@@ -505,7 +527,7 @@
         "ft-gate": "ゲートバルブ",
         "ft-ball": "ボールバルブ",
         "ft-check": "チェックバルブ",
-        "ft-strainer": "ストレーナ",
+        "ft-strainer": "ストレーナ(参考)",
       };
 
       function onFluidChange() {

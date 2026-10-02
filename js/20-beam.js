@@ -649,10 +649,13 @@
           parseFloat(
             document.getElementById("span-L").value,
           ) || 1000;
+        // 2026-10：材料の sigma_allow は長期許容応力（SS400＝235/1.5＝156）。旧は既定 SF=2 をさらに掛けて
+        //   降伏に対し実質3倍、判定は応力比80%で「余裕あり」（ツール独自）だった → 追加安全率は既定1.0
         const SF =
           parseFloat(
             document.getElementById("sf-val").value,
-          ) || 2;
+          ) || 1;
+        const deflDen = parseFloat(document.getElementById("defl-limit")?.value) || 300;
         const sType =
           document.getElementById("supportType").value;
 
@@ -680,7 +683,7 @@
         const sigmaS = rs.M / Z;
         const deltaS = rs.delta;
         const sfS =
-          sigmaS > 0 ? sigma_allow / sigmaS : Infinity;
+          sigmaS > 0 ? sigma_allow / SF / sigmaS : Infinity;
 
         // 弱軸計算（同じ荷重・スパン、I=Iy, Z=Zy）
         const rw = calcBeamResults(
@@ -694,7 +697,7 @@
         const sigmaW = rw.M / Zy;
         const deltaW = rw.delta;
         const sfW =
-          sigmaW > 0 ? sigma_allow / sigmaW : Infinity;
+          sigmaW > 0 ? sigma_allow / SF / sigmaW : Infinity;
 
         const sigma_allow_sf = sigma_allow / SF;
 
@@ -705,6 +708,7 @@
           sfS,
           deltaS,
           L,
+          deflDen,
         );
 
         // 比率
@@ -716,9 +720,9 @@
           deltaS > 0 ? (deltaW / deltaS).toFixed(1) : "∞";
 
         const sfSc =
-          sfS >= SF ? "good" : sfS >= 1 ? "warn" : "bad";
+          sfS >= 1 ? "good" : "bad";
         const sfWc =
-          sfW >= SF ? "good" : sfW >= 1 ? "warn" : "bad";
+          sfW >= 1 ? "good" : "bad";
 
         const rows = [
           {
@@ -750,7 +754,7 @@
             ratio: `弱軸は強軸の ×${ratioDelta}`,
           },
           {
-            label: "安全率 S.F.",
+            label: "許容応力 ÷ 発生応力",
             unit: "—",
             vs: sfS === Infinity ? "∞" : sfS.toFixed(2),
             vw: sfW === Infinity ? "∞" : sfW.toFixed(2),
@@ -759,11 +763,13 @@
             csW: sfWc,
           },
           {
-            label: "L/δ 比",
+            label: `L/δ 比（制限 ${deflDen} 以上）`,
             unit: "—",
             vs: deltaS > 0 ? (L / deltaS).toFixed(0) : "∞",
             vw: deltaW > 0 ? (L / deltaW).toFixed(0) : "∞",
             ratio: "—",
+            csS: deltaS > 0 && L / deltaS < deflDen ? "bad" : "good",
+            csW: deltaW > 0 && L / deltaW < deflDen ? "bad" : "good",
           },
         ];
         document.getElementById("compare-tbody").innerHTML =
@@ -817,8 +823,8 @@
               "N·mm",
             ],
             [
-              "許容応力 (÷SF)",
-              "σ/SF",
+              SF > 1 ? `許容応力（長期 ÷ 追加SF ${SF}）` : "許容応力（長期）",
+              "σa",
               `${sigma_allow_sf.toFixed(1)}`,
               "N/mm²",
             ],
@@ -870,6 +876,7 @@
         sf_actual,
         delta,
         L,
+        deflDen = 300,
       ) {
         const el = document.getElementById("beam-verdict");
         const icon =
@@ -880,23 +887,26 @@
 
         el.classList.remove("good", "warn", "bad");
         const ratio = sigma / sigma_allow_sf;
+        const dLim = L / deflDen;
+        const dOk = delta <= dLim;
+        const sOk = ratio <= 1.0;
+        const sTxt = `応力 ${(ratio * 100).toFixed(0)}%（許容応力に対して）`;
+        const dTxt = `たわみ ${delta.toFixed(2)} mm（制限 L/${deflDen}＝${dLim.toFixed(2)} mm、L/${delta > 0 ? (L / delta).toFixed(0) : "∞"}）`;
 
-        if (ratio <= 0.8) {
+        if (sOk && dOk) {
           el.classList.add("good");
           icon.textContent = "✅";
-          main.textContent = "余裕あり — 設計OK";
-          sub.textContent = `応力比 ${(ratio * 100).toFixed(0)}% (安全率 ${sf_actual === Infinity ? "∞" : sf_actual.toFixed(2)})`;
-        } else if (ratio <= 1.0) {
+          main.textContent = "応力・たわみとも OK";
+        } else if (sOk) {
           el.classList.add("warn");
           icon.textContent = "⚠️";
-          main.textContent = "許容内 — 要注意";
-          sub.textContent = `応力比 ${(ratio * 100).toFixed(0)}% — 動荷重・疲労を要確認`;
+          main.textContent = "強度は OK・たわみが制限超え — 断面二次モーメントを上げる";
         } else {
           el.classList.add("bad");
           icon.textContent = "❌";
-          main.textContent = "許容超過 — 断面増大が必要";
-          sub.textContent = `応力比 ${(ratio * 100).toFixed(0)}% — 現在の断面では強度不足`;
+          main.textContent = dOk ? "許容応力超過 — 断面係数を上げる" : "応力・たわみとも超過 — 断面を大きく";
         }
+        sub.textContent = `${sTxt}／${dTxt}`;
       }
 
       // ════════════════════════════════════════════════════
