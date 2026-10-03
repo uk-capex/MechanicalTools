@@ -105,12 +105,16 @@
         const slant = isRUD
           ? `全方向 ${v_kgf.toLocaleString()} /個`
           : `2個45°で合計 ${v_kgf.toLocaleString()}`;
+        // 保証荷重：JIS B 1168 は使用荷重×3（リング永久変形0.5%未満）。RUDはJISの保証荷重の概念外なので出さない
+        const proof = isRUD ? '—'
+          : `${(r.v * 3).toFixed(2)}<br><span style="color:var(--muted);">${(r.v * 3 / 9.80665).toFixed(2)} tf</span>`;
         return `<tr>
           <td style="font-size:11px;color:${nc};">${label}</td>
           <td style="color:var(--accent);font-weight:700;font-family:'Inter',monospace;">${r.size}</td>
           <td style="font-family:'Inter',monospace;font-size:11px;">${r.v.toFixed(2)}</td>
           <td style="font-family:'Inter',monospace;font-weight:700;color:var(--good);">${v_kgf.toLocaleString()}</td>
           <td style="font-size:11px;">${slant}</td>
+          <td style="font-family:'Inter',monospace;font-size:11px;">${proof}</td>
           <td>${r.kg}</td>
           <td style="font-family:'Inter',monospace;font-size:11px;">${isRUD ? r.torque : '—'}</td>
           <td style="font-size:11px;color:var(--muted);">${r.note}</td>
