@@ -257,7 +257,7 @@
         ebHtml += rud
           ? rigRow('RUD VLBG-PLUS', `${rud.size}（${rud.t}t）以上`, 'var(--good)')
           : rigRow('RUD VLBG-PLUS', '範囲超', 'var(--bad)');
-        ebHtml += `<div style="font-size:10px;color:var(--muted);margin-top:-2px;">吊り方係数 ×${f}（カタログ値）・締付トルク厳守</div>`;
+        ebHtml += `<div style="font-size:10px;color:var(--muted);margin-top:-2px;">吊り方係数 ×${f}（カタログ値）・締付トルク厳守。重心が偏って荷重が均等にかからない（非対称）なら、本数に関係なく係数は ×1（カタログ「非対称」欄）</div>`;
       }
       document.getElementById('rc-eyebolt-result').innerHTML = ebHtml;
 
@@ -302,7 +302,7 @@
                     
     /* ══════════════════════════════════════════
        🪨 アンカー選定（2026-09 ファクトチェック改修：メーカー値に差替え）
-       ・旭化成 ARケミカルセッター AP / MU … 出典: サンコーテクノ製品ページ（AP）、JCAA認証資料・販売店資料（MU）
+       ・旭化成 ARケミカルセッター AP / MU … 出典: サンコーテクノ製品ページ（AP。サンコーテクノは旭化成 ARケミカルセッターの販売元で、自社サイトに AP タイプを掲載。誤記ではない 2026-10確認）、JCAA認証資料・販売店資料（MU）
          許容引張荷重はメーカー算定値（Fc21、Mねじ SS400）。せん断はカタログ記載なし
        ・サンコーテクノ オールアンカー Cタイプ … 出典: サンコーテクノ製品ページ
          カタログは「最大荷重」のみ（許容値ではない）→ 本ツールでは 長期=最大÷3、短期=長期×2 と仮定

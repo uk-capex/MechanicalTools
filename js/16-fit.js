@@ -74,12 +74,21 @@
         u: [18,23,28,33,33,41,48,60,70,87,102,124,144,170,190,210,236,258,284,315,350,390,435,490,540],
       };
 
+      // js/JS の片側許容差：±IT/2。IT7〜11でITが奇数のときだけ、すぐ下の偶数に丸める（±(IT−1)/2）
+      //  2026-10 修正：旧は全等級で丸めていた（25js6 が ±6、JISは ±6.5）
+      // 表示：μm は 0.5 刻みが出るので小数1桁（.0 は省略）、mm は必要なときだけ4桁
+      const fitUm = (v) => String(+(v * 1000).toFixed(1));
+      const fitMm = (v) => { const r = Math.round(v * 10000) / 10000; return Math.abs(r * 1000 - Math.round(r * 1000)) > 1e-6 ? r.toFixed(4) : r.toFixed(3); };
+      function jsHalf(it, grade) {
+        return grade >= 7 && grade <= 11 && it % 2 === 1 ? (it - 1) / 2 : it / 2;
+      }
+
       function getShaftLimits(d, symbol, itGrade) {
         const it = getIT(d, itGrade);
         const i = fitIdx(d);
         let es, ei;
         if (symbol === "h") { es = 0; ei = -it; }
-        else if (symbol === "js") { const h = Math.floor(it / 2); es = h; ei = -h; }  // 奇数ITは±(IT−1)/2
+        else if (symbol === "js") { const h = jsHalf(it, itGrade); es = h; ei = -h; }
         else if ("defg".includes(symbol) && SHAFT_DEV[symbol]) {
           es = -SHAFT_DEV[symbol][i]; ei = es - it;
         } else if (SHAFT_DEV[symbol]) {
@@ -99,7 +108,7 @@
         let ES, EI;
         switch (symbol) {
           case "H": EI = 0; ES = it; break;
-          case "JS": { const h = Math.floor(it / 2); ES = h; EI = -h; break; }
+          case "JS": { const h = jsHalf(it, itGrade); ES = h; EI = -h; break; }
           case "K":
             ES = itGrade <= 8 ? -SHAFT_DEV.k[i] + Δ : 0;
             if (small) ES = 0;
@@ -186,43 +195,43 @@
     <div class="fit-summary">
       <div class="fit-sum-item">
         <div class="fit-sum-label">最大すきま / しめしろ</div>
-        <div class="fit-sum-val ${maxClear >= 0 ? "good-text" : "bad-text"}">${maxClear >= 0 ? "+" : ""}${(maxClear * 1000).toFixed(1)} μm</div>
+        <div class="fit-sum-val ${maxClear >= 0 ? "good-text" : "bad-text"}">${maxClear >= 0 ? "+" : ""}${fitUm(maxClear)} μm</div>
       </div>
       <div class="fit-sum-item">
         <div class="fit-sum-label">最小すきま / しめしろ</div>
-        <div class="fit-sum-val ${minClear >= 0 ? "good-text" : "bad-text"}">${minClear >= 0 ? "+" : ""}${(minClear * 1000).toFixed(1)} μm</div>
+        <div class="fit-sum-val ${minClear >= 0 ? "good-text" : "bad-text"}">${minClear >= 0 ? "+" : ""}${fitUm(minClear)} μm</div>
       </div>
       <div class="fit-sum-item">
         <div class="fit-sum-label">穴の公差幅（IT${h.grade}）</div>
-        <div class="fit-sum-val" style="color:var(--accent)">${((hole.upper - hole.lower) * 1000).toFixed(0)} μm</div>
+        <div class="fit-sum-val" style="color:var(--accent)">${fitUm(hole.upper - hole.lower)} μm</div>
       </div>
       <div class="fit-sum-item">
         <div class="fit-sum-label">軸の公差幅（IT${s.grade}）</div>
-        <div class="fit-sum-val" style="color:var(--accent)">${((shaft.upper - shaft.lower) * 1000).toFixed(0)} μm</div>
+        <div class="fit-sum-val" style="color:var(--accent)">${fitUm(shaft.upper - shaft.lower)} μm</div>
       </div>
     </div>
 
     <div class="fit-result-grid">
       <div class="fit-block">
         <div class="fit-block-title">🕳 穴 — ${hStr}</div>
-        <div class="fit-dim-row"><span class="fit-dim-label">最大穴径（上の寸法）</span><span class="fit-dim-val hl">Ø ${hMax.toFixed(3)} mm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">最小穴径（下の寸法）</span><span class="fit-dim-val">${hMin.toFixed(3)} mm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">上偏差 ES</span><span class="fit-dim-val">${hole.upper >= 0 ? "+" : ""}${(hole.upper * 1000).toFixed(0)} μm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">下偏差 EI</span><span class="fit-dim-val">${hole.lower >= 0 ? "+" : ""}${(hole.lower * 1000).toFixed(0)} μm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${((hole.upper - hole.lower) * 1000).toFixed(0)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最大穴径（上の寸法）</span><span class="fit-dim-val hl">Ø ${fitMm(hMax)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最小穴径（下の寸法）</span><span class="fit-dim-val">${fitMm(hMin)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">上偏差 ES</span><span class="fit-dim-val">${hole.upper >= 0 ? "+" : ""}${fitUm(hole.upper)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">下偏差 EI</span><span class="fit-dim-val">${hole.lower >= 0 ? "+" : ""}${fitUm(hole.lower)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${fitUm(hole.upper - hole.lower)} μm</span></div>
         <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'Inter',monospace">
-          Ø${d} <sup>+${(hole.upper * 1000).toFixed(0)}</sup><sub>${hole.lower >= 0 ? "+" : ""}${(hole.lower * 1000).toFixed(0)}</sub> μm
+          Ø${d} <sup>${hole.upper >= 0 ? "+" : ""}${fitUm(hole.upper)}</sup><sub>${hole.lower >= 0 ? "+" : ""}${fitUm(hole.lower)}</sub> μm
         </div>
       </div>
       <div class="fit-block">
         <div class="fit-block-title">⚙️ 軸 — ${sStr}</div>
-        <div class="fit-dim-row"><span class="fit-dim-label">最大軸径（上の寸法）</span><span class="fit-dim-val hl">Ø ${sMax.toFixed(3)} mm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">最小軸径（下の寸法）</span><span class="fit-dim-val">${sMin.toFixed(3)} mm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">上偏差 es</span><span class="fit-dim-val">${shaft.upper >= 0 ? "+" : ""}${(shaft.upper * 1000).toFixed(0)} μm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">下偏差 ei</span><span class="fit-dim-val">${shaft.lower >= 0 ? "+" : ""}${(shaft.lower * 1000).toFixed(0)} μm</span></div>
-        <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${((shaft.upper - shaft.lower) * 1000).toFixed(0)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最大軸径（上の寸法）</span><span class="fit-dim-val hl">Ø ${fitMm(sMax)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">最小軸径（下の寸法）</span><span class="fit-dim-val">${fitMm(sMin)} mm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">上偏差 es</span><span class="fit-dim-val">${shaft.upper >= 0 ? "+" : ""}${fitUm(shaft.upper)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">下偏差 ei</span><span class="fit-dim-val">${shaft.lower >= 0 ? "+" : ""}${fitUm(shaft.lower)} μm</span></div>
+        <div class="fit-dim-row"><span class="fit-dim-label">公差幅</span><span class="fit-dim-val">${fitUm(shaft.upper - shaft.lower)} μm</span></div>
         <div style="margin-top:8px;font-size:12px;color:var(--accent);font-family:'Inter',monospace">
-          Ø${d} <sup>${shaft.upper >= 0 ? "+" : ""}${(shaft.upper * 1000).toFixed(0)}</sup><sub>${shaft.lower >= 0 ? "+" : ""}${(shaft.lower * 1000).toFixed(0)}</sub> μm
+          Ø${d} <sup>${shaft.upper >= 0 ? "+" : ""}${fitUm(shaft.upper)}</sup><sub>${shaft.lower >= 0 ? "+" : ""}${fitUm(shaft.lower)}</sub> μm
         </div>
       </div>
     </div>
