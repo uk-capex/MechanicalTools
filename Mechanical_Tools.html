@@ -1092,6 +1092,8 @@
       <button class="tab-btn" data-cat="B"
         onclick="showTab('chain', event.currentTarget)">⛓️ チェーン</button>
       <button class="tab-btn" data-cat="B"
+        onclick="showTab('belt', event.currentTarget)">🌀 Vベルト・タイミングベルト</button>
+      <button class="tab-btn" data-cat="B"
         onclick="showTab('bearing', event.currentTarget)">🎡 ベアリング</button>
       <button class="tab-btn" data-cat="C"
         onclick="showTab('beam', event.currentTarget)">🏗️ 梁計算</button>
@@ -1176,6 +1178,9 @@
                 </option>
                 <option value="SUS440C">
                   ステンレス・SUS440C
+                </option>
+                <option value="SKD11">
+                  工具鋼・SKD11（焼入焼戻し）
                 </option>
                 <option value="A5052">
                   アルミ合金・A5052
@@ -1282,6 +1287,9 @@
                 </option>
                 <option value="SUS440C">
                   ステンレス・SUS440C
+                </option>
+                <option value="SKD11">
+                  工具鋼・SKD11（焼入焼戻し）
                 </option>
                 <option value="A5052">
                   アルミ合金・A5052
@@ -2093,6 +2101,53 @@
             <b>歯底円径</b> = m × (Z − 2.5)<br />
             <b>中心距離</b> = m × (Z₁ + Z₂) / 2
           </div>
+          <hr class="divider" />
+          <div class="section-title">現物からモジュール推定（平歯車）</div>
+          <div class="two-col">
+            <div class="field">
+              <label>歯数 z</label>
+              <input type="number" id="ge-z" step="1" oninput="gearEstimate()" />
+            </div>
+            <div class="field">
+              <label>歯先円径 da (mm)</label>
+              <input type="number" id="ge-da" step="0.01" placeholder="偶数歯はノギスで直接" oninput="gearEstimate()" />
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>（奇数歯）穴径 (mm)</label>
+              <input type="number" id="ge-bore" step="0.01" oninput="gearEstimate()" />
+            </div>
+            <div class="field">
+              <label>（奇数歯）穴の縁〜歯先 (mm)</label>
+              <input type="number" id="ge-tip" step="0.01" oninput="gearEstimate()" />
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin:2px 0 6px">確定させたいとき：またぎ歯厚を2つ</div>
+          <div class="two-col">
+            <div class="field">
+              <label>またぎ歯数 k</label>
+              <input type="number" id="ge-k" step="1" oninput="gearEstimate()" />
+            </div>
+            <div class="field">
+              <label>W(k) (mm)</label>
+              <input type="number" id="ge-W1" step="0.001" oninput="gearEstimate()" />
+            </div>
+          </div>
+          <div class="field">
+            <label>W(k+1) (mm)</label>
+            <input type="number" id="ge-W2" step="0.001" oninput="gearEstimate()" />
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>相手の歯数　任意</label>
+              <input type="number" id="ge-z2" step="1" oninput="gearEstimate()" />
+            </div>
+            <div class="field">
+              <label>中心距離（実測）　任意</label>
+              <input type="number" id="ge-a" step="0.01" oninput="gearEstimate()" />
+            </div>
+          </div>
         </div>
         <div class="panel-right">
           <div class="result-cards">
@@ -2124,6 +2179,8 @@
               <tbody id="gear-tbody"></tbody>
             </table>
           </div>
+          <div class="section-title" style="margin-top:12px">現物からモジュール推定</div>
+          <div id="gear-est-result"></div>
         </div>
       </div>
     </div>
@@ -5191,9 +5248,9 @@
               >
               ※
               参考値です。実際の設計は安全率・動荷重・疲労等を考慮してください。<br />
-              ※ 許容応力は<b>SS400: 156 N/mm²</b>、<b
-                >A6063-T5: 90 N/mm²</b
-              >を目安として使用しています（安全率込み）。
+              ※ 許容応力は長期許容（降伏点・耐力÷1.5）：<b>SS400: 156 N/mm²</b>、<b
+                >A6063-T5: 73 N/mm²</b
+              >（JIS H 4100 耐力110÷1.5）。アルミフレーム（HFS＝A6N01SS-T5）は安全側の 90 N/mm² で計算。
             </div>
           </div>
           <!-- /panel-right -->
@@ -5642,6 +5699,88 @@
             </div>
           </div>
           <hr class="divider" />
+          <!-- キー強度チェック（2026-10 追加） -->
+          <div>
+            <div class="section-title">キー強度チェック（平行キー）</div>
+            <div class="field">
+              <label>伝達条件の入れ方</label>
+              <select id="ks-mode" onchange="calcKeyStrength()">
+                <option value="torque">トルクで入れる</option>
+                <option value="power">動力と回転数で入れる</option>
+              </select>
+            </div>
+            <div class="field" id="ks-torque-wrap">
+              <label>伝達トルク T (N·m)</label>
+              <input type="number" id="ks-T" step="1" value="100" oninput="calcKeyStrength()" />
+            </div>
+            <div class="two-col" id="ks-power-wrap" style="display: none">
+              <div class="field">
+                <label>動力 P (kW)</label>
+                <input type="number" id="ks-P" step="0.1" value="3.7" oninput="calcKeyStrength()" />
+              </div>
+              <div class="field">
+                <label>回転数 n (rpm)</label>
+                <input type="number" id="ks-n" step="1" value="1450" oninput="calcKeyStrength()" />
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>キー長さ L (mm)</label>
+                <input type="number" id="ks-L" step="1" value="40" oninput="calcKeyStrength()" />
+              </div>
+              <div class="field">
+                <label>端部形状</label>
+                <select id="ks-end" onchange="calcKeyStrength()">
+                  <option value="B">両角（B形）</option>
+                  <option value="A">両丸（A形）</option>
+                  <option value="C">片丸（C形）</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>キーの材料</label>
+              <select id="ks-mat-key" onchange="calcKeyStrength()"></select>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>ボス（ハブ）の材料</label>
+                <select id="ks-mat-hub" onchange="calcKeyStrength()"></select>
+              </div>
+              <div class="field">
+                <label>軸の材料</label>
+                <select id="ks-mat-shaft" onchange="calcKeyStrength()"></select>
+              </div>
+            </div>
+            <div class="two-col">
+              <div class="field">
+                <label>キー溝の形式（新JIS）</label>
+                <select id="ks-fit" onchange="calcKeyStrength()">
+                  <option value="normal">普通形（軸N9・ボスJS9）</option>
+                  <option value="tight">締込み形（両側P9）</option>
+                  <option value="slide">滑動形（軸H9・ボスD10）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>焼き嵌めとの併用</label>
+                <select id="ks-shrink" onchange="calcKeyStrength()">
+                  <option value="no">キーだけ</option>
+                  <option value="yes">焼き嵌め（冷やし嵌め）も併用</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>使い方（安全率 S）</label>
+              <select id="ks-sf" onchange="calcKeyStrength()">
+                <option value="2">静荷重・一方向（S=2）</option>
+                <option value="3" selected>起動停止・変動あり（S=3）</option>
+                <option value="4">正逆転・衝撃あり（S=4）</option>
+              </select>
+            </div>
+            <div style="font-size: 11px; color: var(--muted); line-height: 1.6">
+              キー寸法は上の「軸径から検索」で選ばれた行（いまの規格タブ）を使う。
+            </div>
+          </div>
+          <hr class="divider" />
           <div class="memo">
             <b>⚠ 新旧JISは互換不可</b><br />
             呼び寸法（b・h）が同じでも
@@ -5652,23 +5791,25 @@
             <b>新JIS（B 1301:1996）</b>：ISO 773準拠。b
             の公差を「キー側」と「溝側」で独立指定。現行標準。<br />
             <b>旧JIS 1種（B 1301:1959）</b
-            >：すきまばめ。キーが溝に対し幅方向に遊びあり。一般用途。<br />
+            >：キー p7・溝 H8/F7。キーを締めて入れる側。<br />
             <b>旧JIS 2種（B 1301:1959）</b
-            >：中間ばめ。キーが溝にほぼ密着。精密・高トルク用。<br /><br />
+            >：キー h8・溝 H9/E9。すきまで入れる側。<br />
+            1種と2種は寸法（b・h・t₁・t₂・適用軸径）が同じで、公差だけ違う。<br /><br />
             <b>記号説明</b>：<br />
             b = キー幅（公差注記あり）<br />
             h = キー高さ　t₁ = 軸側溝深さ　t₂ =
             ボス側溝深さ<br />
             L =
-            キー長さ範囲（参考値、端部形状による変動なし）<br /><br />
+            キー長さ範囲（JISの表に記載があるのは 35×22 まで。それ以上と旧JISは「—」）<br /><br />
             <b>端部形状</b>（寸法に影響しない）：<br />
             ■ 両丸形（A形）/ ■ 両角形（B形）/ ■
             片丸片角形（C形）<br />
             端部形状はキー長さの有効係合長に影響するが、b・h・t₁・t₂
             は変わらない。<br /><br />
-            <b>適用軸径の差（新旧）</b
-            >：基本は同範囲だが、旧JISは一部境界値が異なる（例：85〜100
-            vs 85〜95）。詳細は各表参照。
+            <b>新旧の違い</b
+            >：旧JISはキーの大きさの系列そのものが違う（例：φ25 は新JIS 8×7、旧JIS 7×7。φ55 は新JIS 16×10、旧JIS 15×10）。
+            軸径を入れると、もう一方の規格で寸法が違う場合に★で表示する。<br />
+            出典：新JIS＝小原歯車・平和実業・三木プーリの JIS B 1301:1996 抜粋。旧JIS＝三木プーリ・平和実業の JIS B 1301-1959 抜粋（〜250mm）
           </div>
         </div>
         <div class="panel-right">
@@ -5686,6 +5827,9 @@
               style="margin-top: 8px; font-size: 13px"
             ></div>
           </div>
+
+          <!-- キー強度チェック結果 -->
+          <div id="ks-result" style="margin-bottom: 14px"></div>
 
           <!-- 新JIS テーブル -->
           <div id="kw-table-new">
@@ -5837,7 +5981,7 @@
                 class="section-title"
                 style="margin-bottom: 0"
               >
-                旧JIS B 1301:1959 — 1種（すきまばめ）
+                旧JIS B 1301:1959 — 1種（キー p7・締め側）
               </div>
               <span
                 style="
@@ -5865,27 +6009,22 @@
               <b style="color: var(--warn)"
                 >b（キー幅）公差体系 — 旧JIS 1種</b
               ><br />
-              キー幅 b
-              の公差はキーと溝を一体で規定（旧来方式）。<br />
+              キーをプラス側（p7）に作り、溝に締めて入れる。<br />
               <span
                 style="
                   font-family:
                     &quot;Inter&quot;, monospace;
                 "
               >
-                軸溝 b₁・ボス溝 b₂：<b
-                  style="color: var(--warn)"
-                  >D10相当</b
-                >（プラス公差側・すきまあり）<br />
-                キー b：<b style="color: var(--muted)"
-                  >h9相当</b
-                > </span
+                軸溝 b₁：<b style="color: var(--warn)">H8</b>　ボス溝 b₂：<b style="color: var(--warn)">F7</b><br />
+                キー b：<b style="color: var(--warn)">p7</b>　キー h：h9　t₁・t₂：+0.05
+              </span
               ><br />
               <span style="color: var(--muted)"
-                >一般用途（軽〜中トルク、着脱頻度あり）</span
+                >寸法は2種と同じ。キーを手配するときは1種か2種かを指定する</span
               ><br />
               <span style="color: var(--bad)"
-                >⚠ 新JIS部品・旧JIS2種と混用不可</span
+                >⚠ 新JISとはキーの系列が違う（同じ軸径でも b×h が違う所が多い）</span
               >
             </div>
             <div class="data-table-wrap">
@@ -5926,7 +6065,7 @@
                 class="section-title"
                 style="margin-bottom: 0"
               >
-                旧JIS B 1301:1959 — 2種（中間ばめ）
+                旧JIS B 1301:1959 — 2種（キー h8・すきま側）
               </div>
               <span
                 style="
@@ -5954,26 +6093,22 @@
               <b style="color: var(--bad)"
                 >b（キー幅）公差体系 — 旧JIS 2種</b
               ><br />
-              1種より公差が締まり方向。キーと溝の密着性が高い。<br />
+              キーをマイナス側（h8）に作り、溝にすきまで入れる。1種より緩い。<br />
               <span
                 style="
                   font-family:
                     &quot;Inter&quot;, monospace;
                 "
               >
-                軸溝 b₁・ボス溝 b₂：<b
-                  style="color: var(--bad)"
-                  >JS9相当</b
-                >（±対称・中間ばめ）<br />
-                キー b：<b style="color: var(--muted)"
-                  >h9相当</b
-                > </span
+                軸溝 b₁：<b style="color: var(--bad)">H9</b>　ボス溝 b₂：<b style="color: var(--bad)">E9</b><br />
+                キー b：<b style="color: var(--bad)">h8</b>　キー h：h10　t₁・t₂：+0.1
+              </span
               ><br />
               <span style="color: var(--muted)"
-                >精密用途（高トルク、振動・衝撃あり、着脱少）</span
+                >寸法は1種と同じ。キーを手配するときは1種か2種かを指定する</span
               ><br />
               <span style="color: var(--bad)"
-                >⚠ 新JIS部品・旧JIS1種と混用不可</span
+                >⚠ 新JISとはキーの系列が違う（同じ軸径でも b×h が違う所が多い）</span
               >
             </div>
             <div class="data-table-wrap">
@@ -5998,13 +6133,9 @@
               </table>
             </div>
             <div class="memo" style="margin-top: 10px">
-              <b>1種と2種の適用軸径の差（旧JIS）</b
-              >：基本的に同一だが、境界値が一部異なる場合がある。<br />
-              例：85mm軸 → 1種:85〜100mm枠 /
-              2種:85〜95mm枠。いずれも b=25mm だが
-              <b style="color: var(--bad)"
-                >公差が異なるため互換不可</b
-              >。
+              <b>1種と2種</b
+              >：適用軸径・b×h・t₁・t₂は同じ。違うのはキーと溝の幅の公差だけ（1種＝キー p7／溝 H8・F7、2種＝キー h8／溝 H9・E9）。<br />
+              出典：三木プーリ技術資料（JIS B 1301-1959 抜粋、〜32×20）、平和実業カタログ（旧JISキー溝寸法表、〜56×35.5）。250mm を超える旧JISの表は未掲載。
             </div>
           </div>
 
@@ -6104,7 +6235,7 @@
                     color: var(--warn);
                   "
                 >
-                  D10相当
+                  キー p7／溝 H8・F7
                 </div>
                 <div
                   style="
@@ -6113,7 +6244,7 @@
                     margin-top: 4px;
                   "
                 >
-                  プラス側公差<br />すきまばめ
+                  キーがプラス側<br />締めて入れる
                 </div>
               </div>
               <div class="card bad">
@@ -6127,7 +6258,7 @@
                     color: var(--bad);
                   "
                 >
-                  JS9相当
+                  キー h8／溝 H9・E9
                 </div>
                 <div
                   style="
@@ -6136,7 +6267,7 @@
                     margin-top: 4px;
                   "
                 >
-                  ±対称公差<br />中間ばめ
+                  キーがマイナス側<br />すきまで入れる
                 </div>
               </div>
               <div
@@ -6160,7 +6291,7 @@
                     margin-top: 4px;
                   "
                 >
-                  新旧・1種2種<br />すべて互換不可
+                  新JISと旧JIS<br />キー系列が違う
                 </div>
                 <div
                   style="
@@ -6169,7 +6300,7 @@
                     margin-top: 4px;
                   "
                 >
-                  b の公差方向が異なる
+                  1種・2種は寸法同じで公差だけ違う。キーと溝の組合せを揃える
                 </div>
               </div>
             </div>
@@ -9450,6 +9581,177 @@
 
       </div><!-- /anc-stab-wrap -->
     </div><!-- /tab-anchor -->
+    <div id="tab-belt" class="tab-content">
+      <div class="two-panel">
+        <div class="panel-left">
+          <div>
+            <div class="section-title">ベルトの種類</div>
+            <div class="field">
+              <label>種類</label>
+              <select id="belt-type" onchange="calcBelt()">
+                <optgroup label="一般Vベルト（JIS K 6323）">
+                  <option value="M">M</option>
+                  <option value="A">A</option>
+                  <option value="B" selected>B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                </optgroup>
+                <optgroup label="細幅Vベルト（ウェッジ）">
+                  <option value="3V">3V</option>
+                  <option value="5V">5V</option>
+                  <option value="8V">8V</option>
+                </optgroup>
+                <optgroup label="SP形（ISO）">
+                  <option value="SPZ">SPZ</option>
+                  <option value="SPA">SPA</option>
+                  <option value="SPB">SPB</option>
+                  <option value="SPC">SPC</option>
+                </optgroup>
+                <optgroup label="タイミングベルト（台形歯・インチ）">
+                  <option value="MXL">MXL</option>
+                  <option value="XL">XL</option>
+                  <option value="L">L</option>
+                  <option value="H">H</option>
+                  <option value="XH">XH</option>
+                </optgroup>
+                <optgroup label="タイミングベルト（T形・HTD・STS）">
+                  <option value="T5">T5</option>
+                  <option value="T10">T10</option>
+                  <option value="3M">3M</option>
+                  <option value="5M">5M</option>
+                  <option value="8M">8M</option>
+                  <option value="14M">14M</option>
+                  <option value="S3M">S3M</option>
+                  <option value="S5M">S5M</option>
+                  <option value="S8M">S8M</option>
+                  <option value="S14M">S14M</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="field">
+              <label>計算のしかた</label>
+              <select id="belt-mode" onchange="calcBelt()">
+                <option value="fromC">軸間距離から、合うベルトを探す</option>
+                <option value="fromNom">ベルトの呼びから、軸間距離を出す</option>
+              </select>
+            </div>
+            <hr class="divider" />
+            <div class="section-title">プーリ</div>
+            <div id="belt-dia-wrap">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="belt-dia-label">プーリピッチ径（呼び径）（mm）</div>
+              <div class="two-col">
+                <div class="field">
+                  <label>小プーリ d</label>
+                  <input type="number" id="belt-d" value="100" step="1" oninput="calcBelt()" />
+                </div>
+                <div class="field">
+                  <label>大プーリ D</label>
+                  <input type="number" id="belt-D" value="200" step="1" oninput="calcBelt()" />
+                </div>
+              </div>
+            </div>
+            <div id="belt-teeth-wrap" style="display: none">
+              <div class="two-col">
+                <div class="field">
+                  <label>小プーリ 歯数</label>
+                  <input type="number" id="belt-z1" value="20" step="1" oninput="calcBelt()" />
+                </div>
+                <div class="field">
+                  <label>大プーリ 歯数</label>
+                  <input type="number" id="belt-z2" value="40" step="1" oninput="calcBelt()" />
+                </div>
+              </div>
+            </div>
+            <div class="field" id="belt-C-wrap">
+              <label>軸間距離 C (mm)</label>
+              <input type="number" id="belt-C" value="500" step="1" oninput="calcBelt()" />
+            </div>
+            <div class="field" id="belt-nom-wrap" style="display: none">
+              <label id="belt-nom-label">ベルト呼び番号</label>
+              <input type="number" id="belt-nom" value="45" step="1" oninput="calcBelt()" />
+            </div>
+            <div class="field">
+              <label>小プーリ回転数 n (rpm)　任意</label>
+              <input type="number" id="belt-n" step="10" placeholder="入れるとベルト速度が出る" oninput="calcBelt()" />
+            </div>
+            <hr class="divider" />
+            <div class="section-title">張りの点検（一般V・細幅）</div>
+            <div class="two-col">
+              <div class="field">
+                <label>伝動動力 P (kW)</label>
+                <input type="number" id="belt-P" step="0.1" placeholder="モータ定格" oninput="calcBelt()" />
+              </div>
+              <div class="field">
+                <label>掛け本数</label>
+                <input type="number" id="belt-nb" step="1" value="1" min="1" oninput="calcBelt()" />
+              </div>
+            </div>
+            <div class="field">
+              <label>過負荷係数 Ks</label>
+              <select id="belt-Ks" onchange="calcBelt()">
+                <option value="1.1">1.1：送風機・ポンプ（変動小）</option>
+                <option value="1.3" selected>1.3：一般（コンベヤ・工作機械など）</option>
+                <option value="1.5">1.5：変動大・起動停止多い</option>
+                <option value="1.8">1.8：衝撃・重負荷</option>
+              </select>
+            </div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:6px">回転数も入れると、ペンシル型張力計のたわみ量とたわみ荷重が出る。Ks は三ツ星 表2-1（1.0〜1.8）の代表値。</div>
+            <hr class="divider" />
+            <div class="section-title">現物から種類を探す</div>
+            <div class="field">
+              <label>何を測った？</label>
+              <select id="belt-id-kind" onchange="beltIdentify()">
+                <option value="v">Vプーリの溝（上幅・溝ピッチ・外径）</option>
+                <option value="t">タイミングプーリ（歯数・外径）</option>
+              </select>
+            </div>
+            <div id="belt-id-v-wrap">
+              <div class="two-col">
+                <div class="field">
+                  <label>溝の上幅 (mm)</label>
+                  <input type="number" id="belt-id-W" step="0.05" placeholder="外周の肩の間" oninput="beltIdentify()" />
+                </div>
+                <div class="field">
+                  <label>溝ピッチ (mm)　任意</label>
+                  <input type="number" id="belt-id-e" step="0.1" placeholder="多本溝の中心間" oninput="beltIdentify()" />
+                </div>
+              </div>
+              <div class="field">
+                <label>プーリ外径 (mm)　任意</label>
+                <input type="number" id="belt-id-Do" step="0.1" placeholder="入れると計算用の径に換算" oninput="beltIdentify()" />
+              </div>
+            </div>
+            <div id="belt-id-t-wrap" style="display: none">
+              <div class="two-col">
+                <div class="field">
+                  <label>歯数</label>
+                  <input type="number" id="belt-id-z" step="1" oninput="beltIdentify()" />
+                </div>
+                <div class="field">
+                  <label>外径（歯先）(mm)</label>
+                  <input type="number" id="belt-id-tDo" step="0.05" oninput="beltIdentify()" />
+                </div>
+              </div>
+            </div>
+            <div class="memo" style="font-size:11px;line-height:1.7">
+              <b>呼びの読み方</b><br />
+              一般Vベルト：B45 ＝ ピッチ周長 45インチ（M形だけ外周長）<br />
+              細幅：5V-1500 ＝ 有効周長 150.0インチ<br />
+              SP形：SPA1250 ＝ 基準長さ 1250mm<br />
+              タイミング：210XL ＝ 21.0インチ、8M-1200 ＝ 1200mm（＝150歯）<br />
+              プーリ径は、一般Vはピッチ径（呼び径）、細幅は有効径、SPは基準径で入れる。
+            </div>
+          </div>
+        </div>
+        <div class="panel-right">
+          <div class="section-title">現物から種類を探す</div>
+          <div id="belt-id-result" style="margin-bottom:12px"></div>
+          <div class="section-title">計算結果</div>
+          <div id="belt-result"></div>
+        </div>
+      </div>
+    </div><!-- /tab-belt -->
+
 
     
     <script src="js/00-core.js"></script>
@@ -9474,6 +9776,8 @@
     <script src="js/28-flange.js"></script>
     <script src="js/29-rigging.js"></script>
     <script src="js/30-anchor.js"></script>
+    <script src="js/31-belt.js"></script>
+    <script src="js/32-gear-estimate.js"></script>
     <script src="js/99-init.js"></script>
   </body>
 </html>
