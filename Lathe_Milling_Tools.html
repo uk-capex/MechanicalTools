@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-  <!-- build: 1.12 | 20260917 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.16 | 20261008 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -319,6 +319,11 @@
     .card.warn {
       border-color: var(--warn);
       background: var(--warn-dim);
+    }
+
+    .card.bad {
+      border-color: var(--bad);
+      background: var(--bad-dim);
     }
 
     /* テーブル */
@@ -697,6 +702,55 @@
             <input type="number" id="lt-L" value="100" min="1" oninput="calcLathe()">
           </div>
         </div>
+        <div id="lt-finish-sec">
+          <hr class="divider" style="margin-bottom:12px">
+          <div class="section-title">仕上げ面</div>
+          <div class="two-col">
+            <div class="field">
+              <label>ノーズR r（mm）</label>
+              <select id="lt-r-sel">
+                <option value="0.2">R0.2</option>
+                <option value="0.4">R0.4</option>
+                <option value="0.8" selected>R0.8</option>
+                <option value="1.2">R1.2</option>
+                <option value="1.6">R1.6</option>
+                <option value="custom">任意入力</option>
+              </select>
+              <input type="number" id="lt-r" value="0.8" min="0.05" step="0.1" style="display:none;margin-top:6px" oninput="calcLathe()">
+            </div>
+            <div class="field">
+              <label>狙いの面粗さ</label>
+              <select id="lt-ra-sel">
+                <option value="25">▽（Ra25）</option>
+                <option value="6.3">▽▽（Ra6.3）</option>
+                <option value="3.2">Ra3.2</option>
+                <option value="1.6" selected>▽▽▽（Ra1.6）</option>
+                <option value="0.8">Ra0.8</option>
+                <option value="0.4">Ra0.4</option>
+                <option value="0.2">▽▽▽▽（Ra0.2）</option>
+                <option value="custom">Ra 直接入力</option>
+              </select>
+              <input type="number" id="lt-ra" value="1.6" min="0.05" step="0.1" style="display:none;margin-top:6px" oninput="calcLathe()">
+            </div>
+          </div>
+        </div>
+        <hr class="divider">
+        <div>
+          <div class="section-title">動力チェック</div>
+          <div class="two-col">
+            <div class="field">
+              <label>主軸モーター（kW）</label>
+              <input type="number" id="lt-motor" value="5.5" min="0.1" step="0.1" oninput="saveLatheMotor(); calcLathe()">
+            </div>
+            <div class="field">
+              <label>比切削抵抗 kc1（N/mm²）</label>
+              <input type="number" id="lt-kc1" value="1700" min="100" step="50" oninput="calcLathe()">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.6">
+            kc1 は切りくず厚さ 1mm 時の値。被削材を選ぶと一般的な目安値が入る（メーカー資料があればそちら優先）
+          </div>
+        </div>
         <hr class="divider">
         <div class="memo" id="lt-memo">
           <b>外径バイト目安</b><br>
@@ -720,6 +774,41 @@
             <div class="card-label">切削時間 tc</div>
             <div class="card-value" id="lt-tc">—<span class="card-unit">min</span></div>
             <div class="card-sub" id="lt-tc-sub"></div>
+          </div>
+        </div>
+        <div class="result-cards" id="lt-finish-cards" style="margin-top:0">
+          <div class="card">
+            <div class="card-label">送り上限（理論）</div>
+            <div class="card-value" id="lt-fth">—<span class="card-unit">mm/rev</span></div>
+            <div class="card-sub" id="lt-fth-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">送り目安（実用）</div>
+            <div class="card-value" id="lt-fpr">—<span class="card-unit">mm/rev</span></div>
+            <div class="card-sub" id="lt-fpr-sub"></div>
+          </div>
+          <div class="card" id="lt-raf-card">
+            <div class="card-label">今の送りでの理論 Ra</div>
+            <div class="card-value" id="lt-raf">—<span class="card-unit">μm</span></div>
+            <div class="card-sub" id="lt-raf-sub"></div>
+          </div>
+        </div>
+        <div class="memo" id="lt-finish-memo" style="margin-top:0"></div>
+        <div class="result-cards" style="margin-top:0">
+          <div class="card">
+            <div class="card-label">除去体積 Q</div>
+            <div class="card-value" id="lt-q">—<span class="card-unit">cm³/min</span></div>
+            <div class="card-sub" id="lt-q-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">所要動力（モーター側）</div>
+            <div class="card-value" id="lt-pm">—<span class="card-unit">kW</span></div>
+            <div class="card-sub" id="lt-pm-sub"></div>
+          </div>
+          <div class="card" id="lt-load-card">
+            <div class="card-label">モーター負荷率</div>
+            <div class="card-value" id="lt-load">—<span class="card-unit">%</span></div>
+            <div class="card-sub" id="lt-load-sub"></div>
           </div>
         </div>
         <div class="data-table-wrap">
@@ -776,6 +865,7 @@
             <label>工具</label>
             <select id="ml-tool">
               <option value="endmill">エンドミル（スクエア）</option>
+              <option value="roughing">ラフィングエンドミル</option>
               <option value="ballmill">ボールエンドミル</option>
               <option value="facemill">正面フライス（フェイスミル）</option>
               <option value="drill">ドリル（MC用）</option>
@@ -846,6 +936,46 @@
             </div>
           </div>
         </div>
+        <div id="ml-finish-sec">
+          <hr class="divider" style="margin-bottom:12px">
+          <div class="section-title">仕上げ面</div>
+          <div class="field" id="ml-ra-field">
+            <label>狙いの面粗さ</label>
+            <select id="ml-ra-sel">
+                <option value="25">▽（Ra25）</option>
+                <option value="6.3">▽▽（Ra6.3）</option>
+                <option value="3.2">Ra3.2</option>
+                <option value="1.6" selected>▽▽▽（Ra1.6）</option>
+                <option value="0.8">Ra0.8</option>
+                <option value="0.4">Ra0.4</option>
+                <option value="0.2">▽▽▽▽（Ra0.2）</option>
+                <option value="custom">Ra 直接入力</option>
+            </select>
+            <input type="number" id="ml-ra" value="1.6" min="0.05" step="0.1" style="display:none;margin-top:6px" oninput="calcMill()">
+          </div>
+          <div class="field" id="ml-bs-field">
+            <label>さらい刃幅 bs（mm）</label>
+            <input type="number" id="ml-bs" value="2.0" min="0.1" step="0.1" oninput="calcMill()">
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">チップのカタログ値（ワイパー刃・さらい刃の平坦部の長さ）</div>
+          </div>
+        </div>
+        <hr class="divider">
+        <div>
+          <div class="section-title">動力チェック</div>
+          <div class="two-col">
+            <div class="field">
+              <label>主軸モーター（kW）</label>
+              <input type="number" id="ml-motor" value="7.5" min="0.1" step="0.1" oninput="saveMillMotor(); calcMill()">
+            </div>
+            <div class="field">
+              <label>比切削抵抗 kc1（N/mm²）</label>
+              <input type="number" id="ml-kc1" value="1500" min="100" step="50" oninput="calcMill()">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.6">
+            kc1 は切りくず厚さ 1mm 時の値。被削材を選ぶと一般的な目安値が入る（メーカー資料があればそちら優先）
+          </div>
+        </div>
         <hr class="divider">
         <div class="memo" id="ml-memo"></div>
       </div>
@@ -881,6 +1011,29 @@
           <div class="card">
             <div class="card-label">工具径</div>
             <div class="card-value" id="ml-d-out" style="font-size:16px">—<span class="card-unit">mm</span></div>
+          </div>
+        </div>
+        <div class="result-cards" id="ml-finish-cards" style="margin-top:0">
+          <div class="card" id="ml-fc1"><div class="card-label" id="ml-fc1-l"></div><div class="card-value" id="ml-fc1-v"></div><div class="card-sub" id="ml-fc1-s"></div></div>
+          <div class="card" id="ml-fc2"><div class="card-label" id="ml-fc2-l"></div><div class="card-value" id="ml-fc2-v"></div><div class="card-sub" id="ml-fc2-s"></div></div>
+          <div class="card" id="ml-fc3"><div class="card-label" id="ml-fc3-l"></div><div class="card-value" id="ml-fc3-v"></div><div class="card-sub" id="ml-fc3-s"></div></div>
+        </div>
+        <div class="memo" id="ml-finish-memo" style="margin-top:0"></div>
+        <div class="result-cards" style="margin-top:0">
+          <div class="card">
+            <div class="card-label">平均切りくず厚さ hm</div>
+            <div class="card-value" id="ml-hm">—<span class="card-unit">mm</span></div>
+            <div class="card-sub" id="ml-hm-sub"></div>
+          </div>
+          <div class="card">
+            <div class="card-label">所要動力（モーター側）</div>
+            <div class="card-value" id="ml-pm">—<span class="card-unit">kW</span></div>
+            <div class="card-sub" id="ml-pm-sub"></div>
+          </div>
+          <div class="card" id="ml-load-card">
+            <div class="card-label">モーター負荷率</div>
+            <div class="card-value" id="ml-load">—<span class="card-unit">%</span></div>
+            <div class="card-sub" id="ml-load-sub"></div>
           </div>
         </div>
         <div class="data-table-wrap">
@@ -1504,7 +1657,7 @@
     // ══════ 入力値警告ヘルパー ══════
     // 推奨上限を超えたら赤くする
     const WARN_LIMITS_LATHE = {
-      outer: { ap_max: 3.0, f_max: 0.4 },
+      outer: { ap_max: null, f_max: 0.4 },  // ap上限は動力チェックで判断
       inner: { ap_max: 1.5, f_max: 0.25 },
       drill: { ap_max: null, f_max: 0.3 },  // drillはapなし
       cutoff: { ap_max: null, f_max: 0.1 },
@@ -1532,6 +1685,33 @@
       steel_soft: 120, steel_mid: 100, steel_hard: 80,
       cast_iron: 100, sus: 80, alum: 300, brass: 180, custom: null
     };
+    // 比切削抵抗 kc1（h=1mm時, N/mm²）と mc（kc = kc1 × h^-mc）一般的な目安値
+    const MAT_KC_LATHE = {
+      steel_soft: { kc1: 1500, mc: 0.25 },
+      steel_mid: { kc1: 1700, mc: 0.25 },
+      steel_hard: { kc1: 1800, mc: 0.25 },
+      cast_iron: { kc1: 1100, mc: 0.28 },
+      sus: { kc1: 2000, mc: 0.21 },
+      alum: { kc1: 700, mc: 0.25 },
+      brass: { kc1: 780, mc: 0.25 },
+      custom: null
+    };
+    const LATHE_ETA = 0.8;  // 機械効率
+    const LATHE_MOTOR_KEY = 'lmt_lathe_motor_kw';
+    function saveLatheMotor() {
+      try { localStorage.setItem(LATHE_MOTOR_KEY, $('lt-motor').value); } catch (e) { }
+    }
+    function loadLatheMotor() {
+      try {
+        const v = localStorage.getItem(LATHE_MOTOR_KEY);
+        if (v && +v > 0) $('lt-motor').value = v;
+      } catch (e) { }
+    }
+    function applyLatheKc() {
+      const k = MAT_KC_LATHE[$('lt-mat').value];
+      if (k) $('lt-kc1').value = k.kc1;
+    }
+
     const MAT_VC_MILL = {
       carbide: { steel_soft: 100, steel_mid: 80, steel_hard: 60, cast_iron: 100, sus: 60, alum: 300, brass: 150, custom: null },
       hss: { steel_soft: 30, steel_mid: 25, steel_hard: 18, cast_iron: 25, sus: 18, alum: 80, brass: 50, custom: null }
@@ -1556,6 +1736,10 @@
           carbide: 'Vc：60〜70 m/min / fz：0.01〜0.05 mm/刃<br>ap：工具径×1〜1.5 / ae：50% 以下',
           hss: 'Vc：20〜35 m/min / fz：0.01〜0.03 mm/刃<br>ap：工具径×0.5〜1 / ae：30% 以下'
         },
+        roughing: {
+          carbide: 'Vc：50〜80 m/min / fz：0.03〜0.08 mm/刃<br>ap：工具径×1〜1.5 / ae：50% 以下（溝は ap 工具径×1 まで）',
+          hss: 'Vc：20〜30 m/min / fz：0.03〜0.06 mm/刃<br>ap：工具径×1〜1.5 / ae：50% 以下（溝は ap 工具径×1 まで）'
+        },
         ballmill: {
           carbide: 'Vc：60〜100 m/min（有効径基準）/ fz：0.01〜0.04 mm/刃<br>ap：工具径×0.3〜0.5 / ae：30% 以下',
           hss: 'Vc：20〜30 m/min（有効径基準）/ fz：0.008〜0.025 mm/刃<br>ap：工具径×0.2〜0.4 / ae：25% 以下'
@@ -1569,22 +1753,24 @@
           hss: 'Vc：20〜35 m/min / f：径×0.01〜0.025 mm/rev<br>深穴はステップ送りで切粉排出'
         }
       };
-      const nm = { endmill: 'エンドミル', ballmill: 'ボールエンドミル', facemill: '正面フライス', drill: 'ドリル' };
+      const nm = { endmill: 'エンドミル', roughing: 'ラフィングエンドミル', ballmill: 'ボールエンドミル', facemill: '正面フライス', drill: 'ドリル' };
       const m = d[tool] || d.endmill;
       document.getElementById('ml-memo').innerHTML = '<b>' + (nm[tool] || 'エンドミル') + ' 目安（' + gl + '）</b><br>' + (m[millGrade] || m.carbide);
     }
 
-    $('ml-tool').addEventListener('change', function () { updateMillMemo(); calcMill(); });
+    $('ml-tool').addEventListener('change', function () { updateMillMemo(); updateMillLabels(); calcMill(); });
     window.addEventListener('load', function () { updateMillMemo(); });
     $('lt-mat').addEventListener('change', function () {
       const vc = MAT_VC_LATHE[this.value];
       if (vc) $('lt-vc').value = vc;
+      applyLatheKc();
       updateLatheMemo();
       calcLathe();
     });
     $('ml-mat').addEventListener('change', function () {
       const vc = MAT_VC_MILL[millGrade][this.value];
       if (vc) $('ml-vc').value = vc;
+      applyMillKc();
       updateMillMemo(); calcMill();
     });
     $('lt-tool').addEventListener('change', function () {
@@ -1607,6 +1793,9 @@
         drill: 'ドリル径 D（mm）', cutoff: '工作物径 D（mm）'
       };
       $('lt-d-label').textContent = labels[tool] || '径 D（mm）';
+      const showFinish = (tool === 'outer' || tool === 'inner');
+      ['lt-finish-sec', 'lt-finish-cards', 'lt-finish-memo'].forEach(id => { $(id).style.display = showFinish ? '' : 'none'; });
+      $('lt-ap-label').textContent = tool === 'cutoff' ? '刃幅 W（mm）' : tool === 'drill' ? '切込み量 ap（ドリルでは不使用）' : '切込み量 ap（mm）';
     }
 
     // ══════ 旋盤計算 ══════
@@ -1673,8 +1862,299 @@
       };
       $('lt-result-memo').innerHTML = `<b>仕上げ代の目安</b><br>${finishes[tool]}`;
 
+      // ── 仕上げ面（ノーズR）──
+      if (tool === 'outer' || tool === 'inner') calcLatheFinish(ap, f);
+
+      // ── 除去体積・所要動力 ──
+      calcLathePower(tool, vc, D, ap, f);
+
       // MAZAK モード推奨チップ更新
       updateMazakChips(n, f);
+    }
+
+    // ══════ 旋盤 仕上げ面（ノーズR）══════
+    // 理論粗さ Ra ≈ f² / (32r) ×1000 [μm]、実際は振動・構成刃先等で理論の2倍程度まで荒れる前提
+    const LATHE_RA_FACTOR = 2;
+    function calcLatheFinish(ap, f) {
+      const r = $('lt-r-sel').value === 'custom' ? +$('lt-r').value : +$('lt-r-sel').value;
+      const ra = $('lt-ra-sel').value === 'custom' ? +$('lt-ra').value : +$('lt-ra-sel').value;
+      if (!r || !ra) return;
+
+      const fTh = Math.sqrt(32 * r * ra / 1000);          // 理論上限
+      const fPr = Math.sqrt(32 * r * (ra / LATHE_RA_FACTOR) / 1000); // 実用目安
+      const raNow = f * f / (32 * r) * 1000;               // 今の送りでの理論Ra
+      const raExp = raNow * LATHE_RA_FACTOR;               // 実際の見込み
+
+      $('lt-fth').innerHTML = `${fTh.toFixed(3)}<span class="card-unit"> mm/rev</span>`;
+      $('lt-fth-sub').textContent = `R${r}・Ra${ra} の計算値`;
+      $('lt-fpr').innerHTML = `${fPr.toFixed(3)}<span class="card-unit"> mm/rev</span>`;
+      let prSub = '理論粗さの2倍荒れる前提';
+      if (latheMachineMode === 'mazak860') {
+        const steps = MAZAK860_FEED.filter(v => v <= fPr + 1e-9);
+        prSub = steps.length ? `MAZAK段：${steps[steps.length - 1]} 以下` : 'MAZAK段：該当なし（最小段でも超え）';
+      }
+      $('lt-fpr-sub').textContent = prSub;
+
+      $('lt-raf').innerHTML = `${raNow.toFixed(2)}<span class="card-unit"> μm</span>`;
+      const card = $('lt-raf-card');
+      card.classList.remove('good', 'warn', 'bad');
+      if (raNow > ra) { card.classList.add('bad'); $('lt-raf-sub').textContent = `理論値で狙い Ra${ra} 超え`; }
+      else if (raExp > ra) { card.classList.add('warn'); $('lt-raf-sub').textContent = `実際は〜${raExp.toFixed(2)}μm 見込み`; }
+      else { card.classList.add('good'); $('lt-raf-sub').textContent = `実際〜${raExp.toFixed(2)}μm でも狙い内`; }
+
+      // チェック項目
+      const notes = [];
+      const apMin = r * 2 / 3;
+      if (ap < apMin) notes.push(`<span class="warn-text">⚠ ap ${ap}mm がノーズRの2/3（${apMin.toFixed(2)}mm）未満：刃先が逃げて肌が荒れやすい</span>`);
+      else notes.push(`<span class="good-text">✓ ap ≥ R×2/3（${apMin.toFixed(2)}mm）</span>`);
+      const fMax = r * 0.5;
+      if (f > fMax) notes.push(`<span class="warn-text">⚠ 送り ${f} がノーズRの半分（${fMax.toFixed(2)}mm/rev）超え：刃先に負担</span>`);
+      else notes.push(`<span class="good-text">✓ 送り ≤ R×0.5（${fMax.toFixed(2)}mm/rev）</span>`);
+      if (r >= 1.2) notes.push('R大は背分力が増えるので、細長いワーク・突き出し長い時はビビりに注意');
+      $('lt-finish-memo').innerHTML = '<b>仕上げ面チェック</b><br>' + notes.join('<br>');
+
+      const tr = (a, b, c) => `<tr><td>${a}</td><td class="hl">${b}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${c}</td></tr>`;
+      $('lt-tbody').innerHTML += tr('理論粗さ Ra（今の送り）', `${raNow.toFixed(2)} μm`, '= f²/(32r)×1000')
+        + tr('送り上限（理論）', `${fTh.toFixed(3)} mm/rev`, `= √(32·r·Ra/1000)、R${r}・Ra${ra}`)
+        + tr('送り目安（実用）', `${fPr.toFixed(3)} mm/rev`, '実面が理論の2倍荒れる前提');
+    }
+
+    // ══════ 旋盤 動力チェック ══════
+    function calcLathePower(tool, vc, D, ap, f) {
+      const motor = +$('lt-motor').value;
+      const kc1 = +$('lt-kc1').value;
+      const matKey = $('lt-mat').value;
+      const mc = (MAT_KC_LATHE[matKey] || { mc: 0.25 }).mc;
+      const tb = $('lt-tbody');
+      if (!kc1 || !motor) return;
+
+      // 切りくず厚さ h と除去体積 Q（cm³/min）
+      // 外径・内径・突っ切り：h≈f（切込角90°近似）、Q = ap(または刃幅) × f × Vc
+      // ドリル：2枚刃・先端角118° → h = f/2 × sin59°、Q = π/4·D²·f·n = 250·D·f·Vc [mm³/min]
+      let h, Q, wlabel;
+      if (tool === 'drill') {
+        h = (f / 2) * Math.sin(59 * Math.PI / 180);
+        Q = 250 * D * f * vc / 1000;
+        wlabel = 'π/4·D²·f·n';
+      } else {
+        if (!ap) return;
+        h = f;
+        Q = ap * f * vc;
+        wlabel = tool === 'cutoff' ? 'W × f × Vc（外周での最大値）' : 'ap × f × Vc';
+      }
+      const kc = kc1 * Math.pow(h, -mc);       // N/mm²
+      const Pc = Q * kc / 60000;                // kW（切削点）
+      const Pm = Pc / LATHE_ETA;                // kW（モーター側）
+      const load = Pm / motor * 100;            // %
+      // 定格内に収まる Vc 上限（ap・f 固定）
+      const vcMax = vc * (motor / Pm);
+
+      $('lt-q').innerHTML = `${Q.toFixed(1)}<span class="card-unit"> cm³/min</span>`;
+      $('lt-q-sub').textContent = wlabel;
+      $('lt-pm').innerHTML = `${Pm.toFixed(2)}<span class="card-unit"> kW</span>`;
+      $('lt-pm-sub').textContent = `切削点 ${Pc.toFixed(2)} kW ÷ η${LATHE_ETA}`;
+      $('lt-load').innerHTML = `${Math.round(load)}<span class="card-unit"> %</span>`;
+
+      const card = $('lt-load-card');
+      card.classList.remove('good', 'warn', 'bad');
+      let sub;
+      if (load > 100) {
+        card.classList.add('bad');
+        sub = `${motor}kW 定格超え／Vc ${Math.floor(vcMax)} m/min 以下で定格内`;
+      } else if (load > 80) {
+        card.classList.add('warn');
+        sub = `${motor}kW 定格比／余裕少なめ`;
+      } else {
+        card.classList.add('good');
+        sub = `${motor}kW 定格比`;
+      }
+      $('lt-load-sub').textContent = sub;
+
+      const extra = [
+        ['除去体積 Q', `${Q.toFixed(1)} cm³/min`, wlabel],
+        ['比切削抵抗 kc', `${Math.round(kc)} N/mm²`, `= kc1×h^-${mc}（h=${h.toFixed(3)}mm）`],
+        ['所要動力（切削点）', `${Pc.toFixed(2)} kW`, '= Q × kc / 60000'],
+        ['所要動力（モーター側）', `${Pm.toFixed(2)} kW`, `機械効率 η=${LATHE_ETA}`],
+        ['モーター負荷率', `${Math.round(load)} %`, `${motor}kW 定格比`],
+        ['定格内の Vc 上限', `${Math.floor(vcMax)} m/min`, 'ap・f を変えない場合'],
+      ];
+      if (tool === 'drill') extra.push(['注記', 'チゼル分含まず', '実際はスラスト・チゼル抵抗で増える']);
+      tb.innerHTML += extra.map(r =>
+        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+      ).join('');
+    }
+
+    // ══════ フライス 工具別の警告基準 ══════
+    // fz 目安上限は工具メモの上限値に合わせる（ドリルは 1回転送り D×0.03 → 2枚刃で fz = D×0.015）
+    const MILL_FZ_MAX = {
+      endmill: { carbide: 0.05, hss: 0.03 },
+      roughing: { carbide: 0.08, hss: 0.06 },
+      ballmill: { carbide: 0.04, hss: 0.025 },
+      facemill: { carbide: 0.2, hss: 0.1 },
+    };
+    function millFzMax(tool, D) {
+      if (tool === 'drill') return D * 0.015;
+      return (MILL_FZ_MAX[tool] || MILL_FZ_MAX.endmill)[millGrade];
+    }
+    const MILL_AP_LIMIT = { endmill: 1.5, roughing: 1.5, ballmill: 0.5, facemill: null, drill: null };   // ×D
+    const MILL_AE_LIMIT = { endmill: 0.5, roughing: 0.5, ballmill: 0.5, facemill: 0.8, drill: null };    // ×D
+
+    function updateMillLabels() {
+      const tool = $('ml-tool').value;
+      $('ml-ap-label').textContent = tool === 'drill' ? '軸方向切込み ap（ドリルでは不使用）' : '軸方向切込み ap（mm）';
+      $('ml-ae-label').textContent = tool === 'drill' ? '径方向切込み ae（ドリルでは不使用）'
+        : tool === 'ballmill' ? '径方向切込み ae＝ピック（mm）' : '径方向切込み ae（mm）';
+      const fin = (tool === 'ballmill' || tool === 'facemill');
+      $('ml-finish-sec').style.display = fin ? '' : 'none';
+      $('ml-finish-cards').style.display = fin ? '' : 'none';
+      $('ml-finish-memo').style.display = (fin || tool === 'endmill' || tool === 'roughing') ? '' : 'none';
+      $('ml-ra-field').style.display = tool === 'ballmill' ? '' : 'none';
+      $('ml-bs-field').style.display = tool === 'facemill' ? '' : 'none';
+    }
+
+    const MILL_MOTOR_KEY = 'lmt_mill_motor_kw';
+    function saveMillMotor() {
+      try { localStorage.setItem(MILL_MOTOR_KEY, $('ml-motor').value); } catch (e) { }
+    }
+    function loadMillMotor() {
+      try {
+        const v = localStorage.getItem(MILL_MOTOR_KEY);
+        if (v && +v > 0) $('ml-motor').value = v;
+      } catch (e) { }
+    }
+    function applyMillKc() {
+      const k = MAT_KC_LATHE[$('ml-mat').value];
+      if (k) $('ml-kc1').value = k.kc1;
+    }
+
+    const millTr = (a, b, c) => `<tr><td>${a}</td><td class="hl">${b}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${c}</td></tr>`;
+    function setMillCard(i, label, val, unit, sub, state) {
+      $('ml-fc' + i + '-l').textContent = label;
+      $('ml-fc' + i + '-v').innerHTML = `${val}<span class="card-unit"> ${unit}</span>`;
+      $('ml-fc' + i + '-s').textContent = sub;
+      const c = $('ml-fc' + i);
+      c.classList.remove('good', 'warn', 'bad');
+      if (state) c.classList.add(state);
+    }
+
+    // ══════ フライス 仕上げ面 ══════
+    // ボール：カスプ高さ h = R − √(R² − (p/2)²)、狙い Ra → 許容 h ≈ 4×Ra（Rz≈4Ra 換算）、実面は理論の2倍荒れる前提
+    function calcMillFinish(tool, vc, D, z, fz, ap, ae, n) {
+      const memo = $('ml-finish-memo');
+      if (tool === 'roughing') {
+        memo.innerHTML = '<b>ラフィングの仕上げ代</b><br>波形刃の跡（段々の山）が残るので、ラフィングで仕上げ寸法までは削らない。<br>側面・底面とも 0.3〜0.5mm 程度残して、スクエアエンドミルで仕上げる。<br>波形刃で切りくずが細かく分断されるぶん、同じ ap・ae でも通常のエンドミルより負荷とビビりが出にくい。';
+        return;
+      }
+      if (tool === 'endmill') {
+        memo.innerHTML = '<b>側面の仕上げ</b><br>送りマーク自体は小さく、実際の面は工具のたわみと振れで決まる。<br>仕上げは ae を小さく（径の5〜10%程度）、突き出しを短く、振れの少ないホルダで。';
+        return;
+      }
+      if (tool === 'ballmill') {
+        const R = D / 2;
+        const ra = $('ml-ra-sel').value === 'custom' ? +$('ml-ra').value : +$('ml-ra-sel').value;
+        if (!ra) return;
+        const p = ae;
+        const hNow = p < D ? (R - Math.sqrt(R * R - (p / 2) * (p / 2))) * 1000 : NaN;  // μm
+        const hAllow = 4 * ra;                    // μm
+        const pFor = h => 2 * Math.sqrt(R * R - Math.pow(R - h / 1000, 2));
+        const pTh = pFor(hAllow);
+        const pPr = pFor(hAllow / 2);
+        // 有効径
+        const Deff = ap < R ? 2 * Math.sqrt(ap * (D - ap)) : D;
+        const nEff = vc * 1000 / (Math.PI * Deff);
+        const hFeed = (fz * fz) / (8 * R) * 1000;  // 送り方向のカスプ（μm）
+
+        setMillCard(1, 'ピック上限（理論）', pTh.toFixed(3), 'mm', `R${R}・Ra${ra}（h≦${hAllow.toFixed(1)}μm）`);
+        setMillCard(2, 'ピック目安（実用）', pPr.toFixed(3), 'mm', '理論粗さの2倍荒れる前提');
+        let st, sub;
+        if (!(hNow >= 0)) { st = 'bad'; sub = 'ピックが工具径以上'; }
+        else if (hNow > hAllow) { st = 'bad'; sub = `理論値で許容 ${hAllow.toFixed(1)}μm 超え`; }
+        else if (hNow * 2 > hAllow) { st = 'warn'; sub = `実際は〜${(hNow * 2).toFixed(1)}μm 見込み`; }
+        else { st = 'good'; sub = `実際〜${(hNow * 2).toFixed(1)}μm でも許容内`; }
+        setMillCard(3, '今のピックでのカスプ高さ', isNaN(hNow) ? '—' : hNow.toFixed(2), 'μm', sub, st);
+
+        const notes = [];
+        if (ap < R) {
+          notes.push(`有効径 Deff = ${Deff.toFixed(2)}mm（ap ${ap}mm）→ Vc${vc} を出すには <b>${Math.round(nEff)} rpm</b>（工具径基準 ${Math.round(n)} rpm）`);
+          if (machineMode === 'okk') {
+            const nTop = OKK_RPM[OKK_RPM.length - 1];
+            if (nEff > nTop) notes.push(`<span class="warn-text">⚠ OKK 最高 ${nTop} rpm でも有効径での Vc は ${Math.round(Math.PI * Deff * nTop / 1000)} m/min 止まり</span>`);
+            else notes.push('※ OKK の段選択は工具径基準の回転数で出ているので、有効径基準なら上の段を検討');
+          }
+        } else {
+          notes.push('ap が工具半径以上なので有効径＝工具径');
+        }
+        notes.push(`送り方向のカスプ ${hFeed.toFixed(2)}μm（fz 由来、通常はピック側が支配的）`);
+        memo.innerHTML = '<b>ボールエンドミル仕上げ</b><br>' + notes.join('<br>');
+
+        $('ml-tbody').innerHTML += millTr('カスプ高さ（ピック）', isNaN(hNow) ? '—' : `${hNow.toFixed(2)} μm`, '= R − √(R² − (p/2)²)')
+          + millTr('ピック上限（理論）', `${pTh.toFixed(3)} mm`, `許容 h ≈ 4×Ra = ${hAllow.toFixed(1)}μm`)
+          + millTr('有効径 Deff', `${Deff.toFixed(2)} mm`, '= 2√(ap(D−ap))')
+          + millTr('有効径基準 n', `${Math.round(nEff)} rpm`, `Vc=${vc} を有効径で出す回転数`);
+        return;
+      }
+      if (tool === 'facemill') {
+        const bs = +$('ml-bs').value;
+        if (!bs) return;
+        const fn = fz * z;
+        const lim = bs * 0.8;
+        setMillCard(1, '1回転送り fn', fn.toFixed(3), 'mm/rev', `fz ${fz} × z ${z}`);
+        setMillCard(2, '仕上げ用 fn 上限', lim.toFixed(2), 'mm/rev', `さらい刃幅 ${bs}mm × 0.8`);
+        const st = fn <= lim ? 'good' : 'bad';
+        setMillCard(3, 'さらい刃判定', fn <= lim ? 'OK' : 'NG', '', fn <= lim ? 'fn がさらい刃幅に収まっている' : `fz ${(lim / z).toFixed(3)} 以下で収まる`, st);
+        memo.innerHTML = '<b>正面フライス仕上げ</b><br>1回転送り fn がさらい刃幅に収まると、前の刃の送りマークを次のさらい刃が均すので面が安定する。<br>実際の面は刃先の振れ（高さのバラつき）の影響が大きいので、仕上げはチップ高さを揃えるか、さらい刃チップを1枚だけ入れる。';
+        $('ml-tbody').innerHTML += millTr('1回転送り fn', `${fn.toFixed(3)} mm/rev`, '= fz × z')
+          + millTr('仕上げ用 fn 上限', `${lim.toFixed(2)} mm/rev`, 'さらい刃幅 × 0.8');
+      }
+    }
+
+    // ══════ フライス 動力チェック ══════
+    // hm = fz × (2ae/D) / φ（φ：接触角 rad）、主切れ刃角 90° 近似
+    //  エンドミル・ボール：片側から食い付き φ = arccos(1 − 2ae/D)
+    //  正面フライス：工具中心がワーク中央 φ = 2·arcsin(ae/D)
+    function calcMillPower(tool, vc, D, z, fz, ap, ae, vf) {
+      const motor = +$('ml-motor').value;
+      const kc1 = +$('ml-kc1').value;
+      const mc = (MAT_KC_LATHE[$('ml-mat').value] || { mc: 0.25 }).mc;
+      if (!motor || !kc1) return;
+      let hm, Q, note;
+      if (tool === 'drill') {
+        const frev = fz * z;
+        hm = (frev / 2) * Math.sin(59 * Math.PI / 180);
+        Q = 250 * D * frev * vc / 1000;
+        note = 'ドリル：h = f/2·sin59°';
+      } else {
+        if (!ap || !ae) return;
+        const r = Math.min(ae / D, 1);
+        const phi = tool === 'facemill' ? 2 * Math.asin(r) : Math.acos(1 - 2 * r);
+        hm = fz * (2 * r) / phi;
+        Q = ap * ae * vf / 1000;
+        note = tool === 'facemill' ? 'センター当て想定' : '片側食い付き想定';
+      }
+      const kc = kc1 * Math.pow(hm, -mc);
+      const Pc = Q * kc / 60000;
+      const Pm = Pc / LATHE_ETA;
+      const load = Pm / motor * 100;
+      const scale = motor / Pm;   // vf をこの倍率にすると定格（kc はほぼ不変）
+
+      $('ml-hm').innerHTML = `${hm.toFixed(4)}<span class="card-unit"> mm</span>`;
+      $('ml-hm-sub').textContent = `fz の ${Math.round(hm / fz * 100)}%（${note}）`;
+      $('ml-pm').innerHTML = `${Pm.toFixed(2)}<span class="card-unit"> kW</span>`;
+      $('ml-pm-sub').textContent = `切削点 ${Pc.toFixed(2)} kW ÷ η${LATHE_ETA}`;
+      $('ml-load').innerHTML = `${Math.round(load)}<span class="card-unit"> %</span>`;
+      const card = $('ml-load-card');
+      card.classList.remove('good', 'warn', 'bad');
+      let sub;
+      if (load > 100) { card.classList.add('bad'); sub = `${motor}kW 定格超え／Vc ${Math.floor(vc * scale)} m/min 以下で定格内`; }
+      else if (load > 80) { card.classList.add('warn'); sub = `${motor}kW 定格比／余裕少なめ`; }
+      else { card.classList.add('good'); sub = `${motor}kW 定格比`; }
+      $('ml-load-sub').textContent = sub;
+
+      $('ml-tbody').innerHTML += millTr('平均切りくず厚さ hm', `${hm.toFixed(4)} mm`, tool === 'drill' ? note : '= fz × (2ae/D) / φ')
+        + millTr('比切削抵抗 kc', `${Math.round(kc)} N/mm²`, `= kc1×hm^-${mc}`)
+        + millTr('所要動力（切削点）', `${Pc.toFixed(2)} kW`, '= Q × kc / 60000')
+        + millTr('所要動力（モーター側）', `${Pm.toFixed(2)} kW`, `機械効率 η=${LATHE_ETA}`)
+        + millTr('モーター負荷率', `${Math.round(load)} %`, `${motor}kW 定格比`);
     }
 
     // ══════ フライス計算 ══════
@@ -1706,6 +2186,8 @@
 
       // ae/D 比チェック
       const ae_ratio = ae / D;
+      const tool = $('ml-tool').value;
+      const aeLim = MILL_AE_LIMIT[tool];
       const ae_warn = ae_ratio > 0.5 ? `<span class="warn-text">⚠ ae/D=${ae_ratio.toFixed(2)}（50%超、工具負荷大）</span>` : `<span class="good-text">✓ ae/D=${ae_ratio.toFixed(2)}</span>`;
 
       const rows = [
@@ -1715,7 +2197,7 @@
         ['1回転送り量', `${frev.toFixed(3)} mm/rev`, '= fz × z'],
         ['テーブル送り vf', `${Math.round(vf)} mm/min`, '= n × frev'],
         ['切削時間 tc', `${tc.toFixed(2)} min`, `約 ${(tc * 60).toFixed(0)} 秒`],
-        ['ae/D 比', `${(ae_ratio * 100).toFixed(0)} %`, ae_ratio > 0.5 ? '50%超は要注意' : '適正範囲'],
+        ['ae/D 比', `${(ae_ratio * 100).toFixed(0)} %`, aeLim ? (ae_ratio > aeLim ? `${aeLim * 100}%超は要注意` : '適正範囲') : '—'],
         ['MRR（除去体積）', `${mrr.toFixed(1)} cm³/min`, 'ap × ae × vf'],
       ];
       $('ml-tbody').innerHTML = rows.map(r =>
@@ -1723,12 +2205,18 @@
       ).join('');
 
       // ── 警告判定 ──
-      setWarn('ml-fz-field', 'ml-fz', 'ml-fz-hint', fz > WARN_LIMITS_MILL.fz_max,
-        `推奨上限 ${WARN_LIMITS_MILL.fz_max}mm/刃 を超えています`);
-      setWarn('ml-ap-field', 'ml-ap', 'ml-ap-hint', ap > D * 1.5,
-        `ap が工具径(${D}mm)の1.5倍(${(D * 1.5).toFixed(1)}mm)を超えています`);
-      setWarn('ml-ae-field', 'ml-ae', 'ml-ae-hint', ae > D * 0.5,
-        `ae が工具径(${D}mm)の50%(${(D * 0.5).toFixed(1)}mm)を超えています`);
+      const fzMax = millFzMax(tool, D);
+      setWarn('ml-fz-field', 'ml-fz', 'ml-fz-hint', fz > fzMax,
+        `目安上限 ${+fzMax.toFixed(3)}mm/刃 を超えています`);
+      const apLim = MILL_AP_LIMIT[tool];
+      setWarn('ml-ap-field', 'ml-ap', 'ml-ap-hint', !!apLim && ap > D * apLim,
+        `ap が工具径(${D}mm)の${apLim}倍(${(D * (apLim || 0)).toFixed(1)}mm)を超えています`);
+      setWarn('ml-ae-field', 'ml-ae', 'ml-ae-hint', !!aeLim && ae > D * aeLim,
+        `ae が工具径(${D}mm)の${(aeLim || 0) * 100}%(${(D * (aeLim || 0)).toFixed(1)}mm)を超えています`);
+
+      // ── 仕上げ面・動力 ──
+      calcMillFinish(tool, vc, D, z, fz, ap, ae, n);
+      calcMillPower(tool, vc, D, z, fz, ap, ae, vf);
 
       // OKK モード推奨チップ更新
       updateOkkChips(n, vf);
@@ -2099,7 +2587,30 @@
       }).join('');
     }
 
+    // 仕上げ面 select
+    $('lt-r-sel').addEventListener('change', function () {
+      $('lt-r').style.display = this.value === 'custom' ? '' : 'none';
+      if (this.value !== 'custom') $('lt-r').value = this.value;
+      calcLathe();
+    });
+    $('lt-ra-sel').addEventListener('change', function () {
+      $('lt-ra').style.display = this.value === 'custom' ? '' : 'none';
+      if (this.value !== 'custom') $('lt-ra').value = this.value;
+      calcLathe();
+    });
+
+    $('ml-ra-sel').addEventListener('change', function () {
+      $('ml-ra').style.display = this.value === 'custom' ? '' : 'none';
+      if (this.value !== 'custom') $('ml-ra').value = this.value;
+      calcMill();
+    });
+
     // ══════ 初期計算 ══════
+    loadLatheMotor();
+    loadMillMotor();
+    applyMillKc();
+    updateMillLabels();
+    applyLatheKc();
     updateLatheMemo();
     calcLathe();
     calcMill();
