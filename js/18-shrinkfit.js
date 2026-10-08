@@ -288,6 +288,8 @@
             "厚肉円筒（ラメの式）・平面応力・ν=0.3";
         }
         $("sh-rec-max").innerHTML = `${delta_max.toFixed(3)}${u("mm")}`;
+        // 2026-10：狙い締め代が上限を超えたら上限カードを赤に（ふだんは「上限」という性格の値なので黄）
+        $("sh-rec-max-card").className = `card ${delta > delta_max ? "bad" : "warn"}`;
         $("sh-rec-max-sub").textContent = `許容面圧 ${p_max.toFixed(0)} MPa（${limiting}・S${safety}）`;
         $("sh-delta-judge").innerHTML = judgeHtml;
 
@@ -310,6 +312,14 @@
           vsub = `不足 ${Math.abs(surplus).toFixed(3)} mm`;
         }
 
+        // 2026-10：組立できても締め代が上限を超えていたら全体は赤（どちらかが赤なら赤）
+        if (delta > delta_max) {
+          const clearTxt = vcls === "bad" ? "クリアランスも不足" : `クリアランスは${vcls === "good" ? "十分" : "ギリギリ"}（${vsub}）`;
+          vmain = vcls === "bad" ? "クリアランス不足・締め代が上限超過" : "締め代が上限超過 — 降伏のおそれ";
+          vsub = `締め代 ${delta.toFixed(3)} mm ＞ 上限 ${delta_max.toFixed(3)} mm（${limiting}）。${clearTxt}`;
+          vcls = "bad";
+          vicon = "✕";
+        }
         $("sh-verdict").className = `card ${vcls}`;
         $("sh-verdict-icon").textContent = vicon;
         $("sh-verdict-main").textContent = vmain;
