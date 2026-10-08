@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
   <head>
-    <!-- build: 1.60 | 20260604 | Mechanical Tools | uk |-->
+    <!-- build: 1.61 | 20261008 | Mechanical Tools | uk |-->
     <!-- Black Deep Tone -->
     <meta charset="utf-8" />
     <meta
@@ -234,6 +234,44 @@
         transition: border-color 0.15s;
         -webkit-appearance: none; /* iOS デフォルトスタイル解除 */
         appearance: none;
+      }
+      /* 2026-10：appearance:none で ▼ が消えていたので、選べる欄だと分かるよう右端に ▼ を描く */
+      select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23768390' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 12px 8px;
+        padding-right: 32px;
+        cursor: pointer;
+      }
+      select:hover { border-color: var(--muted); }
+      select:disabled { cursor: not-allowed; opacity: 0.6; }
+      /* 計算の仕方が変わる切替は、選択肢を全部並べたボタン型（segify で select から生成） */
+      .seg {
+        display: flex;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .seg button {
+        flex: 1;
+        padding: 7px 8px;
+        font-size: 13px;
+        line-height: 1.35;
+        font-family: inherit;
+        background: var(--bg);
+        color: var(--muted);
+        border: none;
+        border-right: 1px solid var(--border);
+        cursor: pointer;
+      }
+      .seg button:last-child { border-right: none; }
+      .seg button:hover { color: var(--ink); }
+      .seg button.on {
+        background: var(--accent-dim);
+        color: var(--ink);
+        font-weight: 700;
+        box-shadow: inset 0 -2px 0 var(--accent);
       }
       input:focus,
       select:focus {
@@ -1395,7 +1433,14 @@
           </div>
           <hr class="divider" />
           <div>
-            <div class="section-title">ボス・はめあい条件（推奨締め代の計算用）</div>
+            <div class="section-title">ボス・はめあい条件（締め代の目安の計算用）</div>
+            <div class="field">
+              <label>焼き嵌めの使い方</label>
+              <select id="sh-use" onchange="calcShrink()">
+                <option value="key" selected>キー併用（ガタ止め）</option>
+                <option value="solo">焼き嵌めだけで伝達</option>
+              </select>
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
               <div class="field">
                 <label>ボス外径 Do (mm)</label>
@@ -1410,121 +1455,63 @@
                 <input type="number" id="sh-L" step="1" placeholder="空欄＝穴径と同じ" oninput="calcShrink()">
               </div>
               <div class="field">
-                <label>伝達トルク T (N·m)　任意</label>
-                <input type="number" id="sh-T" step="10" placeholder="入れると下限が出る" oninput="calcShrink()">
-              </div>
-              <div class="field">
                 <label>摩擦係数 μ</label>
                 <input type="number" id="sh-mu" value="0.15" step="0.01" min="0.05" oninput="calcShrink()">
               </div>
-              <div class="field">
-                <label>すべり安全率</label>
-                <input type="number" id="sh-Sslip" value="2" step="0.5" min="1" oninput="calcShrink()">
+            </div>
+            <div class="field">
+              <label>かかるトルク（目安）</label>
+              <select id="sh-tqmode" onchange="calcShrink()">
+                <option value="power" selected>モーターから概算</option>
+                <option value="torque">トルクを直接入れる</option>
+              </select>
+            </div>
+            <div id="sh-power-wrap">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="field">
+                  <label>モーター容量 P (kW)</label>
+                  <input type="number" id="sh-P" step="0.1" value="2.2" oninput="calcShrink()">
+                </div>
+                <div class="field">
+                  <label>極数</label>
+                  <select id="sh-poles" onchange="calcShrink()">
+                    <option value="2">2P</option>
+                    <option value="4" selected>4P</option>
+                    <option value="6">6P</option>
+                    <option value="8">8P</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>電源周波数</label>
+                  <select id="sh-hz" onchange="calcShrink()">
+                    <option value="50">50 Hz</option>
+                    <option value="60" selected>60 Hz</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>減速比 1/ （直結は 1）</label>
+                  <input type="number" id="sh-ratio" step="1" min="1" value="20" oninput="calcShrink()">
+                </div>
+                <div class="field">
+                  <label>減速機の効率</label>
+                  <input type="number" id="sh-eff" step="0.05" min="0.3" max="1" value="0.9" oninput="calcShrink()">
+                </div>
               </div>
+              <div id="sh-power-out" style="font-size:11px;color:var(--muted);line-height:1.6;margin:-2px 0 8px;"></div>
+            </div>
+            <div class="field" id="sh-torque-wrap" style="display:none">
+              <label>トルク T (N·m)</label>
+              <input type="number" id="sh-T" step="10" placeholder="空欄＝比較しない" oninput="calcShrink()">
+            </div>
+            <div class="field" id="sh-Sslip-wrap">
+              <label>すべり安全率</label>
+              <input type="number" id="sh-Sslip" value="2" step="0.5" min="1" oninput="calcShrink()">
             </div>
             <div style="font-size:10px;color:var(--muted);line-height:1.6;">μ の目安：焼嵌め・冷やし嵌め（鋼同士・乾燥）0.15前後、油を塗った圧入 0.08程度。ポアソン比は全材料 0.3 で計算。</div>
           </div>
         </div>
 
         <div class="panel-right">
-          <!-- 推奨締めしろ範囲 -->
-          <div
-            id="sh-recommend-block"
-            style="
-              background: var(--surface);
-              border: 1px solid var(--border);
-              border-radius: 10px;
-              padding: 14px 16px;
-            "
-          >
-            <div
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 0.1em;
-                color: var(--muted);
-                text-transform: uppercase;
-                margin-bottom: 10px;
-              "
-            >
-              厚肉円筒（ラメの式）で算出した推奨締めしろ範囲
-            </div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
-                gap: 8px;
-                margin-bottom: 10px;
-              "
-            >
-              <div class="card good">
-                <div class="card-label">推奨下限 δ_min</div>
-                <div
-                  class="card-value"
-                  id="sh-rec-min"
-                  style="font-size: 17px"
-                >
-                  —<span class="card-unit">mm</span>
-                </div>
-                <div
-                  class="card-sub"
-                  id="sh-rec-min-sub"
-                ></div>
-              </div>
-              <div class="card accent">
-                <div class="card-label">
-                  推奨中央値 δ_rec
-                </div>
-                <div
-                  class="card-value"
-                  id="sh-rec-mid"
-                  style="font-size: 17px"
-                >
-                  —<span class="card-unit">mm</span>
-                </div>
-                <div
-                  class="card-sub"
-                  id="sh-rec-mid-sub"
-                ></div>
-              </div>
-              <div class="card warn">
-                <div class="card-label">
-                  上限（降伏考慮）δ_max
-                </div>
-                <div
-                  class="card-value"
-                  id="sh-rec-max"
-                  style="font-size: 17px"
-                >
-                  —<span class="card-unit">mm</span>
-                </div>
-                <div
-                  class="card-sub"
-                  id="sh-rec-max-sub"
-                ></div>
-              </div>
-            </div>
-            <div
-              id="sh-delta-judge"
-              style="
-                font-size: 12px;
-                padding: 7px 10px;
-                border-radius: 6px;
-                background: var(--surface2);
-                border: 1px solid var(--border);
-              "
-            ></div>
-            <div
-              style="
-                font-size: 11px;
-                color: var(--muted);
-                margin-top: 7px;
-              "
-            >
-              δ_max = ε_allow × D　ε_allow = σy / E /
-              S（穴側・軸側の制約材を使用）
-            </div>
-          </div>
           <!-- 判定バー -->
           <div
             id="sh-verdict"
@@ -1587,6 +1574,72 @@
                 id="sh-dshaft-sub"
               ></div>
             </div>
+          </div>
+          <!-- 締め代の目安（2026-10：表の上へ移動。使い方で表示を切替） -->
+          <div
+            id="sh-recommend-block"
+            style="
+              background: var(--surface);
+              border: 1px solid var(--border);
+              border-radius: 10px;
+              padding: 14px 16px;
+            "
+          >
+            <div
+              id="sh-rec-title"
+              style="
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                color: var(--muted);
+                margin-bottom: 10px;
+              "
+            >
+              厚肉円筒（ラメの式）で見た締め代の目安
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 10px;
+              "
+            >
+              <div class="card good">
+                <div class="card-label" id="sh-rec-min-label">推奨下限 δ_min</div>
+                <div class="card-value" id="sh-rec-min" style="font-size: 17px">—<span class="card-unit">mm</span></div>
+                <div class="card-sub" id="sh-rec-min-sub"></div>
+              </div>
+              <div class="card accent">
+                <div class="card-label" id="sh-rec-mid-label">推奨中央値 δ_rec</div>
+                <div class="card-value" id="sh-rec-mid" style="font-size: 17px">—<span class="card-unit">mm</span></div>
+                <div class="card-sub" id="sh-rec-mid-sub"></div>
+              </div>
+              <div class="card warn">
+                <div class="card-label">上限（降伏考慮）δ_max</div>
+                <div class="card-value" id="sh-rec-max" style="font-size: 17px">—<span class="card-unit">mm</span></div>
+                <div class="card-sub" id="sh-rec-max-sub"></div>
+              </div>
+            </div>
+            <div
+              id="sh-delta-judge"
+              style="
+                font-size: 12px;
+                padding: 7px 10px;
+                border-radius: 6px;
+                background: var(--surface2);
+                border: 1px solid var(--border);
+              "
+            ></div>
+            <div
+              id="sh-rec-foot"
+              style="
+                font-size: 11px;
+                color: var(--muted);
+                margin-top: 7px;
+                line-height: 1.6;
+              "
+            ></div>
           </div>
           <!-- 詳細テーブル -->
           <div class="data-table-wrap">
@@ -5705,23 +5758,46 @@
             <div class="field">
               <label>伝達条件の入れ方</label>
               <select id="ks-mode" onchange="calcKeyStrength()">
-                <option value="torque">トルクで入れる</option>
-                <option value="power">動力と回転数で入れる</option>
+                <option value="power" selected>モーターから概算</option>
+                <option value="torque">トルクを直接入れる</option>
               </select>
             </div>
-            <div class="field" id="ks-torque-wrap">
+            <div class="field" id="ks-torque-wrap" style="display: none">
               <label>伝達トルク T (N·m)</label>
               <input type="number" id="ks-T" step="1" value="100" oninput="calcKeyStrength()" />
             </div>
-            <div class="two-col" id="ks-power-wrap" style="display: none">
-              <div class="field">
-                <label>動力 P (kW)</label>
-                <input type="number" id="ks-P" step="0.1" value="3.7" oninput="calcKeyStrength()" />
+            <div id="ks-power-wrap">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="field">
+                  <label>モーター容量 P (kW)</label>
+                  <input type="number" id="ks-P" step="0.1" value="2.2" oninput="calcKeyStrength()">
+                </div>
+                <div class="field">
+                  <label>極数</label>
+                  <select id="ks-poles" onchange="calcKeyStrength()">
+                    <option value="2">2P</option>
+                    <option value="4" selected>4P</option>
+                    <option value="6">6P</option>
+                    <option value="8">8P</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>電源周波数</label>
+                  <select id="ks-hz" onchange="calcKeyStrength()">
+                    <option value="50">50 Hz</option>
+                    <option value="60" selected>60 Hz</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>減速比 1/ （直結は 1）</label>
+                  <input type="number" id="ks-ratio" step="1" min="1" value="20" oninput="calcKeyStrength()">
+                </div>
+                <div class="field">
+                  <label>減速機の効率</label>
+                  <input type="number" id="ks-eff" step="0.05" min="0.3" max="1" value="0.9" oninput="calcKeyStrength()">
+                </div>
               </div>
-              <div class="field">
-                <label>回転数 n (rpm)</label>
-                <input type="number" id="ks-n" step="1" value="1450" oninput="calcKeyStrength()" />
-              </div>
+              <div id="ks-power-out" style="font-size:11px;color:var(--muted);line-height:1.6;margin:-2px 0 8px;"></div>
             </div>
             <div class="two-col">
               <div class="field">
@@ -5751,22 +5827,13 @@
                 <select id="ks-mat-shaft" onchange="calcKeyStrength()"></select>
               </div>
             </div>
-            <div class="two-col">
-              <div class="field">
-                <label>キー溝の形式（新JIS）</label>
-                <select id="ks-fit" onchange="calcKeyStrength()">
-                  <option value="normal">普通形（軸N9・ボスJS9）</option>
-                  <option value="tight">締込み形（両側P9）</option>
-                  <option value="slide">滑動形（軸H9・ボスD10）</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>焼き嵌めとの併用</label>
-                <select id="ks-shrink" onchange="calcKeyStrength()">
-                  <option value="no">キーだけ</option>
-                  <option value="yes">焼き嵌め（冷やし嵌め）も併用</option>
-                </select>
-              </div>
+            <div class="field">
+              <label>キー溝の形式（新JIS）</label>
+              <select id="ks-fit" onchange="calcKeyStrength()">
+                <option value="normal">普通形（軸N9・ボスJS9）</option>
+                <option value="tight">締込み形（両側P9）</option>
+                <option value="slide">滑動形（軸H9・ボスD10）</option>
+              </select>
             </div>
             <div class="field">
               <label>使い方（安全率 S）</label>
