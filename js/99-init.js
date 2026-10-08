@@ -1,5 +1,7 @@
 /* 初期化（即時実行）— 全関数定義の読み込み後に実行されるよう最後に配置 */
 
+// ── 2026-10：計算の仕方が変わる切替はボタン型に ──
+["sh-use", "sh-tqmode", "ks-mode", "belt-mode", "belt-id-kind"].forEach(segify);
 // ── block1 由来 ──
 $("screw-type").addEventListener(
         "change",

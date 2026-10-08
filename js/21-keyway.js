@@ -331,23 +331,6 @@
         return { F, le, kHub, items, worst, ok: worst.ratio <= 1, leReq: Math.max(...items.map((i) => i.leReq)) };
       }
 
-      function ksGoShrink(d, T, hub) {
-        const D = document.getElementById("sh-D"), Tt = document.getElementById("sh-T");
-        if (D) D.value = d;
-        if (Tt) Tt.value = Math.round(T);
-        // ボス材を焼き嵌めタブの穴側プリセットに合わせる（同名があるものだけ）
-        const map = { S45C: "S45C", S45CH: "S45C", SUS304: "SUS304", FC250: "FC250", SKD11: "SKD11" };
-        const sel = document.getElementById("sh-matH-sel");
-        if (sel && map[hub] && [...sel.options].some((o) => o.value === map[hub])) {
-          sel.value = map[hub];
-          if (typeof shrinkSyncMat === "function") shrinkSyncMat("H");
-        }
-        const btn = document.querySelector(`.tab-btn[onclick*="'shrink'"]`);
-        showTab("shrink", btn);
-        if (typeof calcShrink === "function") calcShrink();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
       function calcKeyStrength() {
         const box = document.getElementById("ks-result");
         if (!box) return;
@@ -356,7 +339,7 @@
         ksFillSelect("ks-mat-shaft", KS_MAT_SHAFT, "S45C");
         const g = (id) => parseFloat(document.getElementById(id)?.value);
         const v = (id) => document.getElementById(id)?.value;
-        const mode = v("ks-mode") || "torque";
+        const mode = v("ks-mode") || "power";
         document.getElementById("ks-torque-wrap").style.display = mode === "torque" ? "" : "none";
         document.getElementById("ks-power-wrap").style.display = mode === "power" ? "" : "none";
         const fitSel = document.getElementById("ks-fit");
@@ -374,10 +357,13 @@
 
         let T = 0, Tsrc = "";
         if (mode === "power") {
-          const P = g("ks-P") || 0, n = g("ks-n") || 0;
-          if (!(P > 0 && n > 0)) { box.innerHTML = `<div class="memo">動力と回転数を入れてください。</div>`; return; }
-          T = 9549.3 * P / n;
-          Tsrc = `T = 9549·P/n = 9549×${P}/${n} = ${T.toFixed(1)} N·m`;
+          // 2026-10：モーター容量・極数・周波数・減速比から概算（00-core.js の motorTorqueEst）
+          const est = motorTorqueEst("ks");
+          const out = document.getElementById("ks-power-out");
+          if (out) out.innerHTML = est ? `${est.txt}<br>${motorTorqueNote()}` : "";
+          if (!est) { box.innerHTML = `<div class="memo">モーター容量・極数・周波数を入れてください。</div>`; return; }
+          T = est.T;
+          Tsrc = `T ≒ ${T.toFixed(1)} N·m（${est.P}kW・${est.poles}P・${est.hz}Hz${est.ratio > 1 ? `・1/${est.ratio}・効率${est.eff}` : ""} から概算）`;
         } else {
           T = g("ks-T") || 0;
           Tsrc = `T = ${T} N·m`;
@@ -392,7 +378,6 @@
         }
         const S = g("ks-sf") || 3;
         const mk = KS_MAT[v("ks-mat-key")], mh = KS_MAT[v("ks-mat-hub")], ms = KS_MAT[v("ks-mat-shaft")];
-        const shrink = v("ks-shrink") === "yes";
 
         const R = ksEval(T, d, r, L, cut, S, mk, mh, ms);
         const LReq = Math.ceil(R.leReq + cut);
@@ -436,7 +421,7 @@
             ? `軸径を <b>φ${up.dd} 以上</b>にする → キー ${up.rr[2]}×${up.rr[3]}・L${up.LL} で OK（${(up.ratio * 100).toFixed(0)}%）。改造の規模は一番大きい`
             : `軸径アップ（この規格の範囲内）では見つからない`);
           // 5) 焼き嵌め・キーレス
-          fixes.push(`焼き嵌め（冷やし嵌め）を併用してトルクの一部を摩擦で持たせる、またはキーレス（パワーロック等）に替える → 「焼き嵌めも併用」を選ぶと注意点を表示`);
+          fixes.push(`キーレス（パワーロック等）に替える。焼き嵌めを併用してガタを止めるなら、締め代の目安は「焼き嵌め」タブ（キー併用）で見る`);
         }
 
         // ── ガタ（キー幅と溝幅のすきま） ──
@@ -453,16 +438,6 @@
           playNotes.push(`起動停止・変動があるなら、ボス側のすきまが溝の摩耗につながる。キーとボス溝は現物合わせで「軽く叩いて入る」程度に`);
         }
         if (fit === KS_FIT.slide) playNotes.push(`滑動形はボスが軸方向に動く前提（すきまが大きい）。トルク伝達だけならこの形式は選ばない`);
-
-        // ── 焼き嵌め併用 ──
-        const shrinkNotes = [];
-        if (shrink) {
-          shrinkNotes.push(`締め代は「トルクの一部を摩擦で持たせる」最小限に。大きすぎる締め代は、キー溝の角の応力集中（一般に2〜3倍）と焼き嵌めの周方向の引張が重なって割れの起点になる`);
-          shrinkNotes.push(`キー溝の角のR（r₂）は規格の範囲で大きめに取る`);
-          if (mh.hard) shrinkNotes.push(`<span style="color:var(--bad)">ボスが ${mh.name}：硬くて粘りがないので、キー溝付きの焼き嵌めは割れやすい。冷やし嵌め（ボスを加熱しない）＋締め代を控えめ、溝角R大、またはキーレスに替えるのが無難。焼戻し温度を超える加熱は硬さが落ちるので不可</span>`);
-          else if (mh.brittle) shrinkNotes.push(`<span style="color:var(--bad)">ボスがねずみ鋳鉄：引張に弱いので、焼き嵌めの周方向の引張で割れやすい。締め代は控えめに</span>`);
-          shrinkNotes.push(`<button class="preset-btn" style="margin-top:4px" onclick="ksGoShrink(${d}, ${T.toFixed(2)}, '${v("ks-mat-hub")}')">🔥 焼き嵌めタブで計算する（呼び径 φ${d}・トルク ${T.toFixed(0)} N·m を反映）</button>`);
-        }
 
         const notes = [];
         if (L > 1.5 * d) notes.push(`キー長さが軸径の1.5倍（${(1.5 * d).toFixed(0)}mm）を超えている。長いキーは端に荷重が寄って、計算どおりには分担しない（一般的な目安）`);
@@ -499,7 +474,6 @@
       </div>
       ${block(R.ok ? "余裕が少ないときの打ち手（手を付けやすい順）" : "NGのときの打ち手（手を付けやすい順）", fixes, R.ok ? "var(--warn)" : "var(--bad)")}
       ${block(`キーのガタ（${fit.label}：キー ${fit.key}／軸溝 ${fit.b1}・ボス溝 ${fit.b2}、b=${b}）`, [`軸溝とキー：${fmtPlay(play.shaft)}`, `ボス溝とキー：${fmtPlay(play.hub)}`, ...playNotes], (S >= 4 && (hubLoose || shaftLoose)) ? "var(--bad)" : null)}
-      ${block("焼き嵌めを併用するときの注意", shrinkNotes, "var(--warn)")}
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:11px;color:var(--muted);line-height:1.7">
         ${notes.map((n) => "・" + n).join("<br>")}<br>
         ・計算式：τ = F/(b·le)、p = F/(k·le)（ボス側 k = min(t₂, h−t₁) = ${R.kHub}、軸側 k = t₁ = ${t1}）、τa = σy/(√3·S)、pa = min(相手, キー)の σy / S<br>

@@ -84,3 +84,60 @@
           if (firstVisible) firstVisible.click();
         }
       }
+
+      // ════════════════════════════════════════
+      // 共通：モーター容量からトルクの概算（2026-10 追加。焼き嵌め・キー溝で共用）
+      //  入力欄は {pfx}-P / -poles / -hz / -ratio / -eff
+      //  モーター回転数は同期回転数 120f/p の約97%（すべり約3%）で概算。
+      //  出力軸トルク T = 9549·P/n_motor × 減速比 × 効率（直結＝減速比1のときは効率を掛けない）
+      // ════════════════════════════════════════
+      function motorTorqueEst(pfx) {
+        const g = (k) => parseFloat(document.getElementById(`${pfx}-${k}`)?.value);
+        const P = g("P"), poles = g("poles"), hz = g("hz");
+        if (!(P > 0 && poles > 0 && hz > 0)) return null;
+        const ratio = g("ratio") > 1 ? g("ratio") : 1;
+        const effIn = g("eff");
+        const eff = ratio > 1 ? (effIn > 0 && effIn <= 1 ? effIn : 1) : 1;
+        const ns = (120 * hz) / poles, n = ns * 0.97, nOut = n / ratio;
+        const Tm = (9549.3 * P) / n, T = Tm * ratio * eff;
+        const txt =
+          `${P} kW・${poles}P・${hz} Hz → モーター 約${n.toFixed(0)} min⁻¹・定格 ${Tm.toFixed(1)} N·m` +
+          (ratio > 1 ? ` → 1/${ratio}・効率${eff} で出力軸 約${nOut.toFixed(0)} min⁻¹` : "") +
+          `：<b style="color:var(--ink)">約 ${T.toFixed(0)} N·m</b>`;
+        return { P, poles, hz, ratio, eff, ns, n, nOut, Tm, T, txt };
+      }
+      function motorTorqueNote() {
+        return "回転数は同期回転数の約97%で概算。起動・停止のときは、誘導モーターは一般に定格の2倍前後のトルクが出る";
+      }
+
+      // ════════════════════════════════════════
+      // 共通：select を「選択肢を全部並べたボタン」に見せる（2026-10 追加）
+      //  select 本体は隠して残す（各計算は今まで通り select.value を読む）。
+      //  ボタンを押すと select の値を変えて change を発火 → inline の onchange がそのまま動く。
+      // ════════════════════════════════════════
+      function segify(id) {
+        const sel = document.getElementById(id);
+        if (!sel || sel.dataset.seg) return;
+        sel.dataset.seg = "1";
+        const box = document.createElement("div");
+        box.className = "seg";
+        box.id = `${id}-seg`;
+        [...sel.options].forEach((o) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = o.textContent.trim();
+          b.dataset.value = o.value;
+          b.addEventListener("click", () => {
+            if (sel.value === o.value) return;
+            sel.value = o.value;
+            sel.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+          box.appendChild(b);
+        });
+        sel.style.display = "none";
+        sel.after(box);
+        const sync = () =>
+          box.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.value === sel.value));
+        sel.addEventListener("change", sync);
+        sync();
+      }
