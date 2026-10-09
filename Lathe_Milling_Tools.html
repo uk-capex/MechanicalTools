@@ -2,13 +2,13 @@
 <html lang="ja">
 
 <head>
-  <!-- build: 1.16 | 20261008 | Lathe & Milling Tools | uk |-->
+  <!-- build: 1.17 | 20261008 | Lathe & Milling Tools | uk |-->
   <!-- Black Deep Tone -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>旋盤 &amp; フライス 簡易計算ツール </title>
   <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
     rel="stylesheet">
   <style>
     :root {
@@ -37,7 +37,7 @@
     body {
       background: var(--bg);
       color: var(--ink);
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       font-size: 14px;
       min-height: 100vh;
       display: flex;
@@ -92,7 +92,8 @@
 
     #verBadge {
       font-size: 9px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      font-variant-numeric: tabular-nums;
       color: var(--muted);
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -143,7 +144,7 @@
     .tab-btn {
       padding: 10px 18px;
       font-size: 13px;
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       color: var(--muted);
       background: none;
       border: none;
@@ -232,7 +233,8 @@
       color: var(--ink);
       padding: 7px 10px;
       font-size: 16px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      font-variant-numeric: tabular-nums;
       outline: none;
       transition: border-color .15s;
       -webkit-appearance: none;
@@ -288,7 +290,8 @@
     }
 
     .card .card-value {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      font-variant-numeric: tabular-nums;
       font-size: 20px;
       font-weight: 600;
       line-height: 1;
@@ -366,12 +369,13 @@
 
     tbody td {
       padding: 8px 10px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      font-variant-numeric: tabular-nums;
       vertical-align: middle;
     }
 
     tbody td:first-child {
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       color: var(--muted);
     }
 
@@ -453,7 +457,7 @@
       padding: 7px 14px;
       font-size: 12px;
       font-weight: 600;
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       background: none;
       color: var(--muted);
       border: none;
@@ -532,7 +536,8 @@
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 12px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      font-variant-numeric: tabular-nums;
       font-weight: 600;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -601,7 +606,7 @@
 <body>
 
   <div style="background:var(--bg);border-bottom:1px solid var(--border);padding:4px 16px;display:flex;align-items:center;flex-shrink:0;">
-    <a href="index.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← HOME</a>
+    <a href="index.html" style="font-family:'Inter','Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← HOME</a>
   </div>
   <header>
     <h1>🔧 旋盤 &amp; フライス 簡易計算ツ―ル</h1>
@@ -1162,7 +1167,7 @@
             <!-- カーソル -->
             <div id="dr-gauge-cursor" style="position:absolute;top:2px;bottom:2px;width:3px;background:#fff;border-radius:2px;transition:left .3s;"></div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;">
             <span>0</span>
             <span id="dr-gauge-max-label">3000 rpm</span>
           </div>
@@ -1839,7 +1844,7 @@
       }
 
       $('lt-tbody').innerHTML = rows.map(r =>
-        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
       ).join('');
 
       // ── 警告判定 ──
@@ -1913,7 +1918,7 @@
       if (r >= 1.2) notes.push('R大は背分力が増えるので、細長いワーク・突き出し長い時はビビりに注意');
       $('lt-finish-memo').innerHTML = '<b>仕上げ面チェック</b><br>' + notes.join('<br>');
 
-      const tr = (a, b, c) => `<tr><td>${a}</td><td class="hl">${b}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${c}</td></tr>`;
+      const tr = (a, b, c) => `<tr><td>${a}</td><td class="hl">${b}</td><td style="color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-size:12px">${c}</td></tr>`;
       $('lt-tbody').innerHTML += tr('理論粗さ Ra（今の送り）', `${raNow.toFixed(2)} μm`, '= f²/(32r)×1000')
         + tr('送り上限（理論）', `${fTh.toFixed(3)} mm/rev`, `= √(32·r·Ra/1000)、R${r}・Ra${ra}`)
         + tr('送り目安（実用）', `${fPr.toFixed(3)} mm/rev`, '実面が理論の2倍荒れる前提');
@@ -1980,7 +1985,7 @@
       ];
       if (tool === 'drill') extra.push(['注記', 'チゼル分含まず', '実際はスラスト・チゼル抵抗で増える']);
       tb.innerHTML += extra.map(r =>
-        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
       ).join('');
     }
 
@@ -2027,7 +2032,7 @@
       if (k) $('ml-kc1').value = k.kc1;
     }
 
-    const millTr = (a, b, c) => `<tr><td>${a}</td><td class="hl">${b}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${c}</td></tr>`;
+    const millTr = (a, b, c) => `<tr><td>${a}</td><td class="hl">${b}</td><td style="color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-size:12px">${c}</td></tr>`;
     function setMillCard(i, label, val, unit, sub, state) {
       $('ml-fc' + i + '-l').textContent = label;
       $('ml-fc' + i + '-v').innerHTML = `${val}<span class="card-unit"> ${unit}</span>`;
@@ -2201,7 +2206,7 @@
         ['MRR（除去体積）', `${mrr.toFixed(1)} cm³/min`, 'ap × ae × vf'],
       ];
       $('ml-tbody').innerHTML = rows.map(r =>
-        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
       ).join('');
 
       // ── 警告判定 ──
@@ -2453,7 +2458,7 @@
       }
 
       $('tp-tbody').innerHTML = rows.map(r =>
-        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
+        `<tr><td>${r[0]}</td><td class="hl">${r[1]}</td><td style="color:var(--muted);font-family:'Inter','Noto Sans JP',sans-serif;font-size:12px">${r[2]}</td></tr>`
       ).join('');
     }
 
@@ -2537,7 +2542,7 @@
       const toolLabel = tool === 'hss' ? 'ハイス（HSS）' : '超硬';
       $('dr-vc-memo').innerHTML =
         `<b>${DR_MAT_LABEL[mat]} × ${toolLabel}</b><br>` +
-        `推奨Vc：<span style="color:var(--accent);font-family:'JetBrains Mono',monospace">${vcMin}〜${vcMax} m/min</span><br>` +
+        `推奨Vc：<span style="color:var(--accent);font-family:'Inter','Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums">${vcMin}〜${vcMax} m/min</span><br>` +
         DR_VC_MEMO[mat];
 
       // 機械限界チェック
