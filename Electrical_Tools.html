@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <!-- build: 1.20 | 20260317 | Electrical Maintenance Tools | uk -->
+  <!-- build: 1.34 | 20261018 | Electrical Maintenance Tools | uk -->
   <!-- Black Deep Tone -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>電気保全 便利ツール集</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #0c1117;
@@ -30,13 +30,14 @@
     body {
       background: var(--bg);
       color: var(--ink);
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       font-size: 14px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
+      font-variant-numeric: tabular-nums;
     }
 
     /* ── ヘッダー 2段構成 ── */
@@ -49,7 +50,7 @@
       flex-shrink: 0;
     }
     .home-bar a {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       font-size: 11px;
       color: var(--muted);
       text-decoration: none;
@@ -93,7 +94,7 @@
     .badge-blue  { border-color: var(--accent); color: var(--accent); }
     #verBadge {
       font-size: 9px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       color: var(--muted);
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -117,7 +118,7 @@
     .tab-btn {
       padding: 10px 16px;
       font-size: 13px;
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       color: var(--muted);
       background: none;
       border: none;
@@ -183,13 +184,19 @@
       color: var(--ink);
       padding: 7px 10px;
       font-size: 16px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       outline: none;
       transition: border-color .15s;
       -webkit-appearance: none;
       appearance: none;
     }
     input:focus, select:focus { border-color: var(--accent); }
+    select:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
+    .field-note { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+    .note-box {
+      font-size: 11px; color: var(--muted); line-height: 1.7;
+      border: 1px dashed var(--border); border-radius: 8px; padding: 10px 12px;
+    }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .divider { border: none; border-top: 1px solid var(--border); }
 
@@ -205,7 +212,7 @@
     }
     .card .card-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
     .card .card-value {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       font-size: 20px; font-weight: 600; line-height: 1;
     }
     .card .card-unit { font-size: 12px; color: var(--muted); margin-left: 2px; }
@@ -238,8 +245,8 @@
     tbody tr:hover { background: var(--surface2); }
     tbody tr.highlight-row { background: var(--elec-dim) !important; }
     tbody tr.highlight-row td { color: var(--elec) !important; font-weight: 600; }
-    tbody td { padding: 8px 10px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
-    tbody td:first-child { font-family: 'Noto Sans JP', sans-serif; color: var(--muted); }
+    tbody td { padding: 8px 10px; font-family: 'Inter', 'Noto Sans JP', sans-serif; vertical-align: middle; }
+    tbody td:first-child { font-family: 'Inter', 'Noto Sans JP', sans-serif; color: var(--muted); }
     .hl        { color: var(--accent); font-weight: 600; }
     .good-text { color: var(--good);   font-weight: 600; }
     .warn-text { color: var(--warn);   font-weight: 600; }
@@ -249,7 +256,7 @@
     /* ── プリセットボタン ── */
     .preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
     .preset-btn {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
       font-size: 11px; font-weight: 600;
       padding: 4px 10px; border-radius: 5px;
       border: 1px solid var(--border);
@@ -328,7 +335,7 @@
     <h1>⚡ 電気保全 便利ツール集</h1>
     <span class="badge badge-green">online</span>
     <span class="badge badge-blue">Auto</span>
-    <span id="verBadge">ver.1.20</span>
+    <span id="verBadge">ver.1.34</span>
   </header>
 
   <!-- タブバー -->
@@ -347,10 +354,18 @@
       <!-- 左パネル：入力 -->
       <div class="panel-left">
         <div>
-          <div class="section-title">基本条件</div>
+          <div class="section-title">負荷条件</div>
           <div class="field">
-            <label>負荷電流 I（A）</label>
-            <input type="number" id="w-current" min="0.1" step="0.1" value="20" oninput="calcWire()" />
+            <label>負荷電流 I（A）※定格電流</label>
+            <input type="number" id="w-current" min="0.1" step="0.1" value="20" inputmode="decimal" autocomplete="off" oninput="calcWire()" />
+          </div>
+          <div class="field">
+            <label>負荷の種類</label>
+            <select id="w-load" onchange="calcWire()">
+              <option value="motor" selected>モーター（電動機）</option>
+              <option value="general">一般負荷（ヒーター・照明など）</option>
+            </select>
+            <div class="field-note" id="w-load-note">—</div>
           </div>
           <div class="field">
             <label>電圧・相数</label>
@@ -361,67 +376,75 @@
               <option value="400t">三相 400V</option>
             </select>
           </div>
-          <div class="field">
-            <label>配線方法</label>
-            <select id="w-method" onchange="calcWire()">
-              <option value="conduit">電線管内配線（CV・IV）</option>
-              <option value="air">空中配線・ケーブルラック（CV）</option>
-              <option value="direct">直埋・床下（CV）</option>
-              <option value="panel">制御盤内（IV・KIV）</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>設置環境</label>
-            <select id="w-env" onchange="calcWire()">
-              <option value="normal">屋内 一般（30℃以下）</option>
-              <option value="outdoor">屋外・防水</option>
-              <option value="hot">高温環境（40〜60℃）</option>
-              <option value="veryhot">超高温（60℃超）</option>
-            </select>
-          </div>
         </div>
         <hr class="divider" />
         <div>
-          <div class="section-title">補正係数</div>
-          <div class="field">
-            <label>同一管内 電線本数</label>
-            <select id="w-cables" onchange="calcWire()">
-              <option value="1">1〜2本（補正なし × 1.00）</option>
-              <option value="3" selected>3〜4本（× 0.80）</option>
-              <option value="5">5〜6本（× 0.75）</option>
-              <option value="7">7本以上（× 0.70）</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>需要率・余裕率</label>
-            <div class="preset-row" id="w-margin-presets">
-              <button class="preset-btn" onclick="setMargin(1.0,this)">× 1.0</button>
-              <button class="preset-btn selected" onclick="setMargin(1.25,this)">× 1.25</button>
-              <button class="preset-btn" onclick="setMargin(1.5,this)">× 1.5</button>
-            </div>
-            <input type="number" id="w-margin" value="1.25" min="1.0" step="0.05" style="margin-top:6px" oninput="calcWire()" />
-          </div>
-        </div>
-        <hr class="divider" />
-        <div>
-          <div class="section-title">電線種類</div>
+          <div class="section-title">電線と布設条件</div>
           <div class="field">
             <label>使用電線</label>
             <select id="w-wiretype" onchange="calcWire()">
-              <option value="CV"  selected>CV（架橋ポリエチレン絶縁）</option>
-              <option value="IV">IV（ビニル絶縁）</option>
-              <option value="KIV">KIV（機器内配線用）</option>
-              <option value="VVF">VVF（ビニル外装）</option>
-              <option value="VCT">VCT（キャブタイヤ）</option>
+              <option value="CVT" selected>CVT（600V・単心3個より）</option>
+              <option value="IV">IV（電線管に入れる）</option>
+              <option value="VCTF">VCTF 4芯（300V・機器への配線）</option>
             </select>
+          </div>
+          <div class="field">
+            <label>布設方法（CVTのみ）</label>
+            <select id="w-method" onchange="calcWire()">
+              <option value="air" selected>気中・暗きょ・ケーブルラック（1条）</option>
+              <option value="direct">直接埋設（1条）</option>
+              <option value="duct">管路・電線管（1管に1条）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>同一管内の電線本数（IVのみ）</label>
+            <select id="w-cables" onchange="calcWire()">
+              <option value="3" selected>3本以下</option>
+              <option value="4">4本</option>
+              <option value="6">5〜6本</option>
+              <option value="15">7〜15本</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>周囲温度（℃）</label>
+            <input type="number" id="w-temp" min="-20" max="120" step="1" value="30" inputmode="numeric" autocomplete="off" oninput="calcWire()" />
+            <div class="preset-row" id="w-temp-presets">
+              <button class="preset-btn selected" onclick="setTemp(30,this)">30℃</button>
+              <button class="preset-btn" onclick="setTemp(40,this)">40℃</button>
+              <button class="preset-btn" onclick="setTemp(50,this)">50℃</button>
+              <button class="preset-btn" onclick="setTemp(60,this)">60℃</button>
+            </div>
           </div>
         </div>
         <hr class="divider" />
         <div>
-          <div class="section-title">📦 重量計算</div>
+          <div class="section-title">電圧降下</div>
           <div class="field">
-            <label>電線長さ（m）</label>
-            <input type="number" id="w-length" min="1" step="1" value="10" oninput="calcWire()" />
+            <label>こう長（片道 m）</label>
+            <input type="number" id="w-length" min="0" step="1" value="30" inputmode="numeric" autocomplete="off" oninput="calcWire()" />
+          </div>
+          <div class="field">
+            <label>許容電圧降下（%）</label>
+            <select id="w-supply" onchange="calcWire()" style="margin-bottom:6px">
+              <option value="inside" selected>構内の変圧器から供給</option>
+              <option value="utility">電力会社から低圧で受電</option>
+            </select>
+            <div class="preset-row" id="w-vd-presets">
+              <button class="preset-btn selected" onclick="setVdAuto(this)">自動</button>
+              <button class="preset-btn" onclick="setVd(2,this)">2%</button>
+              <button class="preset-btn" onclick="setVd(3,this)">3%</button>
+              <button class="preset-btn" onclick="setVd(5,this)">5%</button>
+            </div>
+            <input type="number" id="w-vdlimit" value="2" min="0.5" step="0.5" style="margin-top:6px" inputmode="decimal" autocomplete="off" oninput="vdAuto=false; presetSelect('w-vd-presets', null); calcWire()" />
+            <div class="field-note" id="w-vd-note">—</div>
+          </div>
+        </div>
+        <hr class="divider" />
+        <div>
+          <div class="section-title">余裕・重量</div>
+          <div class="field">
+            <label>社内余裕率（任意・通常は1.0）</label>
+            <input type="number" id="w-margin" value="1.0" min="1.0" step="0.05" inputmode="decimal" autocomplete="off" oninput="calcWire()" />
           </div>
           <div class="field">
             <label>条数（並列本数）</label>
@@ -431,7 +454,8 @@
               <button class="preset-btn" onclick="setRuns(3,this)">3条</button>
               <button class="preset-btn" onclick="setRuns(4,this)">4条</button>
             </div>
-            <input type="number" id="w-runs" value="1" min="1" step="1" style="margin-top:6px" oninput="calcWire()" />
+            <input type="number" id="w-runs" value="1" min="1" step="1" style="margin-top:6px" inputmode="numeric" autocomplete="off" oninput="calcWire()" />
+            <div class="field-note">並列時は1条あたりの電流（I÷条数）で選定</div>
           </div>
         </div>
       </div>
@@ -442,52 +466,50 @@
           <div class="verdict-icon" id="w-verdict-icon">⚡</div>
           <div>
             <div class="verdict-main" id="w-verdict-main">条件を入力してください</div>
-            <div class="verdict-sub"  id="w-verdict-sub">負荷電流と配線条件を設定すると推奨電線サイズが表示されます</div>
+            <div class="verdict-sub"  id="w-verdict-sub">—</div>
           </div>
         </div>
 
-        <div class="result-cards" id="w-result-cards">
+        <div class="result-cards">
           <div class="card elec">
-            <div class="card-label">設計電流（補正後）</div>
+            <div class="card-label">必要な許容電流</div>
             <div class="card-value" id="w-design-I">—</div>
             <div class="card-sub" id="w-design-sub">—</div>
           </div>
-          <div class="card accent">
-            <div class="card-label">推奨電線サイズ</div>
-            <div class="card-value" id="w-rec-size">—</div>
-            <div class="card-sub" id="w-rec-cap">許容電流 — A</div>
-          </div>
           <div class="card">
-            <div class="card-label">最小サイズ（NG境界）</div>
+            <div class="card-label">最小サイズ（許容電流のみ）</div>
             <div class="card-value" id="w-min-size">—</div>
-            <div class="card-sub" id="w-min-cap">許容電流 — A</div>
+            <div class="card-sub" id="w-min-cap">—</div>
+          </div>
+          <div class="card accent">
+            <div class="card-label">推奨サイズ（電圧降下込み）</div>
+            <div class="card-value" id="w-rec-size">—</div>
+            <div class="card-sub" id="w-rec-cap">—</div>
           </div>
         </div>
 
-        <!-- 単重・重量カード -->
         <div class="result-cards-2">
           <div class="card">
             <div class="card-label">⚖️ 単重（推奨サイズ）</div>
             <div class="card-value" id="w-unit-weight">—</div>
-            <div class="card-sub" id="w-unit-weight-sub">kg/m</div>
+            <div class="card-sub" id="w-unit-weight-sub">—</div>
           </div>
           <div class="card good">
-            <div class="card-label">📦 総重量（長さ × 条数）</div>
+            <div class="card-label">📦 総重量（こう長 × 条数）</div>
             <div class="card-value" id="w-total-weight">—</div>
-            <div class="card-sub" id="w-total-weight-sub">— m × — 条</div>
+            <div class="card-sub" id="w-total-weight-sub">—</div>
           </div>
         </div>
 
-        <!-- 許容電流テーブル -->
-        <div class="section-title" style="margin-top:4px">許容電流一覧（配線方法・補正係数適用後）</div>
+        <div class="section-title" style="margin-top:4px">サイズ別一覧（温度・本数補正後）</div>
         <div class="data-table-wrap">
           <table>
             <thead>
               <tr>
-                <th>サイズ（mm²）</th>
-                <th>基本許容電流（A）</th>
-                <th>補正後（A）</th>
-                <th>単重（kg/m）</th>
+                <th>サイズ</th>
+                <th>許容電流</th>
+                <th>電圧降下</th>
+                <th>単重</th>
                 <th>判定</th>
               </tr>
             </thead>
@@ -495,15 +517,16 @@
           </table>
         </div>
 
-        <!-- ブレーカ・電流メモ -->
         <div class="data-table-wrap">
           <table>
             <thead>
-              <tr><th colspan="2">⚡ ブレーカ推奨定格（参考）</th></tr>
+              <tr><th colspan="2">⚡ 過電流遮断器（参考）</th></tr>
             </thead>
             <tbody id="w-breaker-body"></tbody>
           </table>
         </div>
+
+        <div class="note-box" id="w-notes"></div>
       </div>
     </div>
   </div>
@@ -526,54 +549,46 @@
             </select>
           </div>
           <div class="field">
-            <label>主回路電線サイズ（mm²）</label>
-            <select id="g-main-size" onchange="calcGround()">
-              <option value="1.25">1.25</option>
-              <option value="2">2</option>
-              <option value="3.5">3.5</option>
-              <option value="5.5">5.5</option>
-              <option value="8">8</option>
-              <option value="14" selected>14</option>
-              <option value="22">22</option>
-              <option value="38">38</option>
-              <option value="60">60</option>
-              <option value="100">100</option>
-              <option value="150">150</option>
-              <option value="200">200</option>
-              <option value="250">250</option>
-              <option value="325">325</option>
-              <option value="400">400</option>
-              <option value="500">500</option>
-              <option value="600">600</option>
-            </select>
+            <label>電源側の過電流遮断器の定格（A）</label>
+            <select id="g-breaker" onchange="calcGround()"></select>
+            <div class="field-note">接地する機器の電源側にある遮断器のうち、一番小さい定格</div>
           </div>
           <div class="field">
             <label>接地種別</label>
             <select id="g-class" onchange="calcGround()">
-              <option value="D" selected>D種（300V以下、100Ω以下）</option>
-              <option value="C">C種（300V超、10Ω以下）</option>
-              <option value="A">A種（高圧・特高、10Ω以下）</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>接地線の種類</label>
-            <select id="g-wiretype" onchange="calcGround()">
-              <option value="IV"  selected>IV（緑）</option>
-              <option value="CV">CV（緑/黄）</option>
-              <option value="bare">裸軟銅線（GV）</option>
+              <option value="D" selected>D種（300V以下の機器）</option>
+              <option value="C">C種（300V超の低圧機器）</option>
+              <option value="A">A種（高圧・特別高圧の機器）</option>
             </select>
           </div>
         </div>
         <hr class="divider"/>
         <div>
-          <div class="section-title">環境条件</div>
+          <div class="section-title">接地線の取り方</div>
           <div class="field">
-            <label>施設場所</label>
-            <select id="g-location" onchange="calcGround()">
-              <option value="indoor" selected>屋内</option>
-              <option value="outdoor">屋外・防水</option>
-              <option value="buried">地中埋設</option>
+            <label>接地線の形態</label>
+            <select id="g-form" onchange="calcGround()">
+              <option value="single" selected>単独の接地線を配線（緑のIV等）</option>
+              <option value="core">ケーブル・コードの1心を接地に使う</option>
+              <option value="core2">ケーブル・コードの2心を接地に使う</option>
             </select>
+          </div>
+          <div class="field">
+            <label>ケーブル・コードの心線サイズ（sq）</label>
+            <select id="g-core" onchange="calcGround()">
+              <option value="0.75">0.75</option>
+              <option value="1.25">1.25</option>
+              <option value="2" selected>2</option>
+              <option value="3.5">3.5</option>
+              <option value="5.5">5.5</option>
+              <option value="8">8</option>
+              <option value="14">14</option>
+              <option value="22">22</option>
+              <option value="38">38</option>
+              <option value="60">60</option>
+              <option value="100">100</option>
+            </select>
+            <div class="field-note">VCTF 4芯・CVT＋アース心などで、心線を接地に使う場合</div>
           </div>
         </div>
       </div>
@@ -582,83 +597,85 @@
         <div id="g-verdict" class="verdict-card">
           <div class="verdict-icon" id="g-verdict-icon">🟢</div>
           <div>
-            <div class="verdict-main" id="g-verdict-main">条件を選択してください</div>
-            <div class="verdict-sub"  id="g-verdict-sub">接地種別と主回路サイズを設定すると推奨アース線が表示されます</div>
+            <div class="verdict-main" id="g-verdict-main">—</div>
+            <div class="verdict-sub"  id="g-verdict-sub">—</div>
           </div>
         </div>
 
         <div class="result-cards">
           <div class="card elec">
-            <div class="card-label">接地種別</div>
+            <div class="card-label">接地種別・接地抵抗</div>
             <div class="card-value" id="g-class-out">—</div>
-            <div class="card-sub"   id="g-resist-out">接地抵抗 — Ω以下</div>
+            <div class="card-sub"   id="g-resist-out">—</div>
           </div>
           <div class="card accent">
-            <div class="card-label">推奨アース線サイズ</div>
+            <div class="card-label">必要な接地線の太さ</div>
             <div class="card-value" id="g-rec-size">—</div>
             <div class="card-sub"   id="g-rec-type">—</div>
           </div>
           <div class="card">
-            <div class="card-label">最小許容サイズ</div>
-            <div class="card-value" id="g-min-size">—</div>
-            <div class="card-sub">内線規程 準拠</div>
+            <div class="card-label">計算上の最小（0.052 × In）</div>
+            <div class="card-value" id="g-calc">—</div>
+            <div class="card-sub">表の算定根拠。選定は表の値で行う</div>
           </div>
         </div>
 
-        <!-- 接地線サイズ対応表 -->
-        <div class="section-title" style="margin-top:4px">接地線サイズ対応表（内線規程）</div>
+        <div class="section-title" style="margin-top:4px">C種・D種 接地線の太さ（内線規程 1350-3表・銅）</div>
         <div class="data-table-wrap">
           <table>
             <thead>
               <tr>
-                <th>主回路電線（mm²）</th>
-                <th>D種接地（mm²）</th>
-                <th>C種接地（mm²）</th>
-                <th>A種接地（mm²）</th>
+                <th>遮断器の定格</th>
+                <th>一般（単独の接地線）</th>
+                <th>コード・キャブタイヤ 1心</th>
+                <th>同 2心使用時の1心</th>
               </tr>
             </thead>
             <tbody id="g-table-body"></tbody>
           </table>
         </div>
 
-        <!-- 接地種別説明 -->
-        <div class="section-title">接地種別 概要</div>
+        <div class="section-title">接地種別 概要（電技解釈 第17条）</div>
         <div class="guide-grid">
           <div class="guide-card">
-            <div class="guide-card-title" style="color:var(--good)">D種接地（第3種）</div>
+            <div class="guide-card-title" style="color:var(--good)">D種接地（旧 第3種）</div>
             <div class="guide-card-body">
-              対象：<span>300V以下 機器の外箱</span><br>
+              対象：<span>300V以下の低圧機器の外箱・鉄台</span><br>
               接地抵抗：<span>100Ω以下</span><br>
-              例：<span>モータ・制御盤・コンセント</span><br>
-              漏電遮断器付き：<span>500Ω以下でも可</span>
+              緩和：<span>地絡時0.5秒以内に自動遮断する装置があれば500Ω以下</span><br>
+              接地線の最小：<span>直径1.6mm以上の軟銅線</span>
             </div>
           </div>
           <div class="guide-card">
-            <div class="guide-card-title" style="color:var(--accent)">C種接地（特別第3種）</div>
+            <div class="guide-card-title" style="color:var(--accent)">C種接地（旧 特別第3種）</div>
             <div class="guide-card-body">
-              対象：<span>300V超（400V級）機器の外箱</span><br>
+              対象：<span>300V超の低圧機器（400V級）の外箱・鉄台</span><br>
               接地抵抗：<span>10Ω以下</span><br>
-              例：<span>400Vモータ・インバータ・溶接機</span><br>
-              漏電遮断器付き：<span>500Ω以下でも可</span>
+              緩和：<span>地絡時0.5秒以内に自動遮断する装置があれば500Ω以下</span><br>
+              接地線の最小：<span>直径1.6mm以上の軟銅線</span>
             </div>
           </div>
           <div class="guide-card">
-            <div class="guide-card-title" style="color:var(--warn)">A種接地（第1種）</div>
+            <div class="guide-card-title" style="color:var(--warn)">A種接地（旧 第1種）</div>
             <div class="guide-card-body">
-              対象：<span>高圧・特別高圧機器の外箱</span><br>
+              対象：<span>高圧・特別高圧機器の外箱、避雷器など</span><br>
               接地抵抗：<span>10Ω以下</span><br>
-              例：<span>高圧受電設備・変圧器外箱</span>
+              接地線の最小：<span>直径2.6mm以上の軟銅線（5.5sq相当）</span><br>
+              注意：<span>受変電設備は設計図・電気主任技術者の指示による</span>
             </div>
           </div>
           <div class="guide-card">
-            <div class="guide-card-title" style="color:var(--muted)">B種接地（第2種）</div>
+            <div class="guide-card-title" style="color:var(--muted)">B種接地（旧 第2種）</div>
             <div class="guide-card-body">
-              対象：<span>変圧器の低圧側中性点・低圧側1端子</span><br>
-              計算式：<span>150÷Ig（Ω以下）</span><br>
-              例：<span>柱上変圧器・受電設備</span>
+              対象：<span>変圧器の低圧側の中性点または1端子</span><br>
+              接地抵抗：<span>150÷Ig（Ω以下）／遮断条件で300÷Ig・600÷Ig</span><br>
+              Ig：<span>高圧側の1線地絡電流</span><br>
+              接地線の最小：<span>直径4mm以上（高圧側からの場合は2.6mm以上）</span>
             </div>
           </div>
         </div>
+
+        <div class="note-box">・接地線の色は緑（または緑/黄）。<br>・3.5sqの行は現行版の「60A以下」で判定（2005年版は「50A以下」）。表の算定根拠（A＝0.052×In）でも60Aは3.12mm²で、3.5sqで足りる。<br>・A種の太さは1350-4表（100A以下5.5sq／200A以下14sq／400A以下22sq）。2005年版は一律5.5sq以上（移動して使うもの8sq、避雷針14sq）。移動して使う機器・避雷器はこの値も満たすこと。400A超は要確認。</div>
       </div>
     </div>
   </div>
@@ -670,70 +687,49 @@
     <div class="two-panel">
       <div class="panel-left">
         <div>
-          <div class="section-title">電線情報</div>
+          <div class="section-title">管に入れる電線</div>
           <div class="field">
-            <label>電線サイズ（mm²）</label>
-            <select id="c-size" onchange="calcConduit()">
-              <option value="1.25">1.25</option>
-              <option value="2">2</option>
-              <option value="3.5">3.5</option>
-              <option value="5.5" selected>5.5</option>
-              <option value="8">8</option>
-              <option value="14">14</option>
-              <option value="22">22</option>
-              <option value="38">38</option>
-              <option value="60">60</option>
-              <option value="100">100</option>
-              <option value="150">150</option>
-              <option value="200">200</option>
-              <option value="250">250</option>
-              <option value="325">325</option>
-              <option value="400">400</option>
-              <option value="500">500</option>
-              <option value="600">600</option>
+            <label>電線の種類</label>
+            <select id="c-wiretype" onchange="fillConduitSizes(); calcConduit()">
+              <option value="IV" selected>IV（電線）</option>
+              <option value="CVT">CVT（ケーブル）</option>
+              <option value="VCTF">VCTF 4芯（コード）</option>
             </select>
           </div>
           <div class="field">
-            <label>電線本数（心数）</label>
+            <label>サイズ</label>
+            <select id="c-size" onchange="calcConduit()"></select>
+          </div>
+          <div class="field">
+            <label>本数（ケーブル・コードは1本＝1）</label>
             <div class="preset-row" id="c-cores-presets">
               <button class="preset-btn" onclick="setCores(1,this)">1</button>
               <button class="preset-btn" onclick="setCores(2,this)">2</button>
               <button class="preset-btn selected" onclick="setCores(3,this)">3</button>
               <button class="preset-btn" onclick="setCores(4,this)">4</button>
             </div>
-            <input type="number" id="c-cores" value="3" min="1" max="20" style="margin-top:6px" oninput="calcConduit()" />
+            <input type="number" id="c-cores" value="3" min="1" max="60" style="margin-top:6px" inputmode="numeric" autocomplete="off" oninput="calcConduit()" />
           </div>
           <div class="field">
-            <label>電線種類</label>
-            <select id="c-wiretype" onchange="calcConduit()">
-              <option value="IV"  selected>IV（ビニル絶縁）</option>
-              <option value="CV">CV（架橋ポリエチレン）</option>
-              <option value="VVF">VVF（ビニル外装フラット）</option>
-              <option value="VCT">VCT（キャブタイヤ）</option>
+            <label>管の長さ・屈曲（IVのみ）</label>
+            <select id="c-bend" onchange="calcConduit()">
+              <option value="few">管の長さ6m以下・途中の屈曲なし（引き替え容易）</option>
+              <option value="many" selected>それ以外・不明</option>
             </select>
+            <div class="field-note">IVは占積率32%以下（左の条件なら48%）。ケーブル・コードは管内径を外径の1.5倍以上</div>
           </div>
         </div>
         <hr class="divider"/>
         <div>
-          <div class="section-title">設置環境</div>
+          <div class="section-title">設置場所</div>
           <div class="field">
             <label>設置場所・用途</label>
             <select id="c-env" onchange="calcConduit()">
-              <option value="indoor_exposed">屋内 露出配管</option>
-              <option value="indoor_embed">屋内 埋込配管</option>
-              <option value="outdoor">屋外・防水</option>
-              <option value="machine">機械・装置への接続（可動部）</option>
-              <option value="hightemp">高温環境（炉・乾燥機周辺）</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>管種類</label>
-            <select id="c-type" onchange="calcConduit()">
-              <option value="all">全種類を表示</option>
-              <option value="metal">金属管のみ（C管・G管）</option>
-              <option value="pf">PF管・CD管のみ</option>
-              <option value="flex">フレキ管のみ</option>
-              <option value="rack">ケーブルラック</option>
+              <option value="indoor_exposed" selected>屋内 露出配管</option>
+              <option value="indoor_embed">屋内 隠ぺい・埋込配管</option>
+              <option value="outdoor">屋外</option>
+              <option value="machine">機械・装置への接続（可とう部）</option>
+              <option value="hightemp">高温環境（炉・乾燥機周辺、60℃超）</option>
             </select>
           </div>
         </div>
@@ -743,44 +739,44 @@
         <div id="c-verdict" class="verdict-card">
           <div class="verdict-icon" id="c-verdict-icon">🔶</div>
           <div>
-            <div class="verdict-main" id="c-verdict-main">条件を選択してください</div>
-            <div class="verdict-sub"  id="c-verdict-sub">電線サイズ・本数・環境を設定すると推奨管が表示されます</div>
+            <div class="verdict-main" id="c-verdict-main">—</div>
+            <div class="verdict-sub"  id="c-verdict-sub">—</div>
           </div>
         </div>
 
         <div class="result-cards-2">
           <div class="card elec">
-            <div class="card-label">電線占積断面積 合計</div>
+            <div class="card-label">電線の断面積 合計（被覆込み）</div>
             <div class="card-value" id="c-total-area">—</div>
-            <div class="card-sub"  id="c-area-sub">（占積率 40% 基準）</div>
+            <div class="card-sub"  id="c-area-sub">—</div>
           </div>
           <div class="card accent">
-            <div class="card-label">推奨 最小呼び径</div>
+            <div class="card-label">おすすめの管</div>
             <div class="card-value" id="c-rec-size">—</div>
             <div class="card-sub"  id="c-rec-type">—</div>
           </div>
         </div>
 
-        <!-- 管種別選定テーブル -->
-        <div class="section-title" style="margin-top:4px">管種別 選定結果</div>
+        <div class="section-title" style="margin-top:4px">管種別 最小サイズ</div>
         <div class="data-table-wrap">
           <table>
             <thead>
               <tr>
                 <th>管の種類</th>
-                <th>推奨呼び径</th>
-                <th>内径（mm）</th>
+                <th>最小の呼び</th>
+                <th>内径</th>
                 <th>占積率</th>
-                <th>適用環境</th>
+                <th>この場所で</th>
               </tr>
             </thead>
             <tbody id="c-table-body"></tbody>
           </table>
         </div>
 
-        <!-- 管種類ガイド -->
         <div class="section-title">管種類 特性ガイド</div>
         <div class="guide-grid" id="c-guide-grid"></div>
+
+        <div class="note-box" id="c-notes"></div>
       </div>
     </div>
   </div>
@@ -791,110 +787,117 @@
   <div id="tab-guide" class="tab-content">
     <div class="panel-right" style="flex:1; overflow-y:auto; max-width:100%;">
       <div class="section-title">電線・ケーブル種類 早見表</div>
-      <div class="data-table-wrap">
+      <div class="data-table-wrap" style="overflow-x:auto">
         <table>
           <thead>
             <tr>
               <th>種類</th>
               <th>略称</th>
-              <th>最高使用温度</th>
-              <th>主な用途</th>
-              <th>特徴・注意</th>
+              <th>定格電圧</th>
+              <th>最高許容温度</th>
+              <th>主な用途・注意</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>架橋ポリエチレン絶縁ビニルシースケーブル</td><td class="elec-text">CV</td><td>90℃</td><td>一般動力・幹線</td><td>最も汎用。許容電流が大きい</td></tr>
-            <tr><td>ビニル絶縁電線</td><td class="hl">IV</td><td>60℃</td><td>屋内配線・制御盤内</td><td>単体では使用不可（管内・ダクト内）</td></tr>
-            <tr><td>機器内配線用ビニル電線</td><td class="hl">KIV</td><td>60℃</td><td>制御盤内・機器内部</td><td>より線・柔軟。盤内配線に最適</td></tr>
-            <tr><td>ビニル絶縁ビニル外装ケーブル（平形）</td><td class="hl">VVF</td><td>60℃</td><td>屋内一般配線</td><td>単相100/200V 家庭・軽動力</td></tr>
-            <tr><td>ビニル絶縁ビニル外装ケーブル（丸形）</td><td class="hl">VVR</td><td>60℃</td><td>屋内一般配線</td><td>VVFの丸形。柔軟性やや高い</td></tr>
-            <tr><td>ビニルキャブタイヤケーブル</td><td class="warn-text">VCT</td><td>60℃</td><td>可動部・移動用</td><td>柔軟・耐油。延長コード・溶接機</td></tr>
-            <tr><td>クロロプレンキャブタイヤケーブル</td><td class="warn-text">CT</td><td>60℃</td><td>屋外移動・重作業</td><td>耐油・耐候・耐炎性優秀</td></tr>
-            <tr><td>耐熱ビニル絶縁電線</td><td class="bad-text">HIV</td><td>75℃</td><td>高温箇所・盤内</td><td>IVより許容電流大。高温盤内に使用</td></tr>
-            <tr><td>架橋ポリエチレン絶縁耐燃性ポリエチレンシースケーブル</td><td class="elec-text">EM-CE / ECX</td><td>90℃</td><td>環境配慮・幹線</td><td>ノンハロゲン。燃焼時ガス毒性低</td></tr>
-            <tr><td>耐火ケーブル</td><td class="bad-text">FP</td><td>60℃（耐火：840℃×30min）</td><td>非常用・防災回路</td><td>消防法・建基法要求箇所に必須</td></tr>
-            <tr><td>ビニル外装制御用ケーブル</td><td class="hl">CVV</td><td>60℃</td><td>制御・計装</td><td>多心（2〜37芯）。信号・制御回路</td></tr>
-            <tr><td>架橋ポリエチレン絶縁制御用ケーブル</td><td class="elec-text">CVVS / CPEVS</td><td>90℃</td><td>シールド要計装</td><td>シールド付き。ノイズ対策要所に</td></tr>
+            <tr><td>架橋ポリエチレン絶縁ビニルシースケーブル（単心3個より）</td><td class="elec-text">CVT</td><td>600V</td><td>90℃</td><td>工場の動力幹線の主力。一括シースのCV3心より許容電流が大きい</td></tr>
+            <tr><td>架橋ポリエチレン絶縁ビニルシースケーブル</td><td class="elec-text">CV</td><td>600V</td><td>90℃</td><td>単心・多心。細いサイズの動力配線</td></tr>
+            <tr><td>架橋ポリエチレン絶縁耐燃性ポリエチレンシースケーブル</td><td class="elec-text">EM-CE</td><td>600V</td><td>90℃</td><td>エコケーブル。燃えてもハロゲンガスが出ない</td></tr>
+            <tr><td>ビニル絶縁電線</td><td class="hl">IV</td><td>600V</td><td>60℃</td><td>電線管・ダクト・盤内。単体でむき出し配線しない</td></tr>
+            <tr><td>二種ビニル絶縁電線（耐熱）</td><td class="hl">HIV</td><td>600V</td><td>75℃</td><td>IVより許容電流が大きい。熱がこもる盤内に</td></tr>
+            <tr><td>電気機器用ビニル絶縁電線</td><td class="hl">KIV</td><td>600V</td><td>60℃</td><td>盤内・機器内の配線。柔らかいより線</td></tr>
+            <tr><td>ビニル絶縁ビニルシースケーブル（平形／丸形）</td><td class="hl">VVF／VVR</td><td>600V</td><td>60℃</td><td>屋内の照明・コンセント回路</td></tr>
+            <tr><td>ビニルキャブタイヤケーブル</td><td class="warn-text">VCT</td><td>600V</td><td>60℃</td><td>移動機器・機械への配線。400V機器はこちら</td></tr>
+            <tr><td>ビニルキャブタイヤ丸形コード</td><td class="warn-text">VCTF</td><td>300V</td><td>60℃</td><td>小型機器・200V以下の機械への配線。400V回路は不可</td></tr>
+            <tr><td>ゴムキャブタイヤケーブル（EPゴム絶縁・クロロプレンシース）</td><td class="warn-text">PNCT</td><td>600V</td><td>80℃</td><td>屋外・重作業・引きずられる所。耐摩耗・耐候に強い</td></tr>
+            <tr><td>溶接用ケーブル</td><td class="warn-text">WCT</td><td>—</td><td>製品による</td><td>溶接機の二次側（ホルダ線・アース線）</td></tr>
+            <tr><td>制御用ビニル絶縁ビニルシースケーブル</td><td class="hl">CVV</td><td>600V</td><td>60℃</td><td>制御回路。多心</td></tr>
+            <tr><td>同 遮へい付</td><td class="hl">CVV-S</td><td>600V</td><td>60℃</td><td>インバータまわりなど、ノイズ対策が要る制御回路</td></tr>
+            <tr><td>計装用ケーブル（ポリエチレン絶縁・遮へい付）</td><td class="hl">CPEV-S 等</td><td>—</td><td>製品による</td><td>4-20mAなどのアナログ信号</td></tr>
+            <tr><td>耐火ケーブル</td><td class="bad-text">FP</td><td>600V</td><td>製品による</td><td>消防用設備の電源回路。耐火性能は840℃・30分の試験</td></tr>
+            <tr><td>耐熱電線</td><td class="bad-text">HP</td><td>—</td><td>製品による</td><td>消防用設備の警報・操作回路</td></tr>
           </tbody>
         </table>
       </div>
 
-      <div class="section-title" style="margin-top:8px">環境別 推奨電線早見表</div>
+      <div class="section-title" style="margin-top:8px">場所別 よく使う電線</div>
       <div class="guide-grid">
         <div class="guide-card">
           <div class="guide-card-title" style="color:var(--accent)">🏭 制御盤内</div>
           <div class="guide-card-body">
-            動力回路：<span>IV / HIV / KIV</span><br>
-            制御回路：<span>KIV / CVV</span><br>
-            シールド要：<span>CVVS / CPEVS</span><br>
-            ポイント：<span>許容温度・柔軟性・識別色</span>
+            主回路：<span>IV／HIV／KIV</span><br>
+            制御回路：<span>KIV</span><br>
+            ノイズ対策：<span>CVV-S（制御）・計装用遮へい付（信号）</span><br>
+            ポイント：<span>盤内温度と色分け</span>
           </div>
         </div>
         <div class="guide-card">
-          <div class="guide-card-title" style="color:var(--good)">🏢 屋内一般配線</div>
+          <div class="guide-card-title" style="color:var(--good)">🏢 建屋内の配線</div>
           <div class="guide-card-body">
-            幹線：<span>CV / CVT</span><br>
-            分岐・コンセント：<span>VVF / VVR</span><br>
-            管内配線：<span>IV</span><br>
-            ノンハロゲン要：<span>EM-CE / ECX</span>
+            動力幹線：<span>CVT</span><br>
+            照明・コンセント：<span>VVF／VVR</span><br>
+            電線管の中：<span>IV</span><br>
+            ノンハロゲン指定：<span>EM-CE</span>
           </div>
         </div>
         <div class="guide-card">
-          <div class="guide-card-title" style="color:var(--warn)">☔ 屋外・防水</div>
+          <div class="guide-card-title" style="color:var(--warn)">☔ 屋外・地中</div>
           <div class="guide-card-body">
-            一般：<span>CV（シース保護）</span><br>
-            移動・可動：<span>CT / VCT</span><br>
-            埋設：<span>CV / EM-CE</span><br>
-            ポイント：<span>防水端末処理・外傷保護</span>
+            固定配線：<span>CVT／CV（管や防護で外傷保護）</span><br>
+            移動・引きずる：<span>PNCT</span><br>
+            地中：<span>管路にCVT、直埋は防護を確認</span><br>
+            ポイント：<span>端末の防水処理</span>
           </div>
         </div>
         <div class="guide-card">
           <div class="guide-card-title" style="color:var(--bad)">🔥 高温環境</div>
           <div class="guide-card-body">
+            〜60℃：<span>IV・VCTF・VCTはここまで</span><br>
             〜75℃：<span>HIV</span><br>
-            〜90℃：<span>CV / EM-CE</span><br>
-            〜180℃：<span>耐熱ガラス編組電線（RHLV）</span><br>
-            ポイント：<span>許容温度＋補正係数必ず適用</span>
+            〜90℃：<span>CVT／CV／EM-CE（許容電流は温度補正）</span><br>
+            それ以上：<span>シリコンゴム絶縁・ガラス編組などの耐熱電線（製品で確認）</span>
           </div>
         </div>
         <div class="guide-card">
-          <div class="guide-card-title" style="color:var(--elec)">⚙️ 可動部・移動機器</div>
+          <div class="guide-card-title" style="color:var(--elec)">⚙️ 機械・可動部</div>
           <div class="guide-card-body">
-            軽作業：<span>VCT（2種キャブタイヤ）</span><br>
-            重作業・屋外：<span>CT（クロロプレン）</span><br>
-            溶接機：<span>WCT（溶接用）</span><br>
-            ポイント：<span>曲げ半径・繰り返し耐性確認</span>
+            200V以下の小容量：<span>VCTF（300V）</span><br>
+            400V機器・中容量：<span>VCT（600V）</span><br>
+            重作業・屋外：<span>PNCT</span><br>
+            ポイント：<span>曲げ半径・繰り返し曲げへの強さ</span>
           </div>
         </div>
         <div class="guide-card">
           <div class="guide-card-title" style="color:var(--muted)">🚒 防災・非常用</div>
           <div class="guide-card-body">
-            消防設備：<span>FP（耐火ケーブル）</span><br>
-            防煙・排煙：<span>FP-C / HP（耐熱）</span><br>
-            ノンハロゲン：<span>EM-FP</span><br>
-            ポイント：<span>消防法・建基法で種別指定</span>
+            電源回路：<span>FP（耐火）</span><br>
+            警報・操作回路：<span>HP（耐熱）</span><br>
+            ポイント：<span>消防法で耐火・耐熱の範囲が決まっている</span>
           </div>
         </div>
       </div>
 
-      <div class="section-title" style="margin-top:8px">識別色（JIS C 3605 / 内線規程）</div>
+      <div class="section-title" style="margin-top:8px">識別色（日本の基本）</div>
       <div class="data-table-wrap">
         <table>
           <thead>
-            <tr><th>用途</th><th>推奨色</th><th>備考</th></tr>
+            <tr><th>用途</th><th>色</th><th>根拠・備考</th></tr>
           </thead>
           <tbody>
-            <tr><td>電圧線（L1）</td><td style="color:#e55">赤</td><td>三相R相・単相L1</td></tr>
-            <tr><td>電圧線（L2）</td><td style="color:#aaa">白 / 灰</td><td>三相S相・単相N</td></tr>
-            <tr><td>電圧線（L3）</td><td style="color:#55e">青 / 黒</td><td>三相T相</td></tr>
-            <tr><td>接地線（PE）</td><td style="color:#3fb950">緑 / 緑黄</td><td>D種・C種アース</td></tr>
-            <tr><td>中性線（N）</td><td style="color:#aaa">白</td><td>単相3線・三相4線</td></tr>
-            <tr><td>制御回路（DC+）</td><td style="color:#e55">赤</td><td>DC24V ＋側</td></tr>
-            <tr><td>制御回路（DC−）</td><td style="color:#55e">青</td><td>DC24V −側（0V）</td></tr>
-            <tr><td>制御回路（AC）</td><td style="color:#e90">黄 / オレンジ</td><td>AC制御電源</td></tr>
+            <tr><td>接地線（アース）</td><td style="color:#3fb950">緑（または緑／黄）</td><td>内線規程</td></tr>
+            <tr><td>接地側電線・中性線</td><td style="color:#cdd9e5">白</td><td>内線規程（単相の接地側、単相3線・三相4線の中性線）</td></tr>
+            <tr><td>三相（盤内の主回路）</td><td><span style="color:#f85149">赤</span>・<span style="color:#cdd9e5">白</span>・<span style="color:#58a6ff">青</span></td><td>R・S・T（JEM 1134）。中性線は黒</td></tr>
+            <tr><td>三相（建屋の動力配線）</td><td>図面・社内の慣例</td><td>地域や会社で色の慣例が違う（赤白黒・黒赤青など）。図面の指定が優先</td></tr>
+            <tr><td>単相2線（盤内）</td><td>黒・白</td><td>L相は黒にできる、白が中性線（JEM 1134）</td></tr>
+            <tr><td>赤白黒の3心を単相2線に使う</td><td>黒・白・赤</td><td>黒＝L、白＝中性線、赤＝接地線（両端に緑テープ）（JEM 1134）</td></tr>
+            <tr><td>CVTの心線</td><td><span style="color:#cdd9e5">黒</span>・<span style="color:#cdd9e5">白</span>・<span style="color:#f85149">赤</span></td><td>メーカー標準（4心は緑を加える）</td></tr>
+            <tr><td>盤内 電力回路（交流・直流）</td><td style="color:#cdd9e5">黒</td><td rowspan="4">JIS B 9960-1・JEM系で推奨される盤内の色分け。客先・社内の仕様があればそちら優先</td></tr>
+            <tr><td>盤内 交流制御回路</td><td style="color:#f85149">赤</td></tr>
+            <tr><td>盤内 直流制御回路</td><td style="color:#58a6ff">青</td></tr>
+            <tr><td>盤内 インタロック回路（盤外から来る電源）</td><td style="color:#f0883e">黄赤（橙）</td></tr>
           </tbody>
         </table>
       </div>
+      <div class="note-box">・最高許容温度・定格電圧は代表的な規格値。実際は使う製品のカタログで確認すること。<br>・FP・HPの適用範囲は消防法・建築基準法で決まる。</div>
     </div>
   </div>
 
@@ -915,278 +918,415 @@
        TAB1: 電線サイズ選定
     ══════════════════════════════ */
 
-    // CV/IV/KIV/VVF/VCT 許容電流テーブル
-    // [サイズ mm², CV管内, CV空中, CV直埋, IV管内, KIV, VVF, VCT]
-    // 単重テーブル [mm², CV(kg/m), IV(kg/m), KIV(kg/m), VVF(kg/m), VCT(kg/m)]
-    // 参考値：JCS・メーカーカタログ（住友電工・フジクラ等）
-    const WIRE_WEIGHT = {
-      //  mm²   CV      IV      KIV     VVF     VCT
-      1.25: { CV:0.068, IV:0.025, KIV:0.025, VVF:0.054, VCT:0.090 },
-      2:    { CV:0.090, IV:0.034, KIV:0.034, VVF:0.068, VCT:0.115 },
-      3.5:  { CV:0.125, IV:0.050, KIV:0.050, VVF:0.098, VCT:0.160 },
-      5.5:  { CV:0.165, IV:0.072, KIV:0.072, VVF:0.140, VCT:0.215 },
-      8:    { CV:0.215, IV:0.098, KIV:0.098, VVF:null,  VCT:0.280 },
-      14:   { CV:0.330, IV:0.160, KIV:0.160, VVF:null,  VCT:0.420 },
-      22:   { CV:0.480, IV:0.235, KIV:0.235, VVF:null,  VCT:0.610 },
-      38:   { CV:0.770, IV:0.390, KIV:0.390, VVF:null,  VCT:0.960 },
-      60:   { CV:1.15,  IV:0.600, KIV:0.600, VVF:null,  VCT:1.430 },
-      100:  { CV:1.82,  IV:0.960, KIV:0.960, VVF:null,  VCT:null  },
-      150:  { CV:2.65,  IV:1.420, KIV:1.420, VVF:null,  VCT:null  },
-      200:  { CV:3.45,  IV:1.880, KIV:1.880, VVF:null,  VCT:null  },
-      250:  { CV:4.30,  IV:2.350, KIV:2.350, VVF:null,  VCT:null  },
-      325:  { CV:5.50,  IV:3.050, KIV:3.050, VVF:null,  VCT:null  },
-      400:  { CV:6.70,  IV:3.750, KIV:3.750, VVF:null,  VCT:null  },
-      500:  { CV:8.30,  IV:4.650, KIV:4.650, VVF:null,  VCT:null  },
-      600:  { CV:9.90,  IV:5.600, KIV:5.600, VVF:null,  VCT:null  },
+    // 電線データ
+    //  label: 表示名 / A: 導体断面積(mm²・電圧降下計算用)
+    //  cap: 許容電流(A)  w: 単重(kg/km・参考)
+    //  CVT: 国交省 設計便覧（内線規程・JCS 0168ベース）CVT 1条布設、周囲温度40℃基準
+    //       2〜5.5sqはCVT規格外のためCV 3心の値（管路は4孔4条）
+    //       基底温度：気中40℃、直埋・管路25℃
+    //       単重：興和電線 CVTカタログ（CV3心はデータなし）
+    //  IV : 同 設計便覧（内線規程2005 表3-1-5）IVを管に収める場合の本数別、周囲温度30℃基準
+    //       2sq・3.5sqより線は表に行がないため、がいし引きの値（27A・37A）×本数係数（0.70/0.63/0.56/0.49）を
+    //       表と同じ7捨8入で換算（この方法で5.5〜22sqの表の値が再現できることを確認済み）
+    //       単重：昭和電線 IV構造表
+    //  VCTF: 富士電線工業（三ツ星）カタログ 4心の許容電流・質量（100m巻）、周囲温度30℃基準
+    //        JISは0.75〜2sq、3.5・5.5sqは電気用品安全法のみ
+    const WIRES = {
+      CVT: {
+        name: 'CVT', tmax: 90, tbase: 40, wUnit: 'ケーブル1本（3心分）',
+        rows: [
+          // label, A, 気中, 直埋, 管路, 単重
+          { label:'2',   A:2,   cap:{air:23,  direct:32, duct:21}, w:null,  note:'CV3心' },
+          { label:'3.5', A:3.5, cap:{air:33,  direct:45, duct:29}, w:null,  note:'CV3心' },
+          { label:'5.5', A:5.5, cap:{air:44,  direct:58, duct:37}, w:null,  note:'CV3心' },
+          { label:'8',   A:8,   cap:{air:62,  direct:77,  duct:59},  w:415 },
+          { label:'14',  A:14,  cap:{air:86,  direct:100, duct:81},  w:585 },
+          { label:'22',  A:22,  cap:{air:110, direct:130, duct:105}, w:850 },
+          { label:'38',  A:38,  cap:{air:155, direct:180, duct:145}, w:1350 },
+          { label:'60',  A:60,  cap:{air:210, direct:230, duct:185}, w:2000 },
+          { label:'100', A:100, cap:{air:290, direct:305, duct:250}, w:3250 },
+          { label:'150', A:150, cap:{air:380, direct:380, duct:320}, w:4650 },
+          { label:'200', A:200, cap:{air:465, direct:445, duct:380}, w:6200 },
+          { label:'250', A:250, cap:{air:535, direct:500, duct:430}, w:7550 },
+          { label:'325', A:325, cap:{air:635, direct:570, duct:500}, w:9700 },
+          { label:'400', A:400, cap:{air:725, direct:635, duct:560}, w:12000 },
+          { label:'500', A:500, cap:{air:835, direct:705, duct:645}, w:null },
+        ]
+      },
+      IV: {
+        name: 'IV', tmax: 60, tbase: 30, wUnit: '電線1本',
+        // cap: 同一管内の本数別 {3本以下, 4本, 5〜6本, 7〜15本}（内線規程 IV欄）
+        rows: [
+          { label:'1.6mm', A:2.01, cap:{'3':19,'4':17,'6':15,'15':13}, w:27 },
+          { label:'2',     A:2,    cap:{'3':19,'4':17,'6':15,'15':13}, w:28, note:'より線・換算値' },
+          { label:'2.0mm', A:3.14, cap:{'3':24,'4':22,'6':19,'15':17}, w:38 },
+          { label:'3.5',   A:3.5,  cap:{'3':26,'4':23,'6':20,'15':18}, w:45, note:'より線・換算値' },
+          { label:'2.6mm', A:5.31, cap:{'3':33,'4':30,'6':27,'15':23}, w:65 },
+          { label:'3.2mm', A:8.04, cap:{'3':43,'4':38,'6':34,'15':30}, w:95 },
+          { label:'5.5',   A:5.5,  cap:{'3':34,'4':31,'6':27,'15':24}, w:70 },
+          { label:'8',     A:8,    cap:{'3':42,'4':38,'6':34,'15':30}, w:105 },
+          { label:'14',    A:14,   cap:{'3':61,'4':55,'6':49,'15':43}, w:175 },
+          { label:'22',    A:22,   cap:{'3':80,'4':72,'6':64,'15':56}, w:260 },
+          { label:'38',    A:38,   cap:{'3':113,'4':102,'6':90,'15':79}, w:430 },
+          { label:'60',    A:60,   cap:{'3':152,'4':136,'6':121,'15':106}, w:650 },
+          { label:'100',   A:100,  cap:{'3':208,'4':187,'6':167,'15':146}, w:1070 },
+          { label:'150',   A:150,  cap:{'3':276,'4':249,'6':221,'15':193}, w:1600 },
+          { label:'200',   A:200,  cap:{'3':328,'4':295,'6':262,'15':230}, w:2040 },
+          { label:'250',   A:250,  cap:{'3':389,'4':350,'6':311,'15':272}, w:2590 },
+          { label:'325',   A:325,  cap:{'3':455,'4':409,'6':364,'15':318}, w:3300 },
+        ]
+      },
+      VCTF: {
+        name: 'VCTF 4芯', tmax: 60, tbase: 30, wUnit: 'コード1本（4心分）',
+        rows: [
+          { label:'0.75', A:0.75, cap:7,  w:86 },
+          { label:'1.25', A:1.25, cap:12, w:116 },
+          { label:'2',    A:2,    cap:17, w:153 },
+          { label:'3.5',  A:3.5,  cap:23, w:245, note:'VCTF・JIS外' },
+          { label:'5.5',  A:5.5,  cap:35, w:370, note:'VCTF・JIS外' },
+        ]
+      }
     };
 
-    function getUnitWeight(sizeMM, wtype) {
-      const row = WIRE_WEIGHT[sizeMM];
-      if (!row) return null;
-      const key = (wtype === 'KIV') ? 'KIV' : wtype;
-      const w = row[key];
-      return (w != null) ? w : null;
+    // 配線用遮断器 標準定格
+    const BREAKERS = [10,15,20,30,40,50,60,75,100,125,150,175,200,225,250,300,350,400,500,600,700,800];
+
+    const VOLT = {
+      '100s': { V:100, K:35.6, ph:'単相2線', wires:2 },
+      '200s': { V:200, K:35.6, ph:'単相2線', wires:2 },
+      '200t': { V:200, K:30.8, ph:'三相3線', wires:3 },
+      '400t': { V:400, K:30.8, ph:'三相3線', wires:3 },
+    };
+
+    // 温度補正係数（基準温度以下は1.0で頭打ち＝安全側）
+    function tempFactor(wire, ta, tbase) {
+      const tb = tbase != null ? tbase : wire.tbase;
+      if (ta >= wire.tmax) return 0;
+      if (ta <= tb) return 1.0;
+      return Math.sqrt((wire.tmax - ta) / (wire.tmax - tb));
     }
 
-    const WIRE_TABLE = [
-      // size,  CV管内, CV空中, CV直埋, IV管内, KIV, VVF, VCT
-      [1.25,    19,    19,    22,    17,    17,  15,   13],
-      [2,       26,    27,    30,    23,    23,  21,   18],
-      [3.5,     34,    36,    41,    32,    32,  27,   24],
-      [5.5,     43,    47,    53,    42,    42,  35,   31],
-      [8,       55,    61,    68,    53,    53, '—',   40],
-      [14,      75,    84,    95,    72,    72, '—',   55],
-      [22,      99,   112,   125,    95,    95, '—',   73],
-      [38,     133,   153,   170,   127,   127, '—',   98],
-      [60,     172,   200,   220,   164,   164, '—',  128],
-      [100,    230,   270,   295,   219,   219, '—',  175],
-      [150,    280,   335,   360,   265,   265, '—',  '—'],
-      [200,    325,   390,   415,   305,   305, '—',  '—'],
-      [250,    375,   455,   480,   350,   350, '—',  '—'],
-      [325,    430,   530,   560,   400,   400, '—',  '—'],
-      [400,    480,   600,   630,   445,   445, '—',  '—'],
-      [500,    545,   685,   715,   505,   505, '—',  '—'],
-      [600,    615,   770,   805,   565,   565, '—',  '—'],
-    ];
+    function presetSelect(groupId, btn) {
+      document.querySelectorAll('#' + groupId + ' .preset-btn').forEach(b => b.classList.remove('selected'));
+      if (btn) btn.classList.add('selected');
+    }
+    function setRuns(v, btn) { $('w-runs').value = v; presetSelect('w-runs-presets', btn); calcWire(); }
+    function setTemp(v, btn) { $('w-temp').value = v; presetSelect('w-temp-presets', btn); calcWire(); }
+    let vdAuto = true;
+    function setVd(v, btn)   { vdAuto = false; $('w-vdlimit').value = v; presetSelect('w-vd-presets', btn); calcWire(); }
+    function setVdAuto(btn)  { vdAuto = true; presetSelect('w-vd-presets', btn); calcWire(); }
 
-    // 高温補正係数（基準40℃）
-    function tempFactor(env) {
-      return env === 'hot' ? 0.82 : env === 'veryhot' ? 0.71 : 1.0;
+    // 許容電圧降下（内線規程）：60m以下は幹線・分岐それぞれ2%（構内変圧器からの幹線は3%）
+    // 60m超は供給変圧器二次側〜最遠端の負荷までの合計
+    function autoVd(L, supply) {
+      if (L <= 60) return { v: 2, note: '内線規程：60m以下は幹線・分岐それぞれ2%以下（構内の変圧器から供給する幹線は3%まで可）' };
+      const t = supply === 'inside' ? [5, 6, 7] : [4, 5, 6];
+      const v = L <= 120 ? t[0] : L <= 200 ? t[1] : t[2];
+      return { v, note: `内線規程：こう長60m超（${L <= 120 ? '120m以下' : L <= 200 ? '200m以下' : '200m超'}）は変圧器〜最遠端の負荷まで合計${v}%以下` };
     }
 
-    // 同一管内本数補正
-    function cableFactor(n) {
-      return n === '3' ? 0.80 : n === '5' ? 0.75 : n === '7' ? 0.70 : 1.0;
-    }
-
-    // 配線方法から許容電流インデックスを返す
-    function wireColIdx(method, wtype) {
-      if (wtype === 'IV' || wtype === 'KIV') return 4;
-      if (wtype === 'VVF') return 6;
-      if (wtype === 'VCT') return 7;
-      // CV
-      if (method === 'air') return 2;
-      if (method === 'direct') return 3;
-      return 1; // conduit / panel
-    }
-
-    function setRuns(v, btn) {
-      $('w-runs').value = v;
-      document.querySelectorAll('#w-runs-presets .preset-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      calcWire();
-    }
-
-    function setMargin(v, btn) {
-      $('w-margin').value = v;
-      document.querySelectorAll('#w-margin-presets .preset-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      calcWire();
+    function wireReset(main, sub, color, icon) {
+      ['w-design-I','w-min-size','w-rec-size','w-unit-weight','w-total-weight'].forEach(id => $(id).innerHTML = '—');
+      ['w-design-sub','w-min-cap','w-rec-cap','w-unit-weight-sub','w-total-weight-sub'].forEach(id => $(id).textContent = '—');
+      $('w-table-body').innerHTML = '';
+      $('w-breaker-body').innerHTML = '';
+      $('w-verdict-icon').textContent = icon;
+      $('w-verdict-main').textContent = main;
+      $('w-verdict-sub').textContent = sub;
+      $('w-verdict').style.borderColor = color;
     }
 
     function calcWire() {
-      const I       = parseFloat($('w-current').value) || 0;
-      const method  = $('w-method').value;
-      const env     = $('w-env').value;
-      const cables  = $('w-cables').value;
-      const margin  = parseFloat($('w-margin').value) || 1.0;
-      const wtype   = $('w-wiretype').value;
-      const length  = parseFloat($('w-length').value) || 0;
-      const runs    = parseInt($('w-runs').value) || 1;
-
-      const cf  = cableFactor(cables);
-      const tf  = tempFactor(env);
-      const Ides = I * margin; // 設計電流（余裕込み）
-      const col  = wireColIdx(method, wtype);
-
-      const rows = WIRE_TABLE.filter(r => r[col] !== '—');
-
-      // 補正後許容電流で Ides を満たす最小サイズ
-      let recIdx = -1, minIdx = -1;
-      for (let i = 0; i < rows.length; i++) {
-        const cap = rows[i][col] * cf * tf;
-        if (cap >= Ides && minIdx === -1) minIdx = i;
-        if (cap >= Ides * 1.2 && recIdx === -1) recIdx = i; // 20%余裕
+      const Iall   = parseFloat($('w-current').value) || 0;
+      const load   = $('w-load').value;
+      const vk     = $('w-volt').value;
+      const wtype  = $('w-wiretype').value;
+      const method = $('w-method').value;
+      const cables = $('w-cables').value;
+      const ta     = parseFloat($('w-temp').value);
+      const L      = parseFloat($('w-length').value) || 0;
+      const supply = $('w-supply').value;
+      if (vdAuto) {
+        const a = autoVd(parseFloat($('w-length').value) || 0, supply);
+        $('w-vdlimit').value = a.v;
+        $('w-vd-note').textContent = a.note;
+      } else {
+        $('w-vd-note').textContent = '手動設定。内線規程の目安は「自動」で表示';
       }
-      if (recIdx === -1) recIdx = rows.length - 1;
-      if (minIdx === -1) minIdx = rows.length - 1;
+      const vdLim  = parseFloat($('w-vdlimit').value) || 2;
+      const kAdd   = Math.max(1.0, parseFloat($('w-margin').value) || 1.0);
+      const runs   = Math.max(1, parseInt($('w-runs').value) || 1);
 
-      const recRow = rows[recIdx];
-      const minRow = rows[minIdx];
+      const wire = WIRES[wtype];
+      const volt = VOLT[vk];
 
-      // カード更新
-      $('w-design-I').innerHTML = `${Ides.toFixed(1)}<span class="card-unit"> A</span>`;
-      $('w-design-sub').textContent = `元電流 ${I}A × 余裕率 ${margin}`;
-      $('w-rec-size').innerHTML = `${recRow[0]}<span class="card-unit"> mm²</span>`;
-      $('w-rec-cap').textContent = `許容電流 ${(recRow[col]*cf*tf).toFixed(0)} A`;
-      $('w-min-size').innerHTML = `${minRow[0]}<span class="card-unit"> mm²</span>`;
-      $('w-min-cap').textContent = `許容電流 ${(minRow[col]*cf*tf).toFixed(0)} A`;
+      // 入力欄の有効/無効（欄自体は常に表示）
+      $('w-method').disabled = (wtype !== 'CVT');
+      $('w-cables').disabled = (wtype !== 'IV');
 
-      // 単重・総重量
-      const uw = getUnitWeight(recRow[0], wtype);
-      if (uw != null) {
-        $('w-unit-weight').innerHTML = `${uw.toFixed(3)}<span class="card-unit"> kg/m</span>`;
-        $('w-unit-weight-sub').textContent = `${recRow[0]} mm² ${wtype}（参考値）`;
-        if (length > 0) {
-          const total = uw * length * runs;
-          $('w-total-weight').innerHTML = `${total.toFixed(1)}<span class="card-unit"> kg</span>`;
-          $('w-total-weight-sub').textContent = `${length} m × ${runs}条 × ${uw.toFixed(3)} kg/m`;
+      // 注記
+      const notes = [];
+      if (wtype === 'CVT') notes.push('CVTの許容電流は1条布設の値（基底温度：気中40℃、直埋・管路25℃）。直埋・管路のときの周囲温度は地中温度として入力。2〜5.5sqはCVT規格外のためCV3心の値。ラックに多条並べる場合は別途低減が必要。');
+      if (wtype === 'IV')  notes.push('IVは周囲温度30℃・電線管に収めた場合の本数別の値（内線規程）。2sq・3.5sqより線は気中値からの換算値。中性線・接地線・制御線は本数に数えない。');
+      if (wtype === 'VCTF') notes.push('VCTFは定格300Vのコード。許容電流・単重は富士電線工業（三ツ星）カタログの4心の値（周囲温度30℃・気中1条）。3.5・5.5sqはJIS外（電気用品安全法の適合品）。フレキに複数本入れる場合は余裕を見ること。');
+      notes.push('電圧降下は簡易式（e = K×L×I ÷ 1000A、K：単相2線35.6／三相3線30.8、力率1・リアクタンス無視）。');
+      notes.push('単重はメーカーカタログの参考値。');
+      $('w-notes').innerHTML = notes.map(n => '・' + n).join('<br>');
+
+      // 負荷種別の説明
+      const I = Iall / runs; // 1条あたり
+      let kLaw = 1.0, lawText = '一般負荷：定格電流 × 1.0';
+      if (load === 'motor') {
+        kLaw = (Iall <= 50) ? 1.25 : 1.1;
+        lawText = Iall <= 50 ? 'モーター合計50A以下：定格 × 1.25（電技解釈）' : 'モーター合計50A超：定格 × 1.1（電技解釈）';
+      }
+      $('w-load-note').textContent = lawText;
+
+      if (Iall <= 0) { wireReset('電流を入力してください', '', 'var(--border)', '⚡'); return; }
+
+      // 300V定格チェック
+      if (wtype === 'VCTF' && volt.V > 300) {
+        wireReset('VCTFは400V回路に使えません', 'VCTFは定格300Vのコード。400V回路はVCT（600V）やCVTを使用すること。', 'var(--bad)', '⛔');
+        return;
+      }
+
+      // 温度チェック
+      const tbase = (wtype === 'CVT' && method !== 'air') ? 25 : wire.tbase;
+      const tf = tempFactor(wire, isNaN(ta) ? 30 : ta, tbase);
+      if (tf === 0) {
+        wireReset(`周囲温度 ${ta}℃ では ${wire.name} は使用不可`, `${wire.name} の導体最高許容温度は ${wire.tmax}℃。耐熱電線（HIV・耐熱ケーブル等）を検討すること。`, 'var(--bad)', '⛔');
+        return;
+      }
+
+      const nf = 1.0; // IVの本数低減は表の列で反映
+
+      // 必要な許容電流
+      let Ireq = I * kLaw * kAdd;
+      let bRec = null;
+      if (load === 'general') {
+        bRec = BREAKERS.find(b => b >= I * kAdd) || null;
+        if (bRec) Ireq = Math.max(Ireq, bRec); // 遮断器定格 ≦ 電線許容電流
+      }
+
+      // 行ごとの計算
+      const rows = wire.rows.map(r => {
+        const base = (wtype === 'CVT') ? r.cap[method] : (wtype === 'IV') ? r.cap[cables] : r.cap;
+        const cap  = (base == null) ? null : Math.floor(base * tf * nf);
+        const e    = (L > 0) ? volt.K * L * I / (1000 * r.A) : 0;
+        const vdp  = e / volt.V * 100;
+        return { r, base, cap, e, vdp };
+      });
+
+      const minIdx = rows.findIndex(x => x.cap != null && x.cap >= Ireq);
+      let recIdx = -1;
+      if (minIdx >= 0) recIdx = rows.findIndex((x, i) => i >= minIdx && x.cap != null && x.vdp <= vdLim);
+
+      // カード：必要電流
+      const lawStr = (kLaw !== 1.0 ? ` × ${kLaw}` : '') + (kAdd !== 1.0 ? ` × 余裕${kAdd}` : '');
+      $('w-design-I').innerHTML = `${Ireq.toFixed(1)}<span class="card-unit"> A</span>`;
+      $('w-design-sub').textContent = (runs > 1 ? `${Iall}A ÷ ${runs}条 = ${I.toFixed(1)}A` : `${I}A`) + lawStr
+        + (load === 'general' && bRec && bRec > I * kLaw * kAdd ? `（遮断器${bRec}Aに合わせる）` : '')
+        + `／温度係数 ${tf.toFixed(2)}` + (nf !== 1 ? `・本数係数 ${nf.toFixed(2)}` : '');
+
+      const sizeHtml = x => `${x.r.label}<span class="card-unit">${x.r.label.endsWith('mm') ? '' : ' sq'}</span>`;
+
+      if (minIdx >= 0) {
+        const m = rows[minIdx];
+        $('w-min-size').innerHTML = sizeHtml(m);
+        $('w-min-cap').textContent = `許容 ${m.cap}A／電圧降下 ${m.vdp.toFixed(1)}%`;
+      } else {
+        $('w-min-size').innerHTML = '—';
+        $('w-min-cap').textContent = '表の範囲外（並列や別の電線を検討）';
+      }
+
+      let rec = null;
+      if (recIdx >= 0) {
+        rec = rows[recIdx];
+        $('w-rec-size').innerHTML = sizeHtml(rec);
+        $('w-rec-cap').textContent = `許容 ${rec.cap}A／電圧降下 ${rec.e.toFixed(1)}V（${rec.vdp.toFixed(1)}%）`;
+      } else {
+        $('w-rec-size').innerHTML = '—';
+        $('w-rec-cap').textContent = minIdx >= 0 ? `電圧降下${vdLim}%以内になるサイズなし` : '—';
+      }
+
+      // 重量
+      const wRow = rec || (minIdx >= 0 ? rows[minIdx] : null);
+      if (wRow && wRow.r.w != null) {
+        const wPerM = wRow.r.w / 1000 * (wtype === 'IV' ? volt.wires : 1);
+        const wDesc = wtype === 'IV' ? `IV ${volt.wires}本分` : wire.wUnit;
+        $('w-unit-weight').innerHTML = `${wPerM.toFixed(3)}<span class="card-unit"> kg/m</span>`;
+        $('w-unit-weight-sub').textContent = `${wRow.r.label} ${wire.name}・${wDesc}（参考）`;
+        if (L > 0) {
+          $('w-total-weight').innerHTML = `${(wPerM * L * runs).toFixed(1)}<span class="card-unit"> kg</span>`;
+          $('w-total-weight-sub').textContent = `${L} m × ${runs}条 × ${wPerM.toFixed(3)} kg/m`;
         } else {
-          $('w-total-weight').innerHTML = `—`;
-          $('w-total-weight-sub').textContent = `長さを入力してください`;
+          $('w-total-weight').innerHTML = '—';
+          $('w-total-weight-sub').textContent = 'こう長を入力してください';
         }
       } else {
-        $('w-unit-weight').innerHTML = `—`;
-        $('w-unit-weight-sub').textContent = `この種類のデータなし`;
-        $('w-total-weight').innerHTML = `—`;
-        $('w-total-weight-sub').textContent = `—`;
+        $('w-unit-weight').innerHTML = '—';
+        $('w-unit-weight-sub').textContent = 'このサイズの単重データなし';
+        $('w-total-weight').innerHTML = '—';
+        $('w-total-weight-sub').textContent = '—';
       }
 
-      // テーブル生成
-      const tbody = $('w-table-body');
-      tbody.innerHTML = rows.map((r, i) => {
-        const base = r[col];
-        const cap  = (base * cf * tf).toFixed(0);
-        const ok   = cap >= Ides;
-        const isRec = i === recIdx;
-        const isMin = i === minIdx;
-        let judge = ok ? `<span class="good-text">✔ OK</span>` : `<span class="bad-text">✘ NG</span>`;
-        if (isRec) judge = `<span class="elec-text">★ 推奨</span>`;
-        else if (isMin && !isRec) judge = `<span class="warn-text">△ 最小</span>`;
-        const uwRow = getUnitWeight(r[0], wtype);
-        const uwCell = uwRow != null ? `${uwRow.toFixed(3)}` : `<span style="color:var(--muted)">—</span>`;
-        return `<tr${isRec ? ' class="highlight-row"' : ''}>
-          <td>${r[0]} mm²</td>
-          <td>${base} A</td>
-          <td>${cap} A</td>
-          <td>${uwCell}</td>
-          <td>${judge}</td>
+      // 一覧表
+      $('w-table-body').innerHTML = rows.map((x, i) => {
+        let judge;
+        if (x.cap == null)        judge = `<span style="color:var(--muted)">データなし</span>`;
+        else if (i === recIdx)    judge = `<span class="elec-text">★ 推奨</span>`;
+        else if (x.cap < Ireq)    judge = `<span class="bad-text">✘ 電流不足</span>`;
+        else if (x.vdp > vdLim)   judge = `<span class="warn-text">△ 電圧降下</span>`;
+        else                      judge = `<span class="good-text">✔ OK</span>`;
+        const capCell = x.cap == null ? '—' : `${x.cap} A`;
+        const vdCell  = L > 0 ? `<span${x.vdp > vdLim ? ' class="warn-text"' : ''}>${x.vdp.toFixed(1)}%</span>` : '—';
+        const wCell   = x.r.w != null ? (x.r.w / 1000 * (wtype === 'IV' ? volt.wires : 1)).toFixed(3) : '—';
+        const lbl     = x.r.label + (x.r.label.endsWith('mm') ? '' : ' sq') + (x.r.note ? `<br><span style="font-size:10px">${x.r.note}</span>` : '');
+        return `<tr${i === recIdx ? ' class="highlight-row"' : ''}>
+          <td>${lbl}</td><td>${capCell}</td><td>${vdCell}</td><td>${wCell}</td><td>${judge}</td>
         </tr>`;
       }).join('');
 
-      // ブレーカ推奨
-      const breakerRatings = [5,10,15,20,30,40,50,60,75,100,125,150,175,200,225,250,300,350,400,500,600,700,800,1000];
-      const bRec = breakerRatings.find(b => b >= Ides * 1.0) || 1000;
-      const bRecCapNum = rows[recIdx] ? Math.floor(rows[recIdx][col]*cf*tf) : 0;
-      const bRecCap = bRecCapNum > 0 ? bRecCapNum : '—';
-      const breakerOk = bRecCapNum > 0 && bRec <= bRecCapNum;
-      const breakerJudge = bRecCapNum === 0
-        ? `<span style="color:var(--muted)">${bRec} A ≦ ${bRecCap} A</span>`
-        : breakerOk
-          ? `<span class="good-text">✔ OK　${bRec} A ≦ ${bRecCap} A</span>`
-          : `<span class="bad-text">⚠ 要確認　${bRec} A ＞ ${bRecCap} A</span>`;
-      $('w-breaker-body').innerHTML = `
-        <tr><td>推奨 MCB/MCCB 定格</td><td class="elec-text">${bRec} A</td></tr>
-        <tr><td>電線許容電流との確認（ブレーカ定格 ≦ 電線許容電流）</td><td>${breakerJudge}</td></tr>
-        <tr><td>設計電流（余裕込み）</td><td>${Ides.toFixed(1)} A</td></tr>
-      `;
+      // 遮断器
+      const chk = rec || (minIdx >= 0 ? rows[minIdx] : null);
+      if (load === 'general') {
+        const ok = bRec && chk && bRec <= chk.cap;
+        $('w-breaker-body').innerHTML = `
+          <tr><td>配線用遮断器の定格（負荷電流以上の標準値）</td><td class="elec-text">${bRec ? bRec + ' A' : '—'}</td></tr>
+          <tr><td>遮断器定格 ≦ 電線の許容電流</td><td>${ok ? `<span class="good-text">✔ ${bRec} A ≦ ${chk.cap} A</span>` : `<span class="bad-text">⚠ 要確認</span>`}</td></tr>`;
+      } else {
+        $('w-breaker-body').innerHTML = `
+          <tr><td>モーター回路の遮断器</td><td>始動電流を考慮してメーカーの選定表で決める</td></tr>
+          <tr><td>電線との関係（電技解釈）</td><td>遮断器定格は電線許容電流の2.5倍以下${chk ? `（${chk.r.label}${chk.r.label.endsWith('mm') ? '' : 'sq'}なら ${Math.floor(chk.cap * 2.5)} A 以下）` : ''}</td></tr>`;
+      }
 
       // 判定バナー
-      const recCap = recRow[col] * cf * tf;
-      let icon, main, sub, color;
-      if (I <= 0) {
-        icon='⚡'; main='電流を入力してください'; sub=''; color='var(--border)';
+      if (minIdx < 0) {
+        $('w-verdict-icon').textContent = '⛔';
+        $('w-verdict-main').textContent = `${wire.name} では許容電流が足りません`;
+        $('w-verdict-sub').textContent = `必要 ${Ireq.toFixed(1)}A。並列（条数）を増やすか、別の電線を検討。`;
+        $('w-verdict').style.borderColor = 'var(--bad)';
+      } else if (!rec) {
+        $('w-verdict-icon').textContent = '⚠️';
+        $('w-verdict-main').textContent = `電流は ${rows[minIdx].r.label} でOK、ただし電圧降下が ${vdLim}% を超える`;
+        $('w-verdict-sub').textContent = `こう長 ${L}m。並列にするか、許容電圧降下の条件を見直すこと。`;
+        $('w-verdict').style.borderColor = 'var(--warn)';
       } else {
-        const ratio = recCap / Ides;
-        if (ratio >= 1.5) {
-          icon='🟢'; main=`推奨サイズ: ${recRow[0]} mm²（${wtype}）`; sub=`設計電流 ${Ides.toFixed(1)} A に対し許容 ${recCap.toFixed(0)} A（${(ratio*100).toFixed(0)}%）`; color='var(--good)';
-        } else {
-          icon='✅'; main=`推奨サイズ: ${recRow[0]} mm²（${wtype}）`; sub=`設計電流 ${Ides.toFixed(1)} A に対し許容 ${recCap.toFixed(0)} A（${(ratio*100).toFixed(0)}%）`; color='var(--elec)';
-        }
+        const up = recIdx > minIdx;
+        $('w-verdict-icon').textContent = up ? '📏' : '✅';
+        $('w-verdict-main').textContent = `推奨：${rec.r.label}${rec.r.label.endsWith('mm') ? '' : ' sq'}（${rec.r.note || wire.name}）` + (runs > 1 ? ` × ${runs}条` : '');
+        $('w-verdict-sub').textContent = up
+          ? `許容電流だけなら ${rows[minIdx].r.label}${rows[minIdx].r.label.endsWith('mm') ? '' : 'sq'} だが、電圧降下 ${vdLim}% 以内にするためサイズアップ`
+          : `必要 ${Ireq.toFixed(1)}A に対し許容 ${rec.cap}A、電圧降下 ${rec.vdp.toFixed(1)}%`;
+        $('w-verdict').style.borderColor = up ? 'var(--accent)' : 'var(--good)';
       }
-      $('w-verdict-icon').textContent = icon;
-      $('w-verdict-main').textContent = main;
-      $('w-verdict-sub').textContent  = sub;
-      $('w-verdict').style.borderColor = color;
     }
 
     /* ══════════════════════════════
        TAB2: アース線選定
     ══════════════════════════════ */
 
-    // [主回路mm², D種mm², C種mm², A種mm²]
+    // 内線規程 1350-3表（C種・D種、銅）※2005年版で全列を確認
+    // [遮断器定格の上限A, 一般(mm²), 一般の単線表記, コード・キャブタイヤ1心, 同2心使用時の1心]
     const GROUND_TABLE = [
-      [1.25,  1.6, 1.6, 1.6],
-      [2,     1.6, 1.6, 1.6],
-      [3.5,   1.6, 2.0, 2.0],
-      [5.5,   2.0, 2.0, 3.5],
-      [8,     2.0, 3.5, 3.5],
-      [14,    3.5, 5.5, 5.5],
-      [22,    5.5, 5.5, 8  ],
-      [38,    5.5, 8,   14 ],
-      [60,    8,   14,  14 ],
-      [100,   14,  22,  22 ],
-      [150,   22,  38,  38 ],
-      [200,   38,  38,  60 ],
-      [250,   38,  60,  60 ],
-      [325,   60,  60,  100],
-      [400,   60,  100, 100],
-      [500,   100, 100, 150],
-      [600,   100, 150, 150],
+      [20,   2,   '1.6mm', 1.25, 0.75],
+      [30,   2,   '1.6mm', 2,    1.25],
+      [60,   3.5, '2.0mm', 3.5,  2   ],  // 現行版は60A以下（2005年版は50A以下）
+      [100,  5.5, '2.6mm', 5.5,  3.5 ],
+      [150,  8,   null,    8,    5.5 ],
+      [200,  14,  null,    14,   5.5 ],
+      [400,  22,  null,    22,   14  ],
+      [600,  38,  null,    38,   22  ],
+      [800,  60,  null,    50,   30  ],
+      [1000, 60,  null,    60,   30  ],
+      [1200, 100, null,    80,   38  ],
     ];
+    // 内線規程 1350-4表（A種、銅）
+    const GROUND_A = [ [100, 5.5], [200, 14], [400, 22] ];
+
+    const G_BREAKERS = [10,15,20,30,40,50,60,75,100,125,150,175,200,225,250,300,350,400,500,600,700,800,1000,1200];
 
     const GROUND_CLASS = {
-      D: { label: 'D種', resist: '100 Ω以下', note: '漏電遮断器付き：500Ω以下可' },
-      C: { label: 'C種（特別第3種）', resist: '10 Ω以下', note: '漏電遮断器付き：500Ω以下可' },
-      A: { label: 'A種（第1種）', resist: '10 Ω以下', note: '高圧・特別高圧機器' },
+      D: { label: 'D種', resist: '100Ω以下（0.5秒以内の地絡遮断で500Ω以下）' },
+      C: { label: 'C種', resist: '10Ω以下（0.5秒以内の地絡遮断で500Ω以下）' },
+      A: { label: 'A種', resist: '10Ω以下' },
     };
 
+    (function initGround() {
+      $('g-breaker').innerHTML = G_BREAKERS.map(b => `<option value="${b}"${b === 30 ? ' selected' : ''}>${b} A</option>`).join('');
+    })();
+
+    function sq(v) { return v == null ? '—' : `${v} sq`; }
+
     function calcGround() {
-      const volt   = $('g-volt').value;
-      const mainSz = parseFloat($('g-main-size').value);
-      const gc     = $('g-class').value;
-      const wtype  = $('g-wiretype').value;
-      const loc    = $('g-location').value;
+      const volt = $('g-volt').value;
+      const In   = parseFloat($('g-breaker').value);
+      const gc   = $('g-class').value;
+      const form = $('g-form').value;
+      const core = parseFloat($('g-core').value);
 
-      const gInfo = GROUND_CLASS[gc];
-      const colIdx = gc === 'D' ? 1 : gc === 'C' ? 2 : 3;
+      $('g-core').disabled = (form === 'single');
 
-      const row = GROUND_TABLE.find(r => r[0] === mainSz);
-      const minSz  = row ? row[colIdx] : '—';
-      const recSz  = row ? (minSz <= 3.5 ? minSz : minSz) : '—'; // 推奨 = 最小以上
+      const info = GROUND_CLASS[gc];
+      const row  = GROUND_TABLE.find(r => In <= r[0]);
+      let need = null, needNote = '';
 
-      $('g-class-out').innerHTML = `${gInfo.label}`;
-      $('g-resist-out').textContent = `接地抵抗 ${gInfo.resist}`;
-      $('g-rec-size').innerHTML = `${recSz}<span class="card-unit"> mm²</span>`;
-      $('g-rec-type').textContent = `${wtype}（${loc === 'outdoor' ? '耐候シース付き' : loc === 'buried' ? '直埋用シース' : '屋内用'}）`;
-      $('g-min-size').innerHTML = `${minSz}<span class="card-unit"> mm²</span>`;
+      if (gc === 'A') {
+        const a = GROUND_A.find(r => In <= r[0]);
+        need = a ? a[1] : null;
+        needNote = a ? '内線規程 1350-4表' : '400A超は要確認（1350-4表）';
+        if (form !== 'single') needNote += '／A種はケーブル心線での代用は想定外';
+      } else if (row) {
+        const pick = rr => form === 'single' ? rr[1] : form === 'core' ? rr[3] : (rr[4] != null ? rr[4] : rr[3]);
+        need = pick(row);
+        if (form === 'single') needNote = row[2] ? `単線なら ${row[2]} 以上` : '一般の場合';
+        else if (form === 'core') needNote = 'コード・キャブタイヤの1心';
+        else needNote = row[4] == null ? 'この定格は2心使用の値なし（1心の値で判定）' : '2心を接地に使う場合の1心';
+        if (In > 50 && In <= 60) needNote += `（2005年版の表では${pick(GROUND_TABLE.find(r => r[0] === 100))}sq）`;
+      }
 
-      // テーブル生成
-      $('g-table-body').innerHTML = GROUND_TABLE.map(r => {
-        const isMain = r[0] === mainSz;
-        return `<tr${isMain ? ' class="highlight-row"' : ''}>
-          <td>${r[0]} mm²</td>
-          <td>${r[1]} mm²</td>
-          <td>${r[2]} mm²</td>
-          <td>${r[3]} mm²</td>
+      $('g-class-out').textContent = info.label;
+      $('g-resist-out').textContent = `接地抵抗 ${info.resist}`;
+      $('g-rec-size').innerHTML = need != null ? `${need}<span class="card-unit"> sq 以上</span>` : '—';
+      $('g-rec-type').textContent = needNote;
+      $('g-calc').innerHTML = `${(0.052 * In).toFixed(1)}<span class="card-unit"> mm²</span>`;
+
+      // 表
+      $('g-table-body').innerHTML = GROUND_TABLE.map((r, i) => {
+        const prev = i === 0 ? 0 : GROUND_TABLE[i - 1][0];
+        const hit = gc !== 'A' && In > prev && In <= r[0];
+        return `<tr${hit ? ' class="highlight-row"' : ''}>
+          <td>${r[0]} A 以下${r[0] === 60 ? '<br><span style="font-size:10px">（2005年版は50A以下）</span>' : ''}</td>
+          <td>${sq(r[1])}${r[2] ? `（${r[2]}）` : ''}</td>
+          <td>${sq(r[3])}</td>
+          <td>${sq(r[4])}</td>
         </tr>`;
       }).join('');
 
       // 判定
-      const color = gc === 'A' ? 'var(--warn)' : gc === 'C' ? 'var(--accent)' : 'var(--good)';
-      $('g-verdict-icon').textContent = gc === 'A' ? '⚠️' : gc === 'C' ? '🔵' : '🟢';
-      $('g-verdict-main').textContent = `${gInfo.label} 接地　推奨 ${recSz} mm²（${wtype}）`;
-      $('g-verdict-sub').textContent  = `接地抵抗：${gInfo.resist}　/ ${gInfo.note}`;
+      const warns = [];
+      if (volt === '400t' && gc === 'D') warns.push('400V（300V超）の機器はC種接地が必要');
+
+      let icon, main, sub, color;
+      if (need == null) {
+        icon = '⚠️'; main = '表の範囲外'; sub = needNote; color = 'var(--warn)';
+      } else if (form !== 'single' && gc !== 'A') {
+        const ok = core >= need;
+        icon = ok ? '✅' : '⛔';
+        main = ok ? `心線 ${core}sq で OK（必要 ${need}sq 以上）` : `心線 ${core}sq では不足（必要 ${need}sq 以上）`;
+        sub = ok ? `${info.label}接地／遮断器 ${In}A` : (form === 'core' ? '2心を接地に使うか、太いケーブル・別の接地線にする' : '太いケーブルか、別の接地線にする');
+        color = ok ? 'var(--good)' : 'var(--bad)';
+      } else {
+        icon = gc === 'A' ? '⚠️' : '🟢';
+        main = `${info.label}接地　接地線 ${need}sq 以上`;
+        sub = `遮断器 ${In}A／接地抵抗 ${info.resist}`;
+        color = gc === 'A' ? 'var(--warn)' : 'var(--good)';
+      }
+      if (warns.length) { icon = '⛔'; color = 'var(--bad)'; sub = main + '／' + sub; main = warns.join('／'); }
+
+      $('g-verdict-icon').textContent = icon;
+      $('g-verdict-main').textContent = main;
+      $('g-verdict-sub').textContent  = sub;
       $('g-verdict').style.borderColor = color;
     }
 
@@ -1194,182 +1334,169 @@
        TAB3: 電線管・フレキ選定
     ══════════════════════════════ */
 
-    // 電線外径テーブル [mm², IV外径, CV外径, VVF外径, VCT外径]
+    // 電線の仕上外径（mm）
+    //  IV  : 昭和電線 IV構造表（JIS C 3307）。3番目は2本以上入れるときの断面積補正係数（内線規程）
+    //        2sq・3.5sqより線は規定がないため単線1.6/2.0mmと同じ2.0（安全側）
+    //  CVT : 興和電線 CVT構造表（より合わせ外径）
+    //  VCTF: 富士電線工業カタログ 4心の仕上外径
     const WIRE_OD = {
-      1.25: { IV:3.2, CV:7.5,  VVF:5.5,  VCT:7.5  },
-      2:    { IV:3.5, CV:8.0,  VVF:6.0,  VCT:8.0  },
-      3.5:  { IV:4.2, CV:9.0,  VVF:7.0,  VCT:9.5  },
-      5.5:  { IV:5.0, CV:10.0, VVF:8.5,  VCT:11.0 },
-      8:    { IV:5.8, CV:11.5, VVF:null, VCT:12.5 },
-      14:   { IV:7.0, CV:13.5, VVF:null, VCT:15.0 },
-      22:   { IV:8.5, CV:16.0, VVF:null, VCT:18.0 },
-      38:   { IV:10.5,CV:19.5, VVF:null, VCT:22.0 },
-      60:   { IV:13.0,CV:24.0, VVF:null, VCT:27.0 },
-      100:  { IV:16.5,CV:30.0, VVF:null, VCT:null  },
-      150:  { IV:20.0,CV:36.0, VVF:null, VCT:null  },
-      200:  { IV:23.0,CV:41.0, VVF:null, VCT:null  },
-      250:  { IV:26.0,CV:46.0, VVF:null, VCT:null  },
-      325:  { IV:30.0,CV:53.0, VVF:null, VCT:null  },
-      400:  { IV:33.0,CV:59.0, VVF:null, VCT:null  },
-      500:  { IV:37.0,CV:66.0, VVF:null, VCT:null  },
-      600:  { IV:41.0,CV:73.0, VVF:null, VCT:null  },
+      IV:   [ ['1.6mm',3.2,2.0], ['2.0mm',3.6,2.0], ['2.6mm',4.6,1.2], ['3.2mm',5.6,1.2], ['2',3.4,2.0], ['3.5',4.0,2.0], ['5.5',5.0,1.2], ['8',6.0,1.2],
+              ['14',7.6,1.0], ['22',9.2,1.0], ['38',11.5,1.0], ['60',14.0,1.0], ['100',17.0,1.0], ['150',21,1.0], ['200',23,1.0], ['250',26,1.0], ['325',29,1.0] ],
+      CVT:  [ ['8',19.0], ['14',21], ['22',24], ['38',28], ['60',33], ['100',41], ['150',47], ['200',55], ['250',60], ['325',66] ],
+      VCTF: [ ['0.75',7.6], ['1.25',8.5], ['2',9.3], ['3.5',10.9], ['5.5',13.5] ],
     };
 
-    // 金属管(C管) 内径テーブル [呼び, 内径mm]
-    const METAL_C = [
-      ['C16', 14.9], ['C22', 20.7], ['C28', 26.5],
-      ['C36', 34.5], ['C42', 40.5], ['C54', 52.5],
-      ['C70', 67.5], ['C82', 79.5],
-    ];
-    // PF管
-    const PF_PIPE = [
-      ['PF16', 12.5], ['PF22', 18.0], ['PF28', 23.5],
-      ['PF36', 31.0], ['PF42', 36.5], ['PF54', 48.5],
-    ];
-    // フレキ管（耐圧防水 PF相当）
-    const FLEX_PIPE = [
-      ['フレキ16', 13.0], ['フレキ22', 18.5], ['フレキ28', 24.5],
-      ['フレキ36', 32.0], ['フレキ42', 37.5], ['フレキ54', 50.0],
+    // 管の内径（mm）
+    //  G/C/E管: 内線規程2005 3110-9〜11表の内径
+    //  PF管: PF-D（二重）の内径で安全側
+    //  2種金属製可とう電線管: 内線規程2005 3120-4表とパナソニック最小内径の小さい方（ビニル被覆品も同じ）
+    const CONDUITS = [
+      { key:'G',  name:'厚鋼電線管（G管）', sizes:[['G16',16.4],['G22',21.9],['G28',28.3],['G36',36.9],['G42',42.8],['G54',54.0],['G70',69.6],['G82',82.3],['G92',93.7],['G104',106.4]] },
+      { key:'C',  name:'薄鋼電線管（C管）', sizes:[['C19',15.9],['C25',22.2],['C31',28.6],['C39',34.9],['C51',47.6],['C63',59.5],['C75',72.2]] },
+      { key:'E',  name:'ねじなし電線管（E管）', sizes:[['E19',16.7],['E25',23.0],['E31',29.0],['E39',35.3],['E51',48.0],['E63',60.3],['E75',72.6]] },
+      { key:'PF', name:'PF管', sizes:[['PF16',16.0],['PF22',22.0],['PF28',28.0],['PF36',36.0],['PF42',40.0],['PF54',52.0]] },
+      { key:'PZ', name:'プリカ（2種金属製可とう・非防水）', sizes:[['#10',9.2],['#12',11.4],['#15',14.1],['#17',16.3],['#24',23.3],['#30',29.3],['#38',37.1],['#50',49.1],['#63',62.6],['#76',76.0],['#83',81.0],['#101',100.2]] },
+      { key:'PV', name:'ビニル被覆フレキ（防水プリカ・ケイフレックス等）', sizes:[['#10',9.2],['#12',11.4],['#15',14.1],['#17',16.3],['#24',23.3],['#30',29.3],['#38',37.1],['#50',49.1],['#63',62.6],['#76',76.0],['#83',81.0],['#101',100.2]] },
     ];
 
+    // 場所ごとの適否  ◎おすすめ ○可 △条件付き ✗不可
+    const CONDUIT_ENV = {
+      indoor_exposed: { G:'○', C:'◎', E:'◎', PF:'○', PZ:'○', PV:'○', rec:['E','C'] },
+      indoor_embed:   { G:'○', C:'○', E:'○', PF:'◎', PZ:'△', PV:'△', rec:['PF'] },
+      outdoor:        { G:'◎', C:'○', E:'△', PF:'○', PZ:'△', PV:'◎', rec:['G'] },
+      machine:        { G:'✗', C:'✗', E:'✗', PF:'△', PZ:'○', PV:'◎', rec:['PV'] },
+      hightemp:       { G:'◎', C:'○', E:'○', PF:'✗', PZ:'◎', PV:'✗', rec:['G','PZ'] },
+    };
+    const ENV_NOTE = {
+      indoor_exposed: '屋内露出はE管・C管が一般的。',
+      indoor_embed:   'コンクリート埋込はCD管・PF管。CD管は露出・屋外不可。',
+      outdoor:        '屋外はG管か防水型。E管は防水処理に注意。',
+      machine:        '機械への最終接続はビニル被覆フレキ。ビニル被覆品は使用温度がおおむね60℃まで。',
+      hightemp:       '60℃超ではPF管・ビニル被覆フレキは使わない。可とう部は非防水プリカ。中の電線の耐熱も確認（IV・VCTFは最高60℃）。',
+    };
+
     const CONDUIT_GUIDES = {
-      metal: {
-        title: '⚙️ 金属管（C管・G管）',
-        color: 'var(--accent)',
-        body: '耐機械的衝撃性：<span>最高</span><br>屋外・埋設：<span>○（防水処置要）</span><br>可動部：<span>✗</span><br>電磁シールド：<span>△（接地要）</span><br>コスト：<span>高め</span>'
-      },
-      pf: {
-        title: '🔷 PF管・CD管',
-        color: 'var(--good)',
-        body: '耐機械的衝撃性：<span>中</span><br>屋外：<span>PF○ / CD✗（遮光要）</span><br>可動部：<span>✗（固定配管用）</span><br>施工性：<span>◎（軽量・容易）</span><br>コスト：<span>安い</span>'
-      },
-      flex: {
-        title: '🌀 フレキ管（耐圧・防水）',
-        color: 'var(--elec)',
-        body: '耐機械的衝撃性：<span>高（耐圧型）</span><br>防水：<span>○（防水型選択）</span><br>可動部：<span>○（繰り返し曲げ耐性あり）</span><br>用途：<span>機械への最終接続・端末処理</span><br>コスト：<span>中〜高</span>'
-      },
-      rack: {
-        title: '📦 ケーブルラック',
-        color: 'var(--muted)',
-        body: '対象：<span>CV / CVT 多条敷設</span><br>許容電流：<span>空中敷設と同等（束ねると低下）</span><br>施工性：<span>◎（多回路同時配線）</span><br>用途：<span>工場幹線・電気室〜盤間</span><br>注意：<span>電線間隔・束ね補正必要</span>'
-      }
+      metal: { title:'⚙️ 鋼製電線管（G・C・E管）', color:'var(--accent)',
+        body:'強さ：<span>G管＞C管＞E管</span><br>屋外：<span>G管が基本（防水処理要）</span><br>可動部：<span>✗</span><br>接地：<span>原則D種接地（条件により省略可）</span>' },
+      pf: { title:'🔷 PF管・CD管', color:'var(--good)',
+        body:'PF管：<span>屋内外・露出・隠ぺい可</span><br>CD管：<span>コンクリート埋込専用（オレンジ色）</span><br>熱：<span>高温部は不可</span><br>施工性：<span>◎（軽い・手で曲がる）</span>' },
+      plica: { title:'🌀 プリカ（2種金属製可とう電線管）', color:'var(--elec)',
+        body:'用途：<span>機械・モーターへの接続、曲げの多い所</span><br>非防水品：<span>耐熱性あり（炉まわりの可とう部向き）</span><br>防水品：<span>ビニル被覆、屋外・水まわり</span><br>中の電線：<span>IVも入れられる</span>' },
+      flex: { title:'🛡️ ビニル被覆フレキ（写真のタイプ）', color:'var(--warn)',
+        body:'用途：<span>機械まわりの最終接続</span><br>使用温度：<span>おおむね−20〜60℃（製品で確認）</span><br>注意：<span>ケーブル保護用の製品は中にケーブル・コードを通す</span><br>通販品：<span>PSEマーク・JIS適合を確認</span>' },
+      rack: { title:'📦 ケーブルラック', color:'var(--muted)',
+        body:'対象：<span>CVT等の多条敷設</span><br>許容電流：<span>多条で密に並べると低減</span><br>用途：<span>工場幹線・電気室〜盤間</span>' },
     };
 
     function setCores(n, btn) {
       $('c-cores').value = n;
-      document.querySelectorAll('#c-cores-presets .preset-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
+      presetSelect('c-cores-presets', btn);
       calcConduit();
     }
 
-    function calcConduit() {
-      const sizeMM = parseFloat($('c-size').value);
-      const cores  = parseInt($('c-cores').value) || 1;
-      const wtype  = $('c-wiretype').value;
-      const env    = $('c-env').value;
-      const ctype  = $('c-type').value;
+    function fillConduitSizes() {
+      const t = $('c-wiretype').value;
+      const def = t === 'IV' ? '5.5' : t === 'CVT' ? '22' : '2';
+      $('c-size').innerHTML = WIRE_OD[t].map(r => `<option value="${r[0]}"${r[0] === def ? ' selected' : ''}>${r[0]}${r[0].endsWith('mm') ? '' : ' sq'}（外径 ${r[1]}mm）</option>`).join('');
+    }
 
-      const odMap = WIRE_OD[sizeMM];
-      const od = odMap ? (odMap[wtype] || odMap['IV']) : 10;
-      const wireArea = Math.PI * (od/2) ** 2;
-      const totalArea = wireArea * cores;
-      const reqInner  = Math.sqrt(totalArea / (Math.PI * 0.4)) * 2; // 占積率40%から最小内径
+    function calcConduit() {
+      const wtype = $('c-wiretype').value;
+      const size  = $('c-size').value;
+      const n     = Math.max(1, parseInt($('c-cores').value) || 1);
+      const bend  = $('c-bend').value;
+      const env   = $('c-env').value;
+
+      $('c-bend').disabled = (wtype !== 'IV');
+
+      const row = WIRE_OD[wtype].find(r => r[0] === size);
+      if (!row) return;
+      const od = row[1];
+      const isIV = (wtype === 'IV');
+
+      let reqInner, totalArea, rule, ruleShort, kIV = 1.0, fillMax = null;
+      const JAM = n === 3 && !isIV; // ケーブル3条はジャム（引き入れ不能）に注意
+      if (isIV) {
+        // 電線：被覆込み断面積（2本以上は補正係数）の合計が内断面積の32%以下（条件付48%）
+        kIV = n >= 2 ? row[2] : 1.0;
+        fillMax = bend === 'few' ? 48 : 32;
+        totalArea = Math.PI * (od / 2) ** 2 * kIV * n;
+        reqInner = 2 * Math.sqrt(totalArea / (Math.PI * fillMax / 100));
+        rule = `被覆込み断面積の合計を内断面積の${fillMax}%以下（${bend === 'few' ? '6m以下・屈曲なし' : '一般'}）` + (kIV !== 1 ? `、2本以上のため断面積×${kIV}` : '');
+        ruleShort = `占積率${fillMax}%`;
+      } else {
+        // ケーブル：管内径 ≧ ケーブル外径（2条以上は集合した外接円）× 1.5
+        const KN = [1, 2, 2.155, 2.414, 2.701, 3, 3, 3.304, 3.613, 3.813];
+        const k = n <= 10 ? KN[n - 1] : Math.sqrt(n / 0.7);
+        const bundle = od * k;
+        totalArea = Math.PI * (od / 2) ** 2 * n;
+        reqInner = 1.5 * bundle;
+        rule = n === 1 ? `管内径をケーブル外径 ${od}mm の1.5倍以上` : `管内径を${n}条集合の外接円 ${bundle.toFixed(1)}mm の1.5倍以上`;
+        ruleShort = '外径×1.5';
+      }
 
       $('c-total-area').innerHTML = `${totalArea.toFixed(0)}<span class="card-unit"> mm²</span>`;
-      $('c-area-sub').textContent = `外径 ${od} mm × ${cores}本　→ 必要内径 ${reqInner.toFixed(0)} mm以上`;
+      $('c-area-sub').textContent = `外径 ${od}mm × ${n}本` + (kIV !== 1 ? `（補正×${kIV}）` : '') + ` → 内径 ${reqInner.toFixed(1)}mm 以上`;
 
-      // 各管種の推奨
-      function findPipe(table) {
-        return table.find(p => p[1] >= reqInner) || table[table.length-1];
-      }
-      const recMetal = findPipe(METAL_C);
-      const recPF    = findPipe(PF_PIPE);
-      const recFlex  = findPipe(FLEX_PIPE);
-
-      // 全体推奨（環境に応じた最適管）
-      let recMain, recType;
-      if (env === 'machine') { recMain = recFlex[0]; recType = 'フレキ管（可動部対応）'; }
-      else if (env === 'outdoor' || env === 'hightemp') { recMain = recMetal[0]; recType = '金属管（C管）'; }
-      else { recMain = recPF[0]; recType = 'PF管（施工性重視）'; }
-
-      $('c-rec-size').textContent = recMain;
-      $('c-rec-type').textContent = recType;
-
-      // 管種テーブル
-      const showAll   = ctype === 'all';
-      const showMetal = showAll || ctype === 'metal';
-      const showPF    = showAll || ctype === 'pf';
-      const showFlex  = showAll || ctype === 'flex';
-      const showRack  = showAll || ctype === 'rack';
-
-      let rows = '';
-      if (showMetal) {
-        METAL_C.forEach(p => {
-          const area = Math.PI*(p[1]/2)**2;
-          const fill = ((totalArea/area)*100).toFixed(0);
-          const ok = p[1] >= reqInner;
-          const isRec = p[0] === recMetal[0];
-          rows += `<tr${isRec&&(showAll||ctype==='metal')?' class="highlight-row"':''}>
-            <td>${p[0]}</td><td>${ok?'<span class="good-text">'+p[0]+'</span>':'<span class="bad-text">NG</span>'}</td>
-            <td>${p[1]}</td><td${fill>40?' style="color:var(--bad)"':ok?' style="color:var(--good)"':''} >${fill}%</td>
-            <td>屋内・屋外・埋設 ○</td>
-          </tr>`;
-        });
-      }
-      if (showPF) {
-        PF_PIPE.forEach(p => {
-          const area = Math.PI*(p[1]/2)**2;
-          const fill = ((totalArea/area)*100).toFixed(0);
-          const ok = p[1] >= reqInner;
-          const isRec = p[0] === recPF[0];
-          rows += `<tr${isRec&&(showAll||ctype==='pf')?' class="highlight-row"':''}>
-            <td>${p[0]}</td><td>${ok?'<span class="good-text">'+p[0]+'</span>':'<span class="bad-text">NG</span>'}</td>
-            <td>${p[1]}</td><td${fill>40?' style="color:var(--bad)"':ok?' style="color:var(--good)"':''} >${fill}%</td>
-            <td>屋内 ○ / 屋外 PFのみ ○</td>
-          </tr>`;
-        });
-      }
-      if (showFlex) {
-        FLEX_PIPE.forEach(p => {
-          const area = Math.PI*(p[1]/2)**2;
-          const fill = ((totalArea/area)*100).toFixed(0);
-          const ok = p[1] >= reqInner;
-          const isRec = p[0] === recFlex[0];
-          rows += `<tr${isRec&&(showAll||ctype==='flex')?' class="highlight-row"':''}>
-            <td>${p[0]}</td><td>${ok?'<span class="good-text">'+p[0]+'</span>':'<span class="bad-text">NG</span>'}</td>
-            <td>${p[1]}</td><td${fill>40?' style="color:var(--bad)"':ok?' style="color:var(--good)"':''} >${fill}%</td>
-            <td>可動部 ○ / 防水型 ○</td>
-          </tr>`;
-        });
-      }
-      if (showRack) {
-        rows += `<tr>
-          <td>ケーブルラック</td>
-          <td class="elec-text">設計による</td>
-          <td>—</td><td>—</td>
-          <td>多条敷設 ◎ / 幹線向き</td>
-        </tr>`;
-      }
-      $('c-table-body').innerHTML = rows;
-
-      // ガイドカード
-      const guideGrid = $('c-guide-grid');
-      guideGrid.innerHTML = '';
-      ['metal','pf','flex','rack'].forEach(k => {
-        if (!showAll && ctype !== k) return;
-        const g = CONDUIT_GUIDES[k];
-        guideGrid.innerHTML += `<div class="guide-card">
-          <div class="guide-card-title" style="color:${g.color}">${g.title}</div>
-          <div class="guide-card-body">${g.body}</div>
-        </div>`;
+      const envMap = CONDUIT_ENV[env];
+      const jamOf = (dIn) => { const r = dIn / od; return r >= 2.85 && r <= 3.15; };
+      const results = CONDUITS.map(c => {
+        const hit = c.sizes.find(s => s[1] >= reqInner && !(JAM && jamOf(s[1])));
+        const skipped = JAM && c.sizes.some(s => s[1] >= reqInner && jamOf(s[1]) && (!hit || s[1] < hit[1]));
+        const fill = hit ? totalArea / (Math.PI * (hit[1] / 2) ** 2) * 100 : null;
+        return { c, hit, fill, skipped, ok: envMap[c.key] };
       });
 
+      // おすすめ（場所に合う管で、サイズが見つかるもの）
+      const recRes = envMap.rec.map(k => results.find(r => r.c.key === k)).find(r => r && r.hit);
+      if (recRes) {
+        $('c-rec-size').textContent = recRes.hit[0];
+        $('c-rec-type').textContent = recRes.c.name;
+      } else {
+        $('c-rec-size').textContent = '—';
+        $('c-rec-type').textContent = '該当サイズなし（管を分けるかラックを検討）';
+      }
+
+      $('c-table-body').innerHTML = results.map(r => {
+        const isRec = recRes && r === recRes;
+        const okCls = r.ok === '◎' ? 'good-text' : r.ok === '✗' ? 'bad-text' : r.ok === '△' ? 'warn-text' : '';
+        return `<tr${isRec ? ' class="highlight-row"' : ''}>
+          <td>${r.c.name}</td>
+          <td>${r.hit ? r.hit[0] + (r.skipped ? '<br><span style="font-size:10px">ジャム回避で1サイズ上</span>' : '') : '<span class="bad-text">入らない</span>'}</td>
+          <td>${r.hit ? r.hit[1] + ' mm' : '—'}</td>
+          <td>${r.fill != null ? r.fill.toFixed(0) + '%' : '—'}</td>
+          <td><span class="${okCls}">${r.ok}</span></td>
+        </tr>`;
+      }).join('') + `<tr><td>ケーブルラック</td><td class="elec-text">設計による</td><td>—</td><td>—</td><td>${env === 'machine' ? '✗' : '○'}</td></tr>`;
+
+      // ガイド
+      $('c-guide-grid').innerHTML = ['metal','pf','plica','flex','rack'].map(k => {
+        const g = CONDUIT_GUIDES[k];
+        return `<div class="guide-card"><div class="guide-card-title" style="color:${g.color}">${g.title}</div><div class="guide-card-body">${g.body}</div></div>`;
+      }).join('');
+
+      // 注記
+      const notes = [
+        `ルール：${rule}（内線規程）。`,
+        '内線規程：IVは被覆込み断面積の合計を32%以下（管の長さ6m以下・屈曲なしなら48%）。2本以上のときは断面積に補正係数（1.6・2.0mm＝2.0／2.6・3.2mm・5.5・8sq＝1.2／14sq以上＝1.0）。ケーブルは管内径を外径（2条以上は集合した外接円）の1.5倍以上。',
+        'このツールは1種類の電線だけを計算。太さの違う電線を混ぜる場合は合計で32%以下、電線とケーブルが混在する場合は外接円の1.5倍以上で個別に確認すること。',
+        'ケーブルを3条入れる場合、管内径÷ケーブル外径が2.85〜3.15だと一列に並んで引き入れ不能（ジャム）になりやすいので、その太さは避けている。',
+        '1区間の屈曲は4か所以内・合計270°以内。',
+        ENV_NOTE[env],
+        '管の内径は内線規程（2005）の表とメーカー値。PF管は呼び≒内径（JIS C 8411）で、二重管（PF-D）の実内径（PF42＝40mm、PF54＝52mm）を使って安全側。',
+      ];
+      if ((wtype === 'IV' || wtype === 'VCTF') && env === 'hightemp') notes.unshift(`⚠ ${wtype}は最高許容温度60℃。60℃を超える場所では耐熱電線にすること。`);
+      $('c-notes').innerHTML = notes.map(t => '・' + t).join('<br>');
+
       // 判定
-      $('c-verdict-icon').textContent = '🔶';
-      $('c-verdict-main').textContent = `推奨管：${recMain}（${recType}）`;
-      $('c-verdict-sub').textContent  = `電線占積断面積 ${totalArea.toFixed(0)} mm² / 必要内径 ${reqInner.toFixed(0)} mm以上（占積率40%基準）`;
-      $('c-verdict').style.borderColor = 'var(--elec)';
+      const warnHot = (wtype === 'IV' || wtype === 'VCTF') && env === 'hightemp';
+      $('c-verdict-icon').textContent = warnHot ? '⚠️' : recRes ? '🔶' : '⛔';
+      $('c-verdict-main').textContent = recRes ? `おすすめ：${recRes.hit[0]}（${recRes.c.name}）` : '1本の管に入りきらない';
+      $('c-verdict-sub').textContent  = (warnHot ? `${wtype}は60℃超の場所では使えない／` : '') + `必要内径 ${reqInner.toFixed(1)}mm 以上（${ruleShort}）`;
+      $('c-verdict').style.borderColor = warnHot ? 'var(--warn)' : recRes ? 'var(--elec)' : 'var(--bad)';
     }
+
+    fillConduitSizes();
 
     /* ══════════════════════════════
        初期計算
